@@ -51,9 +51,12 @@ if st.sidebar.button("Remove Ticker") and remove_ticker:
     st.rerun()
 
 st.sidebar.markdown("---")
-st.sidebar.subheader("Player Roster")
-for p in PLAYERS:
-    st.sidebar.write(f"**{p['name']}** — {p['ticker']} (${INVESTMENT:.2f})")
+st.sidebar.subheader("Stocks Picked")
+roster_search = st.sidebar.text_input("Search stocks", placeholder="Filter by ticker")
+for p in sorted(PLAYERS, key=lambda x: x['ticker'].upper()):
+    if roster_search and roster_search.upper() not in p['ticker'].upper():
+        continue
+    st.sidebar.write(p['ticker'])
 
 # --- Main ---
 st.title("Stock Market Fantasy Draft Tracker")
@@ -215,10 +218,16 @@ for rank, (ticker, ret) in enumerate(final_returns.items(), start=1):
     final_value = price_value + div_income
     total_return = (final_value / INVESTMENT - 1) * 100
     profit = final_value - INVESTMENT
+    total_players = len(final_returns)
+    if rank == 1:
+        display_ticker = f"👑 {ticker}"
+    elif rank == total_players:
+        display_ticker = f"🍼 {ticker}"
+    else:
+        display_ticker = ticker
     rows.append({
         "Rank": rank,
-        "Player": NAME_MAP[ticker],
-        "Ticker": ticker,
+        "Ticker": display_ticker,
         "Total Return (%)": f"{total_return:+.2f}%",
         "Price Return (%)": f"{ret:+.2f}%",
         "Dividends": f"${div_income:.2f}",
