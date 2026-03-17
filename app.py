@@ -242,6 +242,7 @@ col2.plotly_chart(fig_bottom, use_container_width=True)
 
 # --- Leaderboard ---
 st.subheader("Leaderboard")
+st.caption("**Total Return (%)** = Price Return + Dividends earned on shares purchased. **Price Return (%)** = (End Price - Start Price) / Start Price.")
 
 start_date_label = returns.index[0].strftime("%m/%d/%Y")
 end_date_label = returns.index[-1].strftime("%m/%d/%Y")
@@ -271,14 +272,15 @@ for rank, (ticker, ret) in enumerate(final_returns.items(), start=1):
         "ETF": ETF_MAP.get(ticker, ""),
         "Company": NAME_MAP[ticker],
         "Ticker": display_ticker,
-        f"Start Price ({start_date_label})": f"${share_price:.2f}",
-        f"End Price ({end_date_label})": f"${end_prices[ticker]:.2f}",
         "Total Return (%)": f"{total_return:+.2f}%",
         "Price Return (%)": f"{ret:+.2f}%",
-        "Dividends": f"${div_income:.2f}",
-        "Invested": f"${INVESTMENT:.2f}",
-        "Final Value": f"${final_value:.2f}",
         "Profit / Loss": f"${profit:+.2f}",
+        "Final Value": f"${final_value:.2f}",
+        f"Start Price ({start_date_label})": f"${share_price:.2f}",
+        f"End Price ({end_date_label})": f"${end_prices[ticker]:.2f}",
+        "Invested": f"${INVESTMENT:.2f}",
+        f"Shares ({start_date_label})": f"{shares:.4f}",
+        "Dividends": f"${div_income:.2f}",
     })
 
 df = pd.DataFrame(rows)
