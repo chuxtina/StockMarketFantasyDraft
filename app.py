@@ -143,31 +143,61 @@ if not valid_tickers:
 # --- Rank tickers by final return ---
 final_returns = returns[valid_tickers].iloc[-1].sort_values(ascending=False)
 top10_tickers = final_returns.head(10).index.tolist()
+bottom10_tickers = final_returns.tail(10).index.tolist()
 
-# --- Plotly Line Chart (Top 10 only) ---
-fig = go.Figure()
+# --- Plotly Line Chart: Top 10 Winners ---
+fig_top = go.Figure()
 
-for ticker in top10_tickers:
-    fig.add_trace(go.Scatter(
+for rank, ticker in enumerate(top10_tickers, start=1):
+    ret = final_returns[ticker]
+    fig_top.add_trace(go.Scatter(
         x=returns.index,
         y=returns[ticker],
         mode="lines",
-        name=f"{NAME_MAP[ticker]} ({ticker})",
+        name=f"#{rank} {NAME_MAP[ticker]} ({ticker}) {ret:+.2f}%",
     ))
 
-# 0% baseline
-fig.add_hline(y=0, line_dash="dash", line_color="gray", opacity=0.6)
+fig_top.add_hline(y=0, line_dash="dash", line_color="gray", opacity=0.6)
 
-fig.update_layout(
-    title="Top 10 Stocks — Cumulative % Return Over Time",
+fig_top.update_layout(
+    title="Top 10 Winners — Cumulative % Return Over Time",
     xaxis_title="Date",
     yaxis_title="Return (%)",
-    legend_title="Players",
+    legend_title="Rank",
     hovermode="x unified",
     height=500,
 )
 
-st.plotly_chart(fig, use_container_width=True)
+col1, col2 = st.columns(2)
+
+col1.plotly_chart(fig_top, use_container_width=True)
+
+# --- Plotly Line Chart: Top 10 Losers ---
+fig_bottom = go.Figure()
+
+total = len(final_returns)
+for i, ticker in enumerate(bottom10_tickers):
+    rank = total - len(bottom10_tickers) + i + 1
+    ret = final_returns[ticker]
+    fig_bottom.add_trace(go.Scatter(
+        x=returns.index,
+        y=returns[ticker],
+        mode="lines",
+        name=f"#{rank} {NAME_MAP[ticker]} ({ticker}) {ret:+.2f}%",
+    ))
+
+fig_bottom.add_hline(y=0, line_dash="dash", line_color="gray", opacity=0.6)
+
+fig_bottom.update_layout(
+    title="Top 10 Losers — Cumulative % Return Over Time",
+    xaxis_title="Date",
+    yaxis_title="Return (%)",
+    legend_title="Rank",
+    hovermode="x unified",
+    height=500,
+)
+
+col2.plotly_chart(fig_bottom, use_container_width=True)
 
 # --- Leaderboard ---
 st.subheader("Leaderboard")

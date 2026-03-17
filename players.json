@@ -1,76 +1,289 @@
 {
-  "investment_amount": 10.00,
+  "investment_amount": 10.0,
   "players": [
-    { "name": "AAPL", "ticker": "AAPL" },
-    { "name": "AB", "ticker": "AB" },
-    { "name": "ALK", "ticker": "ALK" },
-    { "name": "AMD", "ticker": "AMD" },
-    { "name": "AMZN", "ticker": "AMZN" },
-    { "name": "ANET", "ticker": "ANET" },
-    { "name": "APLD", "ticker": "APLD" },
-    { "name": "ASML", "ticker": "ASML" },
-    { "name": "ASTS", "ticker": "ASTS" },
-    { "name": "AVGO", "ticker": "AVGO" },
-    { "name": "BRK.B", "ticker": "BRK-B" },
-    { "name": "CIFR", "ticker": "CIFR" },
-    { "name": "COIN", "ticker": "COIN" },
-    { "name": "COST", "ticker": "COST" },
-    { "name": "CRWD", "ticker": "CRWD" },
-    { "name": "DASH", "ticker": "DASH" },
-    { "name": "DIS", "ticker": "DIS" },
-    { "name": "DUOL", "ticker": "DUOL" },
-    { "name": "ENLT", "ticker": "ENLT" },
-    { "name": "FIG", "ticker": "FIG" },
-    { "name": "GD", "ticker": "GD" },
-    { "name": "GLD", "ticker": "GLD" },
-    { "name": "GOOG", "ticker": "GOOG" },
-    { "name": "HD", "ticker": "HD" },
-    { "name": "HNST", "ticker": "HNST" },
-    { "name": "IBM", "ticker": "IBM" },
-    { "name": "INTC", "ticker": "INTC" },
-    { "name": "ION", "ticker": "ION" },
-    { "name": "IONQ", "ticker": "IONQ" },
-    { "name": "IREN", "ticker": "IREN" },
-    { "name": "JNJ", "ticker": "JNJ" },
-    { "name": "LLY", "ticker": "LLY" },
-    { "name": "LMT", "ticker": "LMT" },
-    { "name": "LRCX", "ticker": "LRCX" },
-    { "name": "MAR", "ticker": "MAR" },
-    { "name": "MCD", "ticker": "MCD" },
-    { "name": "MELI", "ticker": "MELI" },
-    { "name": "META", "ticker": "META" },
-    { "name": "MRNA", "ticker": "MRNA" },
-    { "name": "MSFT", "ticker": "MSFT" },
-    { "name": "MSTR", "ticker": "MSTR" },
-    { "name": "MU", "ticker": "MU" },
-    { "name": "NFLX", "ticker": "NFLX" },
-    { "name": "NOC", "ticker": "NOC" },
-    { "name": "NTDOY", "ticker": "NTDOY" },
-    { "name": "NVDA", "ticker": "NVDA" },
-    { "name": "NVO", "ticker": "NVO" },
-    { "name": "ORCL", "ticker": "ORCL" },
-    { "name": "PANW", "ticker": "PANW" },
-    { "name": "PG", "ticker": "PG" },
-    { "name": "PLTR", "ticker": "PLTR" },
-    { "name": "PPLT", "ticker": "PPLT" },
-    { "name": "RBLX", "ticker": "RBLX" },
-    { "name": "RIVN", "ticker": "RIVN" },
-    { "name": "RTX", "ticker": "RTX" },
-    { "name": "SLV", "ticker": "SLV" },
-    { "name": "SNDK", "ticker": "SNDK" },
-    { "name": "STX", "ticker": "STX" },
-    { "name": "SVNDY", "ticker": "SVNDY" },
-    { "name": "TGT", "ticker": "TGT" },
-    { "name": "TPL", "ticker": "TPL" },
-    { "name": "TSM", "ticker": "TSM" },
-    { "name": "TYGO", "ticker": "TYGO" },
-    { "name": "UNH", "ticker": "UNH" },
-    { "name": "WDAY", "ticker": "WDAY" },
-    { "name": "WDC", "ticker": "WDC" },
-    { "name": "WM", "ticker": "WM" },
-    { "name": "WMT", "ticker": "WMT" },
-    { "name": "XOM", "ticker": "XOM" },
-    { "name": "AMR", "ticker": "AMR" },
-    { "name": "TER", "ticker": "TER" }
+    {
+      "name": "AAPL",
+      "ticker": "AAPL"
+    },
+    {
+      "name": "AB",
+      "ticker": "AB"
+    },
+    {
+      "name": "ALK",
+      "ticker": "ALK"
+    },
+    {
+      "name": "AMD",
+      "ticker": "AMD"
+    },
+    {
+      "name": "AMZN",
+      "ticker": "AMZN"
+    },
+    {
+      "name": "ANET",
+      "ticker": "ANET"
+    },
+    {
+      "name": "APLD",
+      "ticker": "APLD"
+    },
+    {
+      "name": "ASML",
+      "ticker": "ASML"
+    },
+    {
+      "name": "ASTS",
+      "ticker": "ASTS"
+    },
+    {
+      "name": "AVGO",
+      "ticker": "AVGO"
+    },
+    {
+      "name": "BRK.B",
+      "ticker": "BRK-B"
+    },
+    {
+      "name": "CIFR",
+      "ticker": "CIFR"
+    },
+    {
+      "name": "COIN",
+      "ticker": "COIN"
+    },
+    {
+      "name": "COST",
+      "ticker": "COST"
+    },
+    {
+      "name": "CRWD",
+      "ticker": "CRWD"
+    },
+    {
+      "name": "DASH",
+      "ticker": "DASH"
+    },
+    {
+      "name": "DIS",
+      "ticker": "DIS"
+    },
+    {
+      "name": "DUOL",
+      "ticker": "DUOL"
+    },
+    {
+      "name": "ENLT",
+      "ticker": "ENLT"
+    },
+    {
+      "name": "FIG",
+      "ticker": "FIG"
+    },
+    {
+      "name": "GD",
+      "ticker": "GD"
+    },
+    {
+      "name": "GLD",
+      "ticker": "GLD"
+    },
+    {
+      "name": "GOOG",
+      "ticker": "GOOG"
+    },
+    {
+      "name": "HD",
+      "ticker": "HD"
+    },
+    {
+      "name": "HNST",
+      "ticker": "HNST"
+    },
+    {
+      "name": "IBM",
+      "ticker": "IBM"
+    },
+    {
+      "name": "INTC",
+      "ticker": "INTC"
+    },
+    {
+      "name": "ION",
+      "ticker": "ION"
+    },
+    {
+      "name": "IONQ",
+      "ticker": "IONQ"
+    },
+    {
+      "name": "IREN",
+      "ticker": "IREN"
+    },
+    {
+      "name": "JNJ",
+      "ticker": "JNJ"
+    },
+    {
+      "name": "LLY",
+      "ticker": "LLY"
+    },
+    {
+      "name": "LMT",
+      "ticker": "LMT"
+    },
+    {
+      "name": "LRCX",
+      "ticker": "LRCX"
+    },
+    {
+      "name": "MAR",
+      "ticker": "MAR"
+    },
+    {
+      "name": "MCD",
+      "ticker": "MCD"
+    },
+    {
+      "name": "MELI",
+      "ticker": "MELI"
+    },
+    {
+      "name": "META",
+      "ticker": "META"
+    },
+    {
+      "name": "MRNA",
+      "ticker": "MRNA"
+    },
+    {
+      "name": "MSFT",
+      "ticker": "MSFT"
+    },
+    {
+      "name": "MSTR",
+      "ticker": "MSTR"
+    },
+    {
+      "name": "MU",
+      "ticker": "MU"
+    },
+    {
+      "name": "NFLX",
+      "ticker": "NFLX"
+    },
+    {
+      "name": "NOC",
+      "ticker": "NOC"
+    },
+    {
+      "name": "NTDOY",
+      "ticker": "NTDOY"
+    },
+    {
+      "name": "NVDA",
+      "ticker": "NVDA"
+    },
+    {
+      "name": "NVO",
+      "ticker": "NVO"
+    },
+    {
+      "name": "ORCL",
+      "ticker": "ORCL"
+    },
+    {
+      "name": "PANW",
+      "ticker": "PANW"
+    },
+    {
+      "name": "PG",
+      "ticker": "PG"
+    },
+    {
+      "name": "PLTR",
+      "ticker": "PLTR"
+    },
+    {
+      "name": "PPLT",
+      "ticker": "PPLT"
+    },
+    {
+      "name": "RBLX",
+      "ticker": "RBLX"
+    },
+    {
+      "name": "RIVN",
+      "ticker": "RIVN"
+    },
+    {
+      "name": "RTX",
+      "ticker": "RTX"
+    },
+    {
+      "name": "SLV",
+      "ticker": "SLV"
+    },
+    {
+      "name": "SNDK",
+      "ticker": "SNDK"
+    },
+    {
+      "name": "STX",
+      "ticker": "STX"
+    },
+    {
+      "name": "SVNDY",
+      "ticker": "SVNDY"
+    },
+    {
+      "name": "TGT",
+      "ticker": "TGT"
+    },
+    {
+      "name": "TPL",
+      "ticker": "TPL"
+    },
+    {
+      "name": "TSM",
+      "ticker": "TSM"
+    },
+    {
+      "name": "TYGO",
+      "ticker": "TYGO"
+    },
+    {
+      "name": "UNH",
+      "ticker": "UNH"
+    },
+    {
+      "name": "WDAY",
+      "ticker": "WDAY"
+    },
+    {
+      "name": "WDC",
+      "ticker": "WDC"
+    },
+    {
+      "name": "WM",
+      "ticker": "WM"
+    },
+    {
+      "name": "WMT",
+      "ticker": "WMT"
+    },
+    {
+      "name": "XOM",
+      "ticker": "XOM"
+    },
+    {
+      "name": "TER",
+      "ticker": "TER"
+    },
+    {
+      "name": "ARM",
+      "ticker": "ARM"
+    }
   ]
 }
