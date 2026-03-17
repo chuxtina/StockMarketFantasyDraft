@@ -1,16 +1,31 @@
 import json
+import os
 import datetime
 import streamlit as st
 import pandas as pd
 import yfinance as yf
 import plotly.graph_objects as go
 
+SUBSCRIBERS_FILE = "subscribers.json"
+
+def load_subscribers():
+    if os.path.exists(SUBSCRIBERS_FILE):
+        with open(SUBSCRIBERS_FILE) as f:
+            return json.load(f)
+    return []
+
+def save_subscribers(subs):
+    with open(SUBSCRIBERS_FILE, "w") as f:
+        json.dump(subs, f, indent=2)
+
 # --- Config ---
 st.set_page_config(page_title="Stock Market Fantasy Draft", layout="wide")
 
 st.markdown("""
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded" rel="stylesheet" />
 <style>
 * { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji' !important; }
+span[class*="material"], [data-testid*="collapse"] span, [data-testid*="Collapse"] span, [data-testid*="expand"] span, [data-testid*="Expand"] span, [kind="icon"] span, .stIcon span, [data-testid="stBaseButton-headerNoPadding"] span { font-family: 'Material Symbols Rounded' !important; }
 table td, table th { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji' !important; }
 table.leaderboard { width: 100% !important; }
 table.leaderboard td, table.leaderboard th { padding: 8px 12px; text-align: left; }
@@ -242,7 +257,7 @@ col2.plotly_chart(fig_bottom, use_container_width=True)
 
 # --- Leaderboard ---
 st.subheader("Leaderboard")
-st.caption("**Total Return (%)** = Price Return + Dividends earned on shares purchased. **Price Return (%)** = (End Price - Start Price) / Start Price.")
+st.caption("**Price Return (%)** = (End Price - Start Price) / Start Price. **Total Return (%)** = Price Return + Dividends earned on shares purchased.")
 
 start_date_label = returns.index[0].strftime("%m/%d/%Y")
 end_date_label = returns.index[-1].strftime("%m/%d/%Y")
@@ -272,16 +287,58 @@ for rank, (ticker, ret) in enumerate(final_returns.items(), start=1):
         "ETF": ETF_MAP.get(ticker, ""),
         "Company": NAME_MAP[ticker],
         "Ticker": display_ticker,
-        "Total Return (%)": f"{total_return:+.2f}%",
-        "Price Return (%)": f"{ret:+.2f}%",
-        "Profit / Loss": f"${profit:+.2f}",
-        "Final Value": f"${final_value:.2f}",
         f"Start Price ({start_date_label})": f"${share_price:.2f}",
         f"End Price ({end_date_label})": f"${end_prices[ticker]:.2f}",
         "Invested": f"${INVESTMENT:.2f}",
         f"Shares ({start_date_label})": f"{shares:.4f}",
+        "Profit / Loss": f"${profit:+.2f}",
         "Dividends": f"${div_income:.2f}",
+        "Final Value": f"${final_value:.2f}",
+        "Price Return (%)": f"{ret:+.2f}%",
+        "Total Return (%)": f"{total_return:+.2f}%",
     })
 
 df = pd.DataFrame(rows)
 st.markdown(df.to_html(escape=False, index=False, classes="leaderboard"), unsafe_allow_html=True)
+
+# --- Subscribe ---
+st.markdown("---")
+st.subheader("Subscribe to Email Updates")
+sub_col1, sub_col2, sub_col3 = st.columns([2, 1, 1])
+with sub_col1:
+    sub_email = st.text_input("Email address", placeholder="you@example.com", key="sub_email")
+with sub_col2:
+    sub_frequency = st.selectbox("Frequency", ["Weekly", "Monthly", "Quarterly"], key="sub_freq")
+with sub_col3:
+    st.markdown("<br>", unsafe_allow_html=True)
+    col_btn1, col_btn2 = st.columns(2)
+    with col_btn1:
+        subscribe_clicked = st.button("Subscribe")
+    with col_btn2:
+        unsubscribe_clicked = st.button("Unsubscribe")
+
+if subscribe_clicked:
+    if not sub_email or "@" not in sub_email:
+        st.error("Please enter a valid email address.")
+    else:
+        subs = load_subscribers()
+        existing = next((s for s in subs if s["email"].lower() == sub_email.lower()), None)
+        if existing:
+            existing["frequency"] = sub_frequency.lower()
+            st.info(f"Updated subscription to {sub_frequency.lower()}.")
+        else:
+            subs.append({"email": sub_email, "frequency": sub_frequency.lower()})
+            st.success(f"Subscribed {sub_email} for {sub_frequency.lower()} updates!")
+        save_subscribers(subs)
+
+if unsubscribe_clicked:
+    if not sub_email:
+        st.error("Please enter your email address.")
+    else:
+        subs = load_subscribers()
+        new_subs = [s for s in subs if s["email"].lower() != sub_email.lower()]
+        if len(new_subs) < len(subs):
+            save_subscribers(new_subs)
+            st.success(f"Unsubscribed {sub_email}.")
+        else:
+            st.warning("Email not found in subscriber list.")
