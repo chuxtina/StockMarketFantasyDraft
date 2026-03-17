@@ -4,11 +4,13 @@ A Streamlit app where players each invest $10 on a stock. The app tracks percent
 
 ## Features
 
-- **Top 10 Line Chart** — Plotly chart showing cumulative % return over time for the top 10 performing stocks
-- **Leaderboard** — Full ranking of all stocks with total return, price return, dividends, final value, and profit/loss
+- **Top 10 Winners & Losers Charts** — Side-by-side Plotly charts showing cumulative % return over time
+- **ETF Categories** — Stocks grouped into ETF categories (UNCL, ANTY, KIDZ) with average performance ranking
+- **Leaderboard** — Full ranking with start/end prices, shares, profit/loss, dividends, final value, price return, and total return
 - **Dividend Tracking** — Fetches actual dividend payments and calculates income based on shares purchased
 - **Add / Remove Tickers** — Manage tickers directly from the sidebar UI (persists to `players.json`)
 - **Flexible Date Range** — Pick any start and end date from the sidebar
+- **Email Subscriptions** — Subscribe to weekly, monthly, or quarterly email updates
 
 ## Tech Stack
 
@@ -45,6 +47,8 @@ You can also add and remove tickers from the sidebar in the running app.
 ```
 ├── app.py              # Streamlit application
 ├── players.json        # Player/ticker configuration
+├── subscribers.json    # Email subscriber list
+├── send_emails.py      # Email sending script
 ├── requirements.txt    # Python dependencies
 └── README.md
 ```
