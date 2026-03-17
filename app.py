@@ -556,8 +556,7 @@ col2.plotly_chart(fig_bottom, use_container_width=True)
 # --- Leaderboard ---
 st.markdown("""
 <section class="section-card">
-  <div class="section-heading">League Table</div>
-  <p class="section-copy"><strong>Price Return (%)</strong> is the percentage change in share price over the period, excluding dividends: <code>(End Price - Start Price) / Start Price × 100</code>. <strong>Total Return (%)</strong> is the percentage return including both share price change and dividend payouts: <code>((End Price - Start Price) + Dividends) / Start Price × 100</code>. Total Return determines the final standings.</p>
+  <p class="section-copy"><strong>Price Return (%)</strong> is the percentage change in share price over the period, excluding dividends: <code>(End Price - Start Price) / Start Price × 100</code>. <strong>Total Return (%)</strong> is the percentage return including both share price change and dividend payouts: <code>((End Price - Start Price) + Dividends) / Start Price × 100</code>.</p>
 </section>
 """, unsafe_allow_html=True)
 
