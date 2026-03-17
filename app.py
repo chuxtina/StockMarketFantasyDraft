@@ -499,9 +499,9 @@ fig_top.add_hline(y=0, line_dash="dash", line_color="gray", opacity=0.6)
 
 fig_top.update_layout(
     title="Top 10 Stocks In the Money",
-    xaxis_title="Fixture Date",
-    yaxis_title="Table Movement (%)",
-    legend_title="Position",
+    xaxis_title="Trading Window",
+    yaxis_title="Total Return (%)",
+    legend_title="Stock",
     hovermode="x unified",
     height=500,
     paper_bgcolor="rgba(0,0,0,0)",
@@ -536,9 +536,9 @@ fig_bottom.add_hline(y=0, line_dash="dash", line_color="gray", opacity=0.6)
 
 fig_bottom.update_layout(
     title="Bottom 10 Stocks Out of the Money",
-    xaxis_title="Fixture Date",
-    yaxis_title="Table Movement (%)",
-    legend_title="Position",
+    xaxis_title="Trading Window",
+    yaxis_title="Total Return (%)",
+    legend_title="Stock",
     hovermode="x unified",
     height=500,
     paper_bgcolor="rgba(0,0,0,0)",
