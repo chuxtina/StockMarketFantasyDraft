@@ -331,7 +331,6 @@ for p in sorted(PLAYERS, key=lambda x: x['ticker'].upper()):
 # --- Main ---
 st.markdown("""
 <section class="hero-card">
-  <div class="hero-kicker">League Table</div>
   <h1 class="hero-title">Stock Market Draft Standings</h1>
   <div class="hero-meta">
     <span class="hero-pill">Window: """ + start_date.strftime("%b %d, %Y") + """ to """ + end_date.strftime("%b %d, %Y") + """</span>
@@ -556,6 +555,7 @@ col2.plotly_chart(fig_bottom, use_container_width=True)
 # --- Leaderboard ---
 st.markdown("""
 <section class="section-card">
+  <div class="section-heading">Leaderboard</div>
   <p class="section-copy"><strong>Price Return (%)</strong> is the percentage change in share price over the period, excluding dividends: <code>(End Price - Start Price) / Start Price × 100</code>. <strong>Total Return (%)</strong> is the percentage return including both share price change and dividend payouts: <code>((End Price - Start Price) + Dividends) / Start Price × 100</code>.</p>
 </section>
 """, unsafe_allow_html=True)
