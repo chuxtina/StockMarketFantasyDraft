@@ -1,5 +1,4 @@
 import json
-import os
 import datetime
 from zoneinfo import ZoneInfo
 import streamlit as st
@@ -757,7 +756,7 @@ with tab_dashboard:
         .set_table_attributes('class="leaderboard"')
         .apply(leaderboard_row_style, axis=1)
     )
-    st.markdown(f'<div style="overflow-x: auto;">{styled_df.to_html(escape=False)}</div>', unsafe_allow_html=True)
+    st.markdown(f'<div style="overflow-x: auto;">{styled_df.to_html(escape=True)}</div>', unsafe_allow_html=True)
 
     # --- Subscribe ---
     st.markdown("---")
