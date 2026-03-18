@@ -592,8 +592,8 @@ fig_top.update_layout(
     plot_bgcolor="#fbfdf9",
     font=dict(family="Space Grotesk, sans-serif", color="#102018"),
     title_font=dict(size=18, color="#102018"),
-    legend=dict(orientation="v", yanchor="top", y=1, x=1.02, xanchor="left", font=dict(color="#102018", size=12)),
-    margin=dict(t=90, r=200, b=20, l=40),
+    legend=dict(orientation="h", yanchor="top", y=-0.15, x=0, xanchor="left", font=dict(color="#102018", size=12)),
+    margin=dict(t=90, r=24, b=200, l=40),
 )
 fig_top.update_xaxes(showgrid=False, fixedrange=True, tickfont=dict(color="#102018"), title_font=dict(color="#102018"))
 fig_top.update_yaxes(gridcolor="rgba(31, 26, 23, 0.12)", zeroline=False, fixedrange=True, tickfont=dict(color="#102018"), title_font=dict(color="#102018"))
@@ -634,8 +634,8 @@ fig_bottom.update_layout(
     plot_bgcolor="#fbfdf9",
     font=dict(family="Space Grotesk, sans-serif", color="#102018"),
     title_font=dict(size=18, color="#102018"),
-    legend=dict(orientation="v", yanchor="top", y=1, x=1.02, xanchor="left", font=dict(color="#102018", size=12)),
-    margin=dict(t=90, r=200, b=20, l=40),
+    legend=dict(orientation="h", yanchor="top", y=-0.15, x=0, xanchor="left", font=dict(color="#102018", size=12)),
+    margin=dict(t=90, r=24, b=200, l=40),
 )
 fig_bottom.update_xaxes(showgrid=False, fixedrange=True, tickfont=dict(color="#102018"), title_font=dict(color="#102018"))
 fig_bottom.update_yaxes(gridcolor="rgba(31, 26, 23, 0.12)", zeroline=False, fixedrange=True, tickfont=dict(color="#102018"), title_font=dict(color="#102018"))
