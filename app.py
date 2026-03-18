@@ -525,14 +525,28 @@ with tab_dashboard:
         now_et = datetime.datetime.now(ZoneInfo("America/New_York"))
         timestamp = now_et.strftime("%I:%M:%S %p ET")
         if is_market_open():
-            st.markdown(
-                f'<div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.75rem;">'
+            import streamlit.components.v1 as components
+            components.html(
+                f'<div style="display:flex;align-items:center;gap:0.5rem;font-family:sans-serif;">'
                 f'<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#19a05f;'
                 f'box-shadow:0 0 6px #19a05f;"></span>'
-                f'<span style="font-size:0.82rem;color:var(--muted);">'
-                f'<strong style="color:#19a05f;">LIVE</strong> &middot; Updated {timestamp} &middot; Auto-refreshing every 60s'
-                f'</span></div>',
-                unsafe_allow_html=True,
+                f'<span style="font-size:0.82rem;color:#888;">'
+                f'<strong style="color:#19a05f;">LIVE</strong> &middot; Updated {timestamp} &middot; '
+                f'Next refresh in <span id="refresh-countdown">60</span>s'
+                f'</span></div>'
+                f'<script>'
+                f'(function() {{'
+                f'  var el = document.getElementById("refresh-countdown");'
+                f'  if (!el) return;'
+                f'  var seconds = 60;'
+                f'  var timer = setInterval(function() {{'
+                f'    seconds--;'
+                f'    if (seconds <= 0) {{ clearInterval(timer); el.textContent = "0"; return; }}'
+                f'    el.textContent = seconds;'
+                f'  }}, 1000);'
+                f'}})()'
+                f'</script>',
+                height=30,
             )
         else:
             st.markdown(
