@@ -1,3 +1,4 @@
+import html as html_mod
 import json
 import datetime
 from zoneinfo import ZoneInfo
@@ -556,7 +557,7 @@ with tab_dashboard:
     medals = ["🥇", "🥈", "🥉"]
     for i, (etf, total) in enumerate(etf_ranked):
         label = medals[i] if i < len(medals) else ""
-        parts.append(f"{label} {ETF_EMOJI.get(etf, '')} {etf} ({total:+.2f}%)")
+        parts.append(f"{label} {ETF_EMOJI.get(etf, '')} {html_mod.escape(etf)} ({total:+.2f}%)")
     best_ticker = final_returns.index[0]
     worst_ticker = final_returns.index[-1]
     metric_cols = st.columns(2)
@@ -564,8 +565,8 @@ with tab_dashboard:
         f"""
         <div class="metric-card mvp">
           <div class="metric-label">MVP</div>
-          <div class="metric-value positive">{ETF_EMOJI.get(ETF_MAP.get(best_ticker, ''), '')} {best_ticker}</div>
-          <div class="metric-detail">{NAME_MAP[best_ticker]} <span class="positive">{final_returns[best_ticker]:+.2f}%</span></div>
+          <div class="metric-value positive">{ETF_EMOJI.get(ETF_MAP.get(best_ticker, ''), '')} {html_mod.escape(best_ticker)}</div>
+          <div class="metric-detail">{html_mod.escape(NAME_MAP[best_ticker])} <span class="positive">{final_returns[best_ticker]:+.2f}%</span></div>
         </div>
         """,
         unsafe_allow_html=True,
@@ -574,8 +575,8 @@ with tab_dashboard:
         f"""
         <div class="metric-card bench">
           <div class="metric-label">Benchwarmer</div>
-          <div class="metric-value negative">{ETF_EMOJI.get(ETF_MAP.get(worst_ticker, ''), '')} {worst_ticker}</div>
-          <div class="metric-detail">{NAME_MAP[worst_ticker]} <span class="negative">({abs(final_returns[worst_ticker]):.2f}%)</span></div>
+          <div class="metric-value negative">{ETF_EMOJI.get(ETF_MAP.get(worst_ticker, ''), '')} {html_mod.escape(worst_ticker)}</div>
+          <div class="metric-detail">{html_mod.escape(NAME_MAP[worst_ticker])} <span class="negative">({abs(final_returns[worst_ticker]):.2f}%)</span></div>
         </div>
         """,
         unsafe_allow_html=True,
