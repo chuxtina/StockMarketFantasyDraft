@@ -1,6 +1,7 @@
 import json
 import os
 import datetime
+from zoneinfo import ZoneInfo
 import streamlit as st
 import pandas as pd
 import yfinance as yf
@@ -293,7 +294,7 @@ ETF_MAP = {p["ticker"]: p.get("etf", "") for p in PLAYERS}
 st.sidebar.title("Trading Windows")
 
 default_start = datetime.date(2026, 3, 6)
-default_end = datetime.date.today()
+default_end = datetime.datetime.now(ZoneInfo("America/Los_Angeles")).date()
 
 start_date = st.sidebar.date_input("Start Date", value=default_start)
 end_date = st.sidebar.date_input("End Date", value=default_end)
@@ -460,7 +461,7 @@ metric_cols[0].markdown(
     <div class="metric-card">
       <div class="metric-label">Highest Performing</div>
       <div class="metric-value positive">{ETF_EMOJI.get(ETF_MAP.get(best_ticker, ''), '')} {best_ticker}</div>
-      <div class="metric-detail">Table leader: {NAME_MAP[best_ticker]} {final_returns[best_ticker]:+.2f}%</div>
+      <div class="metric-detail">Table leader: {NAME_MAP[best_ticker]} <span class="positive">{final_returns[best_ticker]:+.2f}%</span></div>
     </div>
     """,
     unsafe_allow_html=True,
@@ -470,7 +471,7 @@ metric_cols[1].markdown(
     <div class="metric-card">
       <div class="metric-label">Lowest Performing</div>
       <div class="metric-value negative">{ETF_EMOJI.get(ETF_MAP.get(worst_ticker, ''), '')} {worst_ticker}</div>
-      <div class="metric-detail">Bottom of the table: {NAME_MAP[worst_ticker]} ({abs(final_returns[worst_ticker]):.2f}%)</div>
+      <div class="metric-detail">Bottom of the table: {NAME_MAP[worst_ticker]} <span class="negative">({abs(final_returns[worst_ticker]):.2f}%)</span></div>
     </div>
     """,
     unsafe_allow_html=True,
@@ -560,7 +561,8 @@ col2.plotly_chart(fig_bottom, use_container_width=True)
 st.markdown("""
 <section class="section-card">
   <div class="section-heading">Leaderboard</div>
-  <p class="section-copy"><strong>Price Return (%)</strong> is the percentage change in share price over the period, excluding dividends: <code>(End Price - Start Price) / Start Price × 100</code>. <strong>Total Return (%)</strong> is the percentage return including both share price change and dividend payouts: <code>((End Price - Start Price) + Dividends) / Start Price × 100</code>.</p>
+  <p class="section-copy"><strong>Price Return (%)</strong> is the percentage change in share price over the period, excluding dividends: <code>(End Price - Start Price) / Start Price × 100</code>.</p>
+  <p class="section-copy"><strong>Total Return (%)</strong> is the percentage return including both share price change and dividend payouts: <code>((End Price - Start Price) + Dividends) / Start Price × 100</code>.</p>
 </section>
 """, unsafe_allow_html=True)
 
