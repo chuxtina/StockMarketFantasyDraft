@@ -78,11 +78,16 @@ table td, table th, code, .mono { font-family: 'IBM Plex Mono', monospace !impor
     border-radius: 14px;
 }
 [data-testid="stSidebar"] .stDateInput {
-    background: rgba(255, 255, 255, 0.08);
-    border-radius: 14px;
+    background: transparent;
+    border-radius: 0;
 }
 [data-testid="stSidebar"] .stDateInput [data-baseweb="input"] {
     background: transparent !important;
+    border: none !important;
+    border-bottom: 1px solid rgba(247, 239, 228, 0.4) !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    padding: 0.2rem 0 !important;
 }
 [data-testid="stSidebar"] [data-baseweb="input"] input,
 [data-testid="stSidebar"] textarea {
@@ -185,7 +190,12 @@ table td, table th, code, .mono { font-family: 'IBM Plex Mono', monospace !impor
     inset: 0 auto 0 0;
     width: 6px;
     border-radius: 20px 0 0 20px;
-    background: linear-gradient(180deg, var(--accent-2) 0%, var(--accent) 100%);
+}
+.metric-card.mvp::before {
+    background: linear-gradient(180deg, #19a05f 0%, #0e5f3a 100%);
+}
+.metric-card.bench::before {
+    background: linear-gradient(180deg, #d14a34 0%, #8b1e1e 100%);
 }
 .metric-label {
     color: var(--muted);
@@ -520,7 +530,7 @@ worst_ticker = final_returns.index[-1]
 metric_cols = st.columns(2)
 metric_cols[0].markdown(
     f"""
-    <div class="metric-card">
+    <div class="metric-card mvp">
       <div class="metric-label">MVP</div>
       <div class="metric-value positive">{ETF_EMOJI.get(ETF_MAP.get(best_ticker, ''), '')} {best_ticker}</div>
       <div class="metric-detail">{NAME_MAP[best_ticker]} <span class="positive">{final_returns[best_ticker]:+.2f}%</span></div>
@@ -530,7 +540,7 @@ metric_cols[0].markdown(
 )
 metric_cols[1].markdown(
     f"""
-    <div class="metric-card">
+    <div class="metric-card bench">
       <div class="metric-label">Benchwarmer</div>
       <div class="metric-value negative">{ETF_EMOJI.get(ETF_MAP.get(worst_ticker, ''), '')} {worst_ticker}</div>
       <div class="metric-detail">{NAME_MAP[worst_ticker]} <span class="negative">({abs(final_returns[worst_ticker]):.2f}%)</span></div>
