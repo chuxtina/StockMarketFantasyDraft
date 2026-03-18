@@ -276,16 +276,40 @@ table.leaderboard tr td:first-child {
     font-weight: 700;
     color: var(--accent);
 }
+[data-testid="InputInstructions"] {
+    display: none !important;
+}
 div[data-testid="stTextInput"] input,
-div[data-testid="stSelectbox"] div[data-baseweb="select"],
 .stDateInput input {
     border-radius: 14px !important;
+    background-color: #ffffff !important;
+    border: 1px solid rgba(16, 32, 24, 0.2) !important;
+    color: #102018 !important;
+    -webkit-text-fill-color: #102018 !important;
 }
-div[data-testid="stButton"] button {
+div[data-testid="stSelectbox"] div[data-baseweb="select"] {
+    border-radius: 14px !important;
+    background-color: #ffffff !important;
+}
+div[data-testid="stSelectbox"] div[data-baseweb="select"] * {
+    background-color: #ffffff !important;
+    color: #102018 !important;
+    -webkit-text-fill-color: #102018 !important;
+}
+/* Input labels in main area */
+div[data-testid="stTextInput"] label,
+div[data-testid="stSelectbox"] label {
+    color: #102018 !important;
+    -webkit-text-fill-color: #102018 !important;
+    font-weight: 500;
+}
+div[data-testid="stButton"] button,
+div[data-testid="stFormSubmitButton"] button {
     border-radius: 999px;
     border: 0;
     background: linear-gradient(90deg, var(--accent) 0%, #0f8773 100%);
-    color: #fff;
+    color: #fff !important;
+    -webkit-text-fill-color: #fff !important;
     font-weight: 700;
     padding-inline: 1rem;
 }
@@ -730,48 +754,58 @@ with tab_dashboard:
 
 with tab_admin:
     if not st.session_state.admin_authenticated:
-        st.subheader("Admin Login")
-        password_input = st.text_input("Enter admin password", type="password")
-        if st.button("Login"):
-            if password_input == os.environ.get("ADMIN_PASSWORD", "password"):
-                st.session_state.admin_authenticated = True
-                st.rerun()
-            else:
-                st.error("Incorrect password.")
+        st.markdown("")
+        col_login = st.columns([1, 2, 1])[1]
+        with col_login:
+            st.markdown("#### Admin Login")
+            with st.form("login_form"):
+                password_input = st.text_input("Password", type="password", label_visibility="collapsed", placeholder="Enter admin password")
+                submitted = st.form_submit_button("Login", use_container_width=True)
+                if submitted:
+                    if password_input == st.secrets.get("ADMIN_PASSWORD", ""):
+                        st.session_state.admin_authenticated = True
+                        st.rerun()
+                    else:
+                        st.error("Incorrect password.")
     else:
-        st.subheader("Ticker Management")
+        st.markdown("")
+        col_mgmt = st.columns([1, 2, 1])[1]
+        with col_mgmt:
+            st.markdown("#### Add Ticker")
+            new_ticker = st.text_input("Ticker symbol", placeholder="e.g. TSLA", label_visibility="collapsed")
+            if st.button("Add Ticker", use_container_width=True) and new_ticker:
+                ticker_upper = new_ticker.strip().upper()
+                existing = {p["ticker"] for p in config["players"]}
+                if ticker_upper in existing:
+                    st.warning(f"{ticker_upper} is already in the list.")
+                else:
+                    config["players"].append({"etf": "", "name": ticker_upper, "ticker": ticker_upper})
+                    with open("players.json", "w") as f:
+                        json.dump(config, f, indent=2)
+                    st.success(f"Added {ticker_upper}!")
+                    st.rerun()
 
-        # --- Add Ticker ---
-        new_ticker = st.text_input("Add a ticker symbol", placeholder="e.g. TSLA")
-        if st.button("Add Ticker") and new_ticker:
-            ticker_upper = new_ticker.strip().upper()
-            existing = {p["ticker"] for p in config["players"]}
-            if ticker_upper in existing:
-                st.warning(f"{ticker_upper} is already in the list.")
-            else:
-                config["players"].append({"etf": "", "name": ticker_upper, "ticker": ticker_upper})
-                with open("players.json", "w") as f:
-                    json.dump(config, f, indent=2)
-                st.success(f"Added {ticker_upper}!")
+            st.markdown("#### Remove Ticker")
+            remove_options = [p["ticker"] for p in config["players"]]
+            remove_ticker = st.selectbox(
+                "Select ticker to remove",
+                [""] + remove_options,
+                format_func=lambda x: "Select a ticker" if x == "" else x,
+                label_visibility="collapsed",
+                key="remove_ticker",
+            )
+            col_remove, col_reset = st.columns(2)
+            with col_remove:
+                if st.button("Remove Ticker", use_container_width=True) and remove_ticker:
+                    config["players"] = [p for p in config["players"] if p["ticker"] != remove_ticker]
+                    with open("players.json", "w") as f:
+                        json.dump(config, f, indent=2)
+                    st.success(f"Removed {remove_ticker}!")
+                    st.rerun()
+            with col_reset:
+                st.button("Reset", use_container_width=True, on_click=lambda: st.session_state.update({"remove_ticker": ""}))
+
+            st.markdown("")
+            if st.button("Logout", use_container_width=True):
+                st.session_state.admin_authenticated = False
                 st.rerun()
-
-        st.markdown("---")
-
-        # --- Remove Ticker ---
-        remove_options = [p["ticker"] for p in config["players"]]
-        remove_ticker = st.selectbox(
-            "Remove a ticker",
-            [""] + remove_options,
-            format_func=lambda x: "Select a ticker" if x == "" else x,
-        )
-        if st.button("Remove Ticker") and remove_ticker:
-            config["players"] = [p for p in config["players"] if p["ticker"] != remove_ticker]
-            with open("players.json", "w") as f:
-                json.dump(config, f, indent=2)
-            st.success(f"Removed {remove_ticker}!")
-            st.rerun()
-
-        st.markdown("---")
-        if st.button("Logout"):
-            st.session_state.admin_authenticated = False
-            st.rerun()
