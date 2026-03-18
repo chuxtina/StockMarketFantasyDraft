@@ -551,7 +551,7 @@ metric_cols[1].markdown(
 
 st.markdown(
     f"""
-    <section class="section-card">
+    <section class="section-card" style="text-align: center;">
       <div class="section-heading">ETF Standing ({start_date.strftime('%b %d, %Y')} – {end_date.strftime('%b %d, %Y')})</div>
       {''.join(f'<p class="section-copy">{p}</p>' for p in parts)}
     </section>
