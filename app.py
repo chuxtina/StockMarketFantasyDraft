@@ -6,18 +6,6 @@ import pandas as pd
 import yfinance as yf
 import plotly.graph_objects as go
 
-SUBSCRIBERS_FILE = "subscribers.json"
-
-def load_subscribers():
-    if os.path.exists(SUBSCRIBERS_FILE):
-        with open(SUBSCRIBERS_FILE) as f:
-            return json.load(f)
-    return []
-
-def save_subscribers(subs):
-    with open(SUBSCRIBERS_FILE, "w") as f:
-        json.dump(subs, f, indent=2)
-
 
 def format_signed_currency(value):
     return f"${value:.2f}" if value >= 0 else f"(${abs(value):.2f})"
@@ -95,6 +83,20 @@ table td, table th, code, .mono { font-family: 'IBM Plex Mono', monospace !impor
 [data-testid="stSidebar"] textarea::placeholder {
     color: rgba(16, 32, 24, 0.7) !important;
     -webkit-text-fill-color: rgba(16, 32, 24, 0.7) !important;
+}
+[data-testid="stSidebar"] [data-baseweb="input"] div,
+[data-testid="stSidebar"] [data-testid="InputInstructions"],
+[data-testid="stSidebar"] [data-testid="InputInstructions"] * {
+    color: #102018 !important;
+    -webkit-text-fill-color: #102018 !important;
+}
+[data-testid="stSidebar"] .stDateInput input {
+    color: #f7efe4 !important;
+    -webkit-text-fill-color: #f7efe4 !important;
+}
+[data-testid="stSidebar"] [data-baseweb="select"] * {
+    color: #102018 !important;
+    -webkit-text-fill-color: #102018 !important;
 }
 [data-testid="stSidebar"] button {
     border-radius: 999px;
@@ -245,14 +247,6 @@ table.leaderboard tr td:first-child {
     font-weight: 700;
     color: var(--accent);
 }
-table.leaderboard tr:first-child td:first-child::before {
-    content: "▲ ";
-    color: var(--accent-2);
-}
-table.leaderboard tr:last-child td:first-child::before {
-    content: "▼ ";
-    color: var(--negative);
-}
 div[data-testid="stTextInput"] input,
 div[data-testid="stSelectbox"] div[data-baseweb="select"],
 .stDateInput input {
@@ -321,7 +315,7 @@ if st.sidebar.button("Add Ticker") and new_ticker:
 
 # Remove ticker
 remove_options = [p["ticker"] for p in config["players"]]
-remove_ticker = st.sidebar.selectbox("Remove a ticker", [""] + remove_options)
+remove_ticker = st.sidebar.selectbox("Remove a ticker", [""] + remove_options, format_func=lambda x: "Select a ticker" if x == "" else x)
 if st.sidebar.button("Remove Ticker") and remove_ticker:
     config["players"] = [p for p in config["players"] if p["ticker"] != remove_ticker]
     with open("players.json", "w") as f:
@@ -476,7 +470,7 @@ metric_cols[1].markdown(
     <div class="metric-card">
       <div class="metric-label">Lowest Performing</div>
       <div class="metric-value negative">{ETF_EMOJI.get(ETF_MAP.get(worst_ticker, ''), '')} {worst_ticker}</div>
-      <div class="metric-detail">Bottom of the table: {NAME_MAP[worst_ticker]} {final_returns[worst_ticker]:+.2f}%</div>
+      <div class="metric-detail">Bottom of the table: {NAME_MAP[worst_ticker]} ({abs(final_returns[worst_ticker]):.2f}%)</div>
     </div>
     """,
     unsafe_allow_html=True,
@@ -593,8 +587,9 @@ for rank, (ticker, ret) in enumerate(final_returns.items(), start=1):
         display_ticker = f"💩 {ticker}"
     else:
         display_ticker = ticker
+    arrow = "▲" if total_return >= 0 else "▼"
     rows.append({
-        "Rank": rank,
+        "Rank": f"{arrow} {rank}",
         "ETF": ETF_MAP.get(ticker, ""),
         "Stock": NAME_MAP[ticker],
         "Ticker": display_ticker,
@@ -612,11 +607,17 @@ for rank, (ticker, ret) in enumerate(final_returns.items(), start=1):
 df = pd.DataFrame(rows)
 total_rows = max(len(df) - 1, 1)
 
+# Find the first row with a down arrow (negative total return)
+first_negative_idx = next((i for i, r in enumerate(rows) if r["Rank"].startswith("▼")), None)
+
 
 def leaderboard_row_style(row):
     fraction = row.name / total_rows
     color = interpolate_hex_color("#19a05f", "#d14a34", fraction)
-    return [f"color: {color};"] * len(row)
+    styles = [f"color: {color};"] * len(row)
+    if row.name == first_negative_idx:
+        styles = [s + " border-top: 3px solid #102018;" for s in styles]
+    return styles
 
 
 styled_df = (
@@ -629,47 +630,3 @@ st.markdown(styled_df.to_html(escape=False), unsafe_allow_html=True)
 
 # --- Subscribe ---
 st.markdown("---")
-st.markdown("""
-<section class="section-card">
-  <div class="section-heading">Matchday Alerts</div>
-  <p class="section-copy">Get the updated table in your inbox after the rounds you care about.</p>
-</section>
-""", unsafe_allow_html=True)
-sub_col1, sub_col2, sub_col3 = st.columns([2, 1, 1])
-with sub_col1:
-    sub_email = st.text_input("Email address", placeholder="you@example.com", key="sub_email")
-with sub_col2:
-    sub_frequency = st.selectbox("Frequency", ["Weekly", "Monthly", "Quarterly"], key="sub_freq")
-with sub_col3:
-    st.markdown("<br>", unsafe_allow_html=True)
-    col_btn1, col_btn2 = st.columns(2)
-    with col_btn1:
-        subscribe_clicked = st.button("Subscribe")
-    with col_btn2:
-        unsubscribe_clicked = st.button("Unsubscribe")
-
-if subscribe_clicked:
-    if not sub_email or "@" not in sub_email:
-        st.error("Please enter a valid email address.")
-    else:
-        subs = load_subscribers()
-        existing = next((s for s in subs if s["email"].lower() == sub_email.lower()), None)
-        if existing:
-            existing["frequency"] = sub_frequency.lower()
-            st.info(f"Updated subscription to {sub_frequency.lower()}.")
-        else:
-            subs.append({"email": sub_email, "frequency": sub_frequency.lower()})
-            st.success(f"Subscribed {sub_email} for {sub_frequency.lower()} updates!")
-        save_subscribers(subs)
-
-if unsubscribe_clicked:
-    if not sub_email:
-        st.error("Please enter your email address.")
-    else:
-        subs = load_subscribers()
-        new_subs = [s for s in subs if s["email"].lower() != sub_email.lower()]
-        if len(new_subs) < len(subs):
-            save_subscribers(new_subs)
-            st.success(f"Unsubscribed {sub_email}.")
-        else:
-            st.warning("Email not found in subscriber list.")
