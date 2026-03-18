@@ -86,6 +86,20 @@ table td, table th, code, .mono { font-family: 'IBM Plex Mono', monospace !impor
     background: rgba(255, 255, 255, 0.08);
     border-radius: 14px;
 }
+[data-testid="stSidebar"] input,
+[data-testid="stSidebar"] textarea,
+[data-testid="stSidebar"] [data-baseweb="input"] input,
+[data-testid="stSidebar"] [data-baseweb="select"] input,
+[data-testid="stSidebar"] [data-baseweb="select"] span,
+[data-testid="stSidebar"] .stDateInput input {
+    color: #102018 !important;
+    -webkit-text-fill-color: #102018 !important;
+}
+[data-testid="stSidebar"] input::placeholder,
+[data-testid="stSidebar"] textarea::placeholder {
+    color: rgba(16, 32, 24, 0.7) !important;
+    -webkit-text-fill-color: rgba(16, 32, 24, 0.7) !important;
+}
 [data-testid="stSidebar"] button {
     border-radius: 999px;
     border: 1px solid rgba(255, 255, 255, 0.16);
