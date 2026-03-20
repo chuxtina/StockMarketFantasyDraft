@@ -547,6 +547,7 @@ def fetch_returns(tickers, start, end):
         end=end + datetime.timedelta(days=1),
         auto_adjust=True,
         progress=False,
+        threads=False,
     )
 
     if data.empty:
