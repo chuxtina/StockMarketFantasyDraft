@@ -1044,7 +1044,7 @@ with tab_dashboard:
             elif rank_diff < 0:
                 arrow = '<span style="color:#d14a34;font-size:14px;">▼</span>'
             else:
-                arrow = '<span style="color:#4a90d9;font-size:14px;">▶</span>'
+                arrow = '<span style="color:#4a90d9;font-size:14px;display:inline-block;transform:rotate(90deg);">▲</span>'
             rows.append({
                 "Rank": f"{arrow} {rank}",
                 "ETF": ETF_MAP.get(ticker, ""),
