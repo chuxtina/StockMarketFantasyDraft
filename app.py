@@ -165,14 +165,6 @@ table td, table th, code, .mono { font-family: 'IBM Plex Mono', monospace !impor
     justify-content: space-between;
     align-items: flex-start;
 }
-.hero-status {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    white-space: nowrap;
-    flex-shrink: 0;
-    padding-top: 0.3rem;
-}
 .hero-card::after {
     content: "";
     position: absolute;
@@ -671,32 +663,10 @@ def compute_throne_history(returns, valid_tickers, name_map):
 tab_dashboard, tab_admin = st.tabs(["Dashboard", "Admin"])
 
 with tab_dashboard:
-    # Build market status HTML for hero card
-    now_et = datetime.datetime.now(ZoneInfo("America/New_York"))
-    hero_timestamp = now_et.strftime("%I:%M:%S %p ET")
-    if is_market_open():
-        market_status_html = (
-            f'<div class="hero-status">'
-            f'<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#19a05f;'
-            f'box-shadow:0 0 6px #19a05f;"></span>'
-            f'<span style="font-size:0.78rem;color:#888;">'
-            f'<strong style="color:#19a05f;">LIVE</strong> &middot; {hero_timestamp}'
-            f'</span></div>'
-        )
-    else:
-        market_status_html = (
-            f'<div class="hero-status">'
-            f'<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--muted);"></span>'
-            f'<span style="font-size:0.78rem;color:var(--muted);">'
-            f'Closed &middot; {hero_timestamp}'
-            f'</span></div>'
-        )
-
     st.markdown("""
     <section class="hero-card">
       <div class="hero-top-row">
         <h1 class="hero-title">Stock Market Draft Standings</h1>
-        """ + market_status_html + """
       </div>
       <div class="hero-meta">
         <span class="hero-pill">Window: """ + start_date.strftime("%b %d, %Y") + """ to """ + end_date.strftime("%b %d, %Y") + """</span>
@@ -759,7 +729,40 @@ with tab_dashboard:
         best_ticker = final_returns.index[0]
         worst_ticker = final_returns.index[-1]
         throne = compute_throne_history(returns, valid_tickers, NAME_MAP)
+
+        # --- Live status indicator with countdown ---
+        now_et = datetime.datetime.now(ZoneInfo("America/New_York"))
+        live_timestamp = now_et.strftime("%I:%M:%S %p ET")
+        if is_market_open():
+            countdown_html = (
+                '<span id="refresh-countdown" style="font-size:0.72rem;color:#888;margin-left:0.3rem;">'
+                '(60s)</span>'
+                '<script>'
+                'var rc=document.getElementById("refresh-countdown");'
+                'if(rc){var s=60;var t=setInterval(function(){'
+                's--;if(s<=0){clearInterval(t);rc.textContent="(refreshing…)";}'
+                'else{rc.textContent="("+s+"s)";}},1000);}'
+                '</script>'
+            )
+            live_status_html = (
+                f'<div style="display:flex;align-items:center;gap:0.4rem;margin-bottom:0.3rem;">'
+                f'<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#19a05f;'
+                f'box-shadow:0 0 6px #19a05f;"></span>'
+                f'<span style="font-size:0.78rem;color:#888;">'
+                f'<strong style="color:#19a05f;">LIVE</strong> &middot; {live_timestamp}'
+                f'</span>{countdown_html}</div>'
+            )
+        else:
+            live_status_html = (
+                f'<div style="display:flex;align-items:center;gap:0.4rem;margin-bottom:0.3rem;">'
+                f'<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--muted);"></span>'
+                f'<span style="font-size:0.78rem;color:var(--muted);">'
+                f'Closed &middot; {live_timestamp}'
+                f'</span></div>'
+            )
+
         metric_cols = st.columns([1, 1, 1.2])
+        metric_cols[0].markdown(live_status_html, unsafe_allow_html=True)
         metric_cols[0].markdown(
             f"""
             <div class="metric-card mvp">
