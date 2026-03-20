@@ -744,13 +744,24 @@ with tab_dashboard:
         now_et = datetime.datetime.now(ZoneInfo("America/New_York"))
         live_timestamp = now_et.strftime("%I:%M:%S %p ET")
         if is_market_open():
+            countdown_iframe = (
+                '<iframe srcdoc="'
+                '<body style=&quot;margin:0;padding:0;overflow:hidden;background:transparent;&quot;>'
+                '<span id=&quot;c&quot; style=&quot;font-family:-apple-system,BlinkMacSystemFont,sans-serif;'
+                'font-size:0.72rem;color:#aaa;&quot;>(60s)</span>'
+                '<script>var e=document.getElementById(&quot;c&quot;),s=60;'
+                'setInterval(function(){s--;e.textContent=s>0?&quot;(&quot;+s+&quot;s)&quot;:&quot;(refreshing…)&quot;;},1000);'
+                '</script></body>'
+                '" style="border:none;width:65px;height:1.1em;vertical-align:middle;'
+                'overflow:hidden;background:transparent;" scrolling="no"></iframe>'
+            )
             st.markdown(
                 f'<div style="display:flex;align-items:center;gap:0.4rem;margin-bottom:0.3rem;">'
                 f'<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#19a05f;'
                 f'box-shadow:0 0 6px #19a05f;"></span>'
                 f'<span style="font-size:0.78rem;color:#888;">'
                 f'<strong style="color:#19a05f;">LIVE</strong> &middot; {live_timestamp}'
-                f' <span style="font-size:0.72rem;color:#aaa;">(auto-refresh 60s)</span>'
+                f' {countdown_iframe}'
                 f'</span></div>',
                 unsafe_allow_html=True,
             )
