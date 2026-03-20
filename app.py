@@ -562,7 +562,7 @@ if roster_search:
 
 # --- Main ---
 
-@st.cache_data(ttl=60)
+@st.cache_data(ttl=60 if is_market_open() else 900)
 def fetch_returns(tickers, start, end):
     """Download adjusted prices and compute daily cumulative % return."""
     data = yf.download(
