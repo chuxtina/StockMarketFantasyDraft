@@ -834,18 +834,20 @@ with tab_dashboard:
             dates_num = np.arange(len(ranks_df))
             dates = ranks_df.index
 
-            # Build y-axis tick labels from final-day ranks
+            # Build legend items (rendered below chart) and simple y-axis labels
             tick_labels = {}
+            legend_items = {}
             for i, ticker in enumerate(tickers):
                 rank_vals = ranks_df[ticker].values
                 final_bump_rank = int(rank_vals[-1])
                 final_rank = label_rank_fn(final_bump_rank) if label_rank_fn else final_bump_rank
                 final_ret = float(final_returns[ticker])
                 color = colors[i % len(colors)]
-                name = NAME_MAP[ticker]
-                if len(name) > 12:
-                    name = name[:11] + "…"
-                tick_labels[final_bump_rank] = f"<span style='color:{color}'><b>#{final_rank}</b> {name} {final_ret:.2f}%</span>"
+                tick_labels[final_bump_rank] = f"#{final_rank}"
+                legend_items[final_bump_rank] = (
+                    f'<span style="color:{color};font-size:0.82rem;">'
+                    f'<b>#{final_rank}</b> {html_mod.escape(NAME_MAP[ticker])} {final_ret:+.2f}%</span>'
+                )
 
             for i, ticker in enumerate(tickers):
                 rank_vals = ranks_df[ticker].values
@@ -884,7 +886,8 @@ with tab_dashboard:
 
             tick_vals = sorted(tick_labels.keys())
             tick_texts = [tick_labels[v] for v in tick_vals]
-            return traces, tick_vals, tick_texts
+            legend_sorted = [legend_items[v] for v in tick_vals]
+            return traces, tick_vals, tick_texts, legend_sorted
 
         CHART_COLORS = [
             "#1f77b4", "#e45756", "#2ca02c", "#ff7f0e", "#9467bd",
@@ -912,17 +915,31 @@ with tab_dashboard:
         top10_ranks.iloc[0] = range(1, len(top10_tickers) + 1)
         top10_returns_trimmed = top10_returns
 
-        top_traces, top_tv, top_tt = build_bump_traces(
+        def render_bump_legend(legend_items):
+            mid = (len(legend_items) + 1) // 2
+            col1 = legend_items[:mid]
+            col2 = legend_items[mid:]
+            left = "".join(f"<div>{item}</div>" for item in col1)
+            right = "".join(f"<div>{item}</div>" for item in col2)
+            return (
+                f'<div style="display:flex;gap:1.5rem;padding:0.3rem 0.5rem;">'
+                f'<div style="flex:1;">{left}</div>'
+                f'<div style="flex:1;">{right}</div>'
+                f'</div>'
+            )
+
+        top_traces, top_tv, top_tt, top_legend = build_bump_traces(
             top10_ranks, top10_returns_trimmed, top10_tickers, CHART_COLORS,
         )
         fig_top = go.Figure(data=top_traces)
         fig_top.update_layout(title="Top 10 Stocks In the Money", **bump_layout)
         fig_top.update_xaxes(showgrid=False, fixedrange=True, tickfont=dict(color="#102018"))
-        fig_top.update_yaxes(zeroline=False, fixedrange=True, automargin=True,
+        fig_top.update_yaxes(zeroline=False, fixedrange=True,
                              tickmode="array", tickvals=top_tv, ticktext=top_tt)
 
         chart_config = {"displayModeBar": False, "scrollZoom": False}
         st.plotly_chart(fig_top, use_container_width=True, config=chart_config)
+        st.markdown(render_bump_legend(top_legend), unsafe_allow_html=True)
 
         # --- Bump Chart: Bottom 10 Out of the Money ---
         bottom10_returns = returns[bottom10_tickers]
@@ -931,17 +948,18 @@ with tab_dashboard:
         bottom10_returns_trimmed = bottom10_returns
 
         total = len(final_returns)
-        bottom_traces, bot_tv, bot_tt = build_bump_traces(
+        bottom_traces, bot_tv, bot_tt, bot_legend = build_bump_traces(
             bottom10_ranks, bottom10_returns_trimmed, bottom10_tickers,
             CHART_COLORS, label_rank_fn=lambda r: total - 10 + r,
         )
         fig_bottom = go.Figure(data=bottom_traces)
         fig_bottom.update_layout(title="Bottom 10 Stocks Out of the Money", **bump_layout)
         fig_bottom.update_xaxes(showgrid=False, fixedrange=True, tickfont=dict(color="#102018"))
-        fig_bottom.update_yaxes(zeroline=False, fixedrange=True, automargin=True,
+        fig_bottom.update_yaxes(zeroline=False, fixedrange=True,
                                 tickmode="array", tickvals=bot_tv, ticktext=bot_tt)
 
         st.plotly_chart(fig_bottom, use_container_width=True, config=chart_config)
+        st.markdown(render_bump_legend(bot_legend), unsafe_allow_html=True)
 
         # --- Throne History (below charts) ---
         def _render_throne_entries(history):
