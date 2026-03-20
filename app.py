@@ -19,7 +19,7 @@ def is_market_open():
     return market_open <= now_et <= market_close
 
 
-REFRESH_INTERVAL = timedelta(seconds=60) if is_market_open() else None
+REFRESH_INTERVAL = timedelta(seconds=3600) if is_market_open() else None
 
 
 def format_signed_currency(value):
@@ -572,7 +572,7 @@ if roster_search:
 
 # --- Main ---
 
-@st.cache_data(ttl=60 if is_market_open() else 900)
+@st.cache_data(ttl=3600)
 def fetch_returns(tickers, start, end):
     """Download adjusted prices and compute daily cumulative % return."""
     data = yf.download(
@@ -748,11 +748,12 @@ with tab_dashboard:
                 '<iframe srcdoc="'
                 '<body style=&quot;margin:0;padding:0;overflow:hidden;background:transparent;&quot;>'
                 '<span id=&quot;c&quot; style=&quot;font-family:Space Grotesk,-apple-system,BlinkMacSystemFont,sans-serif;'
-                'font-size:14px;color:#aaa;&quot;>(60s)</span>'
-                '<script>var e=document.getElementById(&quot;c&quot;),s=60;'
-                'setInterval(function(){s--;e.textContent=s>0?&quot;(&quot;+s+&quot;s)&quot;:&quot;(refreshing…)&quot;;},1000);'
+                'font-size:14px;color:#aaa;&quot;>(60:00)</span>'
+                '<script>var e=document.getElementById(&quot;c&quot;),s=3600;'
+                'setInterval(function(){s--;if(s&lt;=0){e.textContent=&quot;(refreshing…)&quot;;}else{'
+                'var m=Math.floor(s/60),sec=s%60;e.textContent=&quot;(&quot;+m+&quot;:&quot;+(sec&lt;10?&quot;0&quot;:&quot;&quot;)+sec+&quot;)&quot;;}},1000);'
                 '</script></body>'
-                '" style="border:none;width:65px;height:18px;vertical-align:text-bottom;display:inline-block;'
+                '" style="border:none;width:75px;height:18px;vertical-align:text-bottom;display:inline-block;'
                 'overflow:hidden;background:transparent;" scrolling="no"></iframe>'
             )
             st.markdown(
