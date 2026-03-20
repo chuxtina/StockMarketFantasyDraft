@@ -748,12 +748,12 @@ with tab_dashboard:
                 '<iframe srcdoc="'
                 '<body style=&quot;margin:0;padding:0;overflow:hidden;background:transparent;&quot;>'
                 '<span id=&quot;c&quot; style=&quot;font-family:Space Grotesk,-apple-system,BlinkMacSystemFont,sans-serif;'
-                'font-size:14px;color:#aaa;&quot;>(60:00)</span>'
+                'font-size:14px;color:#aaa;&quot;>(refreshes in 60m 00s)</span>'
                 '<script>var e=document.getElementById(&quot;c&quot;),s=3600;'
                 'setInterval(function(){s--;if(s&lt;=0){e.textContent=&quot;(refreshing…)&quot;;}else{'
-                'var m=Math.floor(s/60),sec=s%60;e.textContent=&quot;(&quot;+m+&quot;:&quot;+(sec&lt;10?&quot;0&quot;:&quot;&quot;)+sec+&quot;)&quot;;}},1000);'
+                'var m=Math.floor(s/60),sec=s%60;e.textContent=&quot;(refreshes in &quot;+m+&quot;m &quot;+(sec&lt;10?&quot;0&quot;:&quot;&quot;)+sec+&quot;s)&quot;;}},1000);'
                 '</script></body>'
-                '" style="border:none;width:75px;height:18px;vertical-align:text-bottom;display:inline-block;'
+                '" style="border:none;width:175px;height:18px;vertical-align:text-bottom;display:inline-block;'
                 'overflow:hidden;background:transparent;" scrolling="no"></iframe>'
             )
             st.markdown(
