@@ -842,7 +842,10 @@ with tab_dashboard:
                 final_rank = label_rank_fn(final_bump_rank) if label_rank_fn else final_bump_rank
                 final_ret = float(final_returns[ticker])
                 color = colors[i % len(colors)]
-                tick_labels[final_bump_rank] = f"<span style='color:{color}'><b>#{final_rank}</b> {NAME_MAP[ticker]} {final_ret:.2f}%</span>"
+                name = NAME_MAP[ticker]
+                if len(name) > 12:
+                    name = name[:11] + "…"
+                tick_labels[final_bump_rank] = f"<span style='color:{color}'><b>#{final_rank}</b> {name} {final_ret:.2f}%</span>"
 
             for i, ticker in enumerate(tickers):
                 rank_vals = ranks_df[ticker].values
@@ -891,10 +894,11 @@ with tab_dashboard:
         bump_layout = dict(
             xaxis_title="", yaxis_title="",
             yaxis=dict(autorange="reversed", range=[0.5, 10.5],
-                       gridcolor="rgba(31, 26, 23, 0.06)", side="right"),
+                       gridcolor="rgba(31, 26, 23, 0.06)", side="right",
+                       tickfont=dict(size=11)),
             hovermode="x",
             hoverlabel=dict(bgcolor="white", font_color="#102018", font_size=13, bordercolor="#ccc"),
-            height=400, showlegend=False,
+            height=420, showlegend=False,
             paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="#fbfdf9",
             font=dict(family="Space Grotesk, sans-serif", color="#102018"),
             title_font=dict(size=18, color="#102018"),
