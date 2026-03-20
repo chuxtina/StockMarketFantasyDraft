@@ -68,6 +68,16 @@ st.markdown("""
 html, body, [class*="css"]  {
     font-family: 'Space Grotesk', sans-serif !important;
 }
+/* Fix Safari mobile whitespace/overflow */
+html, body {
+    overflow-x: hidden !important;
+    -webkit-overflow-scrolling: touch;
+}
+@media (max-width: 768px) {
+    [data-testid="stSidebar"] {
+        display: none !important;
+    }
+}
 * {
     font-family: 'Space Grotesk', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji' !important;
 }
