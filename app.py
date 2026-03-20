@@ -730,25 +730,19 @@ with tab_dashboard:
         worst_ticker = final_returns.index[-1]
         throne = compute_throne_history(returns, valid_tickers, NAME_MAP)
 
-        # --- Live status indicator with countdown ---
-        import streamlit.components.v1 as stc
+        # --- Live status indicator ---
         now_et = datetime.datetime.now(ZoneInfo("America/New_York"))
         live_timestamp = now_et.strftime("%I:%M:%S %p ET")
         if is_market_open():
-            stc.html(
-                f'''<div style="display:flex;align-items:center;gap:0.4rem;
-                font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
-                <span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#19a05f;
-                box-shadow:0 0 6px #19a05f;"></span>
-                <span style="font-size:0.78rem;color:#888;">
-                <strong style="color:#19a05f;">LIVE</strong> &middot; {live_timestamp}</span>
-                <span id="cd" style="font-size:0.72rem;color:#888;">(60s)</span>
-                </div>
-                <script>
-                var el=document.getElementById("cd"),s=60;
-                setInterval(function(){{s--;if(s<=0){{el.textContent="(refreshing…)";}}else{{el.textContent="("+s+"s)";}}}},1000);
-                </script>''',
-                height=30,
+            st.markdown(
+                f'<div style="display:flex;align-items:center;gap:0.4rem;margin-bottom:0.3rem;">'
+                f'<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#19a05f;'
+                f'box-shadow:0 0 6px #19a05f;"></span>'
+                f'<span style="font-size:0.78rem;color:#888;">'
+                f'<strong style="color:#19a05f;">LIVE</strong> &middot; {live_timestamp}'
+                f' <span style="font-size:0.72rem;color:#aaa;">(auto-refresh 60s)</span>'
+                f'</span></div>',
+                unsafe_allow_html=True,
             )
         else:
             st.markdown(
