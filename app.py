@@ -42,7 +42,7 @@ def interpolate_hex_color(start_hex, end_hex, fraction):
     return "#" + "".join(f"{value:02x}" for value in blended)
 
 # --- Config ---
-st.set_page_config(page_title="Stock Market Fantasy Draft", layout="wide")
+st.set_page_config(page_title="Stock Market Fantasy Draft", layout="wide", initial_sidebar_state="collapsed")
 
 if "admin_authenticated" not in st.session_state:
     st.session_state.admin_authenticated = False
