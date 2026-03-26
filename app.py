@@ -1108,10 +1108,11 @@ with tab_admin:
         with col_login:
             st.markdown("#### Admin Login")
             with st.form("login_form"):
+                userid_input = st.text_input("User ID", label_visibility="collapsed", placeholder="Enter user ID")
                 password_input = st.text_input("Password", type="password", label_visibility="collapsed", placeholder="Enter admin password")
                 submitted = st.form_submit_button("Login", use_container_width=True)
                 if submitted:
-                    if password_input == st.secrets.get("ADMIN_PASSWORD", ""):
+                    if userid_input == st.secrets.get("ADMIN_USERNAME", "") and password_input == st.secrets.get("ADMIN_PASSWORD", ""):
                         st.session_state.admin_authenticated = True
                         st.rerun()
                     else:
@@ -1121,7 +1122,7 @@ with tab_admin:
         col_mgmt = st.columns([1, 2, 1])[1]
         with col_mgmt:
             st.markdown("#### Select an ETF")
-            new_etf = st.selectbox("ETF", ["ANTY", "UNCL", "KIDZ"], label_visibility="collapsed", key="new_etf")
+            new_etf = st.selectbox("ETF", ["", "ANTY", "UNCL", "KIDZ"], format_func=lambda x: "Select an ETF" if x == "" else x, label_visibility="collapsed", key="new_etf")
             st.markdown("#### Add Ticker")
             new_ticker = st.text_input("Ticker symbol", placeholder="e.g. TSLA", label_visibility="collapsed")
             if st.button("Add Ticker", use_container_width=True) and new_ticker:
