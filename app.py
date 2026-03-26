@@ -1120,6 +1120,8 @@ with tab_admin:
         st.markdown("")
         col_mgmt = st.columns([1, 2, 1])[1]
         with col_mgmt:
+            st.markdown("#### Select an ETF")
+            new_etf = st.selectbox("ETF", ["ANTY", "UNCL", "KIDZ"], label_visibility="collapsed", key="new_etf")
             st.markdown("#### Add Ticker")
             new_ticker = st.text_input("Ticker symbol", placeholder="e.g. TSLA", label_visibility="collapsed")
             if st.button("Add Ticker", use_container_width=True) and new_ticker:
@@ -1128,7 +1130,7 @@ with tab_admin:
                 if ticker_upper in existing:
                     st.warning(f"{ticker_upper} is already in the list.")
                 else:
-                    config["players"].append({"etf": "", "name": ticker_upper, "ticker": ticker_upper})
+                    config["players"].append({"etf": new_etf, "name": ticker_upper, "ticker": ticker_upper})
                     with open("players.json", "w") as f:
                         json.dump(config, f, indent=2)
                     st.success(f"Added {ticker_upper}!")
