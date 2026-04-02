@@ -700,14 +700,52 @@ def compute_throne_history(returns, valid_tickers, name_map):
         history.reverse()
         return streak, history
 
+    def _longest_streak(series):
+        """Find the longest consecutive streak ever for any holder."""
+        holders = series.tolist()
+        dates = series.index.tolist()
+        if not holders:
+            return {"ticker": "", "streak": 0, "start": None, "end": None}
+        best_ticker = holders[0]
+        best_streak = 1
+        best_start = 0
+        best_end = 0
+        cur_streak = 1
+        cur_start = 0
+        for i in range(1, len(holders)):
+            if holders[i] == holders[i - 1]:
+                cur_streak += 1
+            else:
+                if cur_streak > best_streak:
+                    best_streak = cur_streak
+                    best_ticker = holders[i - 1]
+                    best_start = cur_start
+                    best_end = i - 1
+                cur_streak = 1
+                cur_start = i
+        if cur_streak > best_streak:
+            best_streak = cur_streak
+            best_ticker = holders[-1]
+            best_start = cur_start
+            best_end = len(holders) - 1
+        return {"ticker": best_ticker, "streak": best_streak, "start": dates[best_start], "end": dates[best_end]}
+
     mvp_streak, mvp_history = _streak_and_history(mvp_series)
     bench_streak, bench_history = _streak_and_history(bench_series)
+    mvp_longest = _longest_streak(mvp_series)
+    bench_longest = _longest_streak(bench_series)
+    if mvp_longest["streak"] >= bench_longest["streak"]:
+        streak_winner = {**mvp_longest, "type": "mvp"}
+    else:
+        streak_winner = {**bench_longest, "type": "bench"}
     return {
         "mvp_streak": mvp_streak,
         "bench_streak": bench_streak,
         "mvp_history": mvp_history,
         "bench_history": bench_history,
+        "streak_winner": streak_winner,
     }
+
 
 
 tab_dashboard, tab_admin = st.tabs(["Dashboard", "Admin"])
@@ -815,7 +853,7 @@ with tab_dashboard:
                 f'</span></div>',
                 unsafe_allow_html=True,
             )
-        metric_cols = st.columns(3)
+        metric_cols = st.columns(4)
         metric_cols[0].markdown(
             f"""
             <div class="metric-card mvp">
@@ -876,6 +914,28 @@ with tab_dashboard:
             """,
             unsafe_allow_html=True,
         )
+
+        sw = throne["streak_winner"]
+        if sw["ticker"]:
+            sw_ticker = sw["ticker"]
+            is_mvp = sw["type"] == "mvp"
+            sw_emoji = "🔥" if is_mvp else "📉"
+            sw_class = "positive" if is_mvp else "negative"
+            sw_label = "MVP" if is_mvp else "Benchwarmer"
+            sw_start = sw["start"].strftime("%b %d") if hasattr(sw["start"], "strftime") else str(sw["start"])
+            sw_end = sw["end"].strftime("%b %d") if hasattr(sw["end"], "strftime") else str(sw["end"])
+            metric_cols[3].markdown(
+                f"""
+                <div class="metric-card" style="height:100%;">
+                  <div class="metric-label">Streak Winner</div>
+                  <div class="metric-value {sw_class}">{ETF_EMOJI.get(ETF_MAP.get(sw_ticker, ''), '')} {html_mod.escape(sw_ticker)}</div>
+                  <div class="metric-detail">{html_mod.escape(NAME_MAP.get(sw_ticker, sw_ticker))}</div>
+                  <div class="metric-detail">{sw_emoji} {sw['streak']} day {sw_label} streak</div>
+                  <div class="metric-detail" style="font-size:0.75rem;opacity:0.7;">{sw_start} – {sw_end}</div>
+                </div>
+                """,
+                unsafe_allow_html=True,
+            )
 
         # --- ggbump-style sigmoid helper ---
         def sigmoid_between(x_from, x_to, y_from, y_to, n=100, smooth=8):
