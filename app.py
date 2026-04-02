@@ -3,11 +3,51 @@ import json
 import datetime
 from datetime import timedelta
 from zoneinfo import ZoneInfo
+import requests
 import streamlit as st
+import streamlit.components.v1 as components
 import pandas as pd
 import yfinance as yf
 import numpy as np
 import plotly.graph_objects as go
+
+
+@st.cache_data(ttl=86400)
+def fetch_all_us_stocks():
+    url = "https://api.nasdaq.com/api/screener/stocks"
+    params = {"tableType": "traded", "limit": 10000, "offset": 0}
+    headers = {"User-Agent": "Mozilla/5.0"}
+    try:
+        resp = requests.get(url, params=params, headers=headers, timeout=30)
+        resp.raise_for_status()
+        data = resp.json()
+        rows = data["data"]["table"]["rows"]
+        stocks = []
+        for row in rows:
+            symbol = row.get("symbol", "").strip()
+            name = row.get("name", "").strip()
+            if symbol and name:
+                stocks.append({"symbol": symbol, "name": name})
+        # Clean up verbose suffixes from NASDAQ names
+        suffixes = [" Common Stock", " Common Shares", " Ordinary Shares",
+                    " American Depositary Shares", " American Depositary Share",
+                    ", Inc.", " Inc.", ", Inc", " Inc",
+                    " Corporation", " Corp.", " Corp",
+                    ", Ltd.", " Ltd.", ", Ltd", " Ltd",
+                    " Holdings", " Holding",
+                    " Class A", " Class B", " Class C"]
+        for s in stocks:
+            name = s["name"]
+            for suffix in suffixes:
+                if name.endswith(suffix):
+                    name = name[:-len(suffix)].strip()
+            # Also remove trailing comma
+            s["name"] = name.rstrip(",").strip()
+        stocks.sort(key=lambda s: s["symbol"])
+        return stocks
+    except Exception as e:
+        st.warning(f"Could not load stock list: {e}")
+        return []
 
 
 def is_market_open():
@@ -1124,18 +1164,70 @@ with tab_admin:
             st.markdown("#### Select an ETF")
             new_etf = st.selectbox("ETF", ["", "ANTY", "UNCL", "KIDZ"], format_func=lambda x: "Select an ETF" if x == "" else x, label_visibility="collapsed", key="new_etf")
             st.markdown("#### Add Ticker")
-            new_ticker = st.text_input("Ticker symbol", placeholder="e.g. TSLA", label_visibility="collapsed")
-            if st.button("Add Ticker", use_container_width=True) and new_ticker:
-                ticker_upper = new_ticker.strip().upper()
-                existing = {p["ticker"] for p in config["players"]}
-                if ticker_upper in existing:
-                    st.warning(f"{ticker_upper} is already in the list.")
+            all_stocks = fetch_all_us_stocks()
+            claimed_tickers = {p["ticker"]: p.get("etf", "") for p in config["players"]}
+
+            search_query = st.text_input("Search for a stock", placeholder="Type a ticker or company name...", label_visibility="collapsed", key="admin_stock_search")
+            components.html("""
+            <script>
+            const doc = window.parent.document;
+            const input = doc.querySelector('input[aria-label="Search for a stock"]');
+            if (input && !input.dataset.keyupBound) {
+                input.dataset.keyupBound = 'true';
+                let timeout = null;
+                input.addEventListener('input', function() {
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => {
+                        input.dispatchEvent(new Event('change', { bubbles: true }));
+                        input.blur();
+                        input.focus();
+                    }, 300);
+                });
+            }
+            </script>
+            """, height=0)
+
+            if search_query and len(search_query.strip()) >= 2:
+                query = search_query.strip().upper()
+                filtered = []
+                for s in all_stocks:
+                    sym = s["symbol"]
+                    name_upper = s["name"].upper()
+                    if query in sym or query in name_upper:
+                        claimed = sym in claimed_tickers
+                        if sym == query:
+                            priority = 0
+                        elif sym.startswith(query):
+                            priority = 1
+                        elif name_upper.startswith(query):
+                            priority = 2
+                        else:
+                            priority = 3
+                        filtered.append((priority, s, claimed))
+                filtered.sort(key=lambda x: (x[0], x[1]["symbol"]))
+                filtered = filtered[:20]
+
+                if filtered:
+                    for _, s, claimed in filtered:
+                        sym = s["symbol"]
+                        name = s["name"]
+                        if claimed:
+                            st.markdown(f"**{sym}** — {name} &nbsp; `Claimed - {claimed_tickers[sym]}`")
+                        else:
+                            col_info, col_btn = st.columns([3, 1])
+                            with col_info:
+                                st.markdown(f"**{sym}** — {name}")
+                            with col_btn:
+                                if new_etf:
+                                    if st.button("Add", key=f"add_{sym}"):
+                                        config["players"].append({"etf": new_etf, "name": name, "ticker": sym})
+                                        with open("players.json", "w") as f:
+                                            json.dump(config, f, indent=2)
+                                        st.rerun()
+                                else:
+                                    st.button("Add", key=f"add_{sym}", disabled=True, help="Select an ETF first")
                 else:
-                    config["players"].append({"etf": new_etf, "name": ticker_upper, "ticker": ticker_upper})
-                    with open("players.json", "w") as f:
-                        json.dump(config, f, indent=2)
-                    st.success(f"Added {ticker_upper}!")
-                    st.rerun()
+                    st.info("No stocks found matching your search.")
 
             st.markdown("#### Remove Ticker")
             remove_options = [p["ticker"] for p in config["players"]]
