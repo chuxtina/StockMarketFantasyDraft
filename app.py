@@ -255,6 +255,26 @@ table td, table th, code, .mono { font-family: 'IBM Plex Mono', monospace !impor
     padding: 1rem 1.1rem;
     box-shadow: 0 12px 24px rgba(82, 58, 32, 0.08);
     position: relative;
+    height: 100%;
+    min-height: 175px;
+}
+/* Force equal-height columns */
+[data-testid="stHorizontalBlock"] {
+    align-items: stretch !important;
+}
+[data-testid="stColumn"] {
+    display: flex !important;
+}
+[data-testid="stColumn"] > div {
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+[data-testid="stColumn"] > div > div {
+    flex: 1 !important;
+}
+[data-testid="stColumn"] > div > div > div {
+    height: 100% !important;
 }
 .metric-card::before {
     content: "";
@@ -748,6 +768,215 @@ def compute_throne_history(returns, valid_tickers, name_map):
 
 
 
+def compute_superlatives(returns, valid_tickers, name_map, etf_map, throne):
+    """Compute fun superlative stats."""
+    results = {}
+    daily = returns[valid_tickers]
+    daily_changes = daily.diff()
+
+    # --- Best Single Day / Worst Single Day ---
+    if len(daily_changes) > 1:
+        changes = daily_changes.iloc[1:]
+        best_day_idx = changes.stack().idxmax()
+        worst_day_idx = changes.stack().idxmin()
+        results["best_day"] = {
+            "ticker": best_day_idx[1],
+            "name": name_map.get(best_day_idx[1], best_day_idx[1]),
+            "date": best_day_idx[0],
+            "change": changes.loc[best_day_idx[0], best_day_idx[1]],
+        }
+        results["worst_day"] = {
+            "ticker": worst_day_idx[1],
+            "name": name_map.get(worst_day_idx[1], worst_day_idx[1]),
+            "date": worst_day_idx[0],
+            "change": changes.loc[worst_day_idx[0], worst_day_idx[1]],
+        }
+
+    # --- Comeback Kid: went negative the most, then recovered the most ---
+    best_comeback_ticker = ""
+    best_comeback_val = 0
+    for ticker in valid_tickers:
+        series = daily[ticker]
+        min_val = series.min()
+        if min_val >= 0:
+            continue  # never went negative, not a comeback
+        final_val = series.iloc[-1]
+        recovery = final_val - min_val
+        if recovery > best_comeback_val:
+            best_comeback_val = recovery
+            best_comeback_ticker = ticker
+    if best_comeback_ticker:
+        results["comeback"] = {
+            "ticker": best_comeback_ticker,
+            "name": name_map.get(best_comeback_ticker, best_comeback_ticker),
+            "recovery": best_comeback_val,
+            "low": daily[best_comeback_ticker].min(),
+            "final": daily[best_comeback_ticker].iloc[-1],
+        }
+    else:
+        # fallback: no stock went negative, pick biggest recovery from lowest point
+        best_comeback_ticker = min(valid_tickers, key=lambda t: daily[t].min())
+        results["comeback"] = {
+            "ticker": best_comeback_ticker,
+            "name": name_map.get(best_comeback_ticker, best_comeback_ticker),
+            "recovery": daily[best_comeback_ticker].iloc[-1] - daily[best_comeback_ticker].min(),
+            "low": daily[best_comeback_ticker].min(),
+            "final": daily[best_comeback_ticker].iloc[-1],
+        }
+
+    # --- Throne Stats ---
+    from collections import Counter
+
+
+    # Longest Reign: stock with the most total days on any throne
+    reign_counts = Counter()
+    for series_name in ["mvp_history", "bench_history"]:
+        history = throne[series_name]
+        for i, entry in enumerate(history):
+            if i > 0:
+                # history is reversed (newest first), so previous entry's date is the end
+                days = abs((history[i-1]["date"] - entry["date"]).days)
+                reign_counts[entry["ticker"]] += days
+            elif i == 0 and len(history) == 1:
+                reign_counts[entry["ticker"]] += 1
+    if reign_counts:
+        reign_ticker, reign_days = reign_counts.most_common(1)[0]
+        results["longest_reign"] = {
+            "ticker": reign_ticker,
+            "name": name_map.get(reign_ticker, reign_ticker),
+            "days": reign_days,
+        }
+    else:
+        results["longest_reign"] = {"ticker": "", "name": "", "days": 0}
+
+
+    # --- Rivalry: pair that swapped MVP/Benchwarmer most ---
+    swap_pairs = Counter()
+    for history in [throne["mvp_history"], throne["bench_history"]]:
+        for entry in history:
+            if entry.get("prev_ticker"):
+                pair = tuple(sorted([entry["ticker"], entry["prev_ticker"]]))
+                swap_pairs[pair] += 1
+    if swap_pairs:
+        rival_pair, rival_count = swap_pairs.most_common(1)[0]
+        results["rivalry"] = {
+            "ticker1": rival_pair[0], "name1": name_map.get(rival_pair[0], rival_pair[0]),
+            "ticker2": rival_pair[1], "name2": name_map.get(rival_pair[1], rival_pair[1]),
+            "swaps": rival_count,
+        }
+    else:
+        results["rivalry"] = {"ticker1": "", "ticker2": "", "name1": "", "name2": "", "swaps": 0}
+
+    # --- ETF War: ETF with longest streak of having the daily best average ---
+    if len(daily_changes) > 1:
+        changes = daily_changes.iloc[1:]
+        etf_daily_winner = []
+        for date in changes.index:
+            etf_day_avg = {}
+            etf_day_count = {}
+            for ticker in valid_tickers:
+                etf = etf_map.get(ticker, "")
+                if etf:
+                    etf_day_avg[etf] = etf_day_avg.get(etf, 0) + changes.loc[date, ticker]
+                    etf_day_count[etf] = etf_day_count.get(etf, 0) + 1
+            if etf_day_avg:
+                for e in etf_day_avg:
+                    etf_day_avg[e] /= etf_day_count[e]
+                winner = max(etf_day_avg, key=etf_day_avg.get)
+                etf_daily_winner.append(winner)
+        # Find longest streak
+        best_etf = ""
+        best_etf_streak = 0
+        cur_streak = 1
+        for i in range(1, len(etf_daily_winner)):
+            if etf_daily_winner[i] == etf_daily_winner[i - 1]:
+                cur_streak += 1
+            else:
+                if cur_streak > best_etf_streak:
+                    best_etf_streak = cur_streak
+                    best_etf = etf_daily_winner[i - 1]
+                cur_streak = 1
+        if cur_streak > best_etf_streak:
+            best_etf_streak = cur_streak
+            best_etf = etf_daily_winner[-1] if etf_daily_winner else ""
+        results["etf_war"] = {"etf": best_etf, "streak": best_etf_streak}
+    else:
+        results["etf_war"] = {"etf": "", "streak": 0}
+
+    # --- Sleeper Pick: started bottom half, climbed highest ---
+    if len(daily) > 1:
+        first_day_ranks = daily.iloc[1].rank(ascending=False)
+        total = len(valid_tickers)
+        bottom_half = [t for t in valid_tickers if first_day_ranks[t] > total / 2]
+        final = daily.iloc[-1]
+        final_ranks = daily.iloc[-1].rank(ascending=False)
+        if bottom_half:
+            sleeper = max(bottom_half, key=lambda t: final[t])
+            results["sleeper"] = {
+                "ticker": sleeper,
+                "name": name_map.get(sleeper, sleeper),
+                "start_rank": int(first_day_ranks[sleeper]),
+                "end_rank": int(final_ranks[sleeper]),
+            }
+        else:
+            results["sleeper"] = {"ticker": "", "name": "", "start_rank": 0, "final_return": 0}
+    else:
+        results["sleeper"] = {"ticker": "", "name": "", "start_rank": 0, "final_return": 0}
+
+    # --- Fallen Angel: started top half, dropped the most ranks ---
+    if len(daily) > 1:
+        first_day_ranks = daily.iloc[1].rank(ascending=False)
+        final_ranks = daily.iloc[-1].rank(ascending=False)
+        top_half = [t for t in valid_tickers if first_day_ranks[t] <= total / 2]
+        if top_half:
+            fallen = max(top_half, key=lambda t: final_ranks[t] - first_day_ranks[t])
+            results["fallen"] = {
+                "ticker": fallen,
+                "name": name_map.get(fallen, fallen),
+                "start_rank": int(first_day_ranks[fallen]),
+                "end_rank": int(final_ranks[fallen]),
+            }
+        else:
+            results["fallen"] = {"ticker": "", "name": "", "start_rank": 0, "end_rank": 0}
+    else:
+        results["fallen"] = {"ticker": "", "name": "", "start_rank": 0, "end_rank": 0}
+
+    # --- Middle Child: closest to 0% return ---
+    final = daily.iloc[-1]
+    middle = min(valid_tickers, key=lambda t: abs(final[t]))
+    middle_rank = int(final.rank(ascending=False)[middle])
+    results["middle"] = {
+        "ticker": middle,
+        "name": name_map.get(middle, middle),
+        "return": final[middle],
+        "rank": middle_rank,
+        "total": len(valid_tickers),
+    }
+
+    # --- Power Rankings: biggest climbers/fallers in last 5 trading days ---
+    if len(daily) >= 6:
+        recent_start = daily.iloc[-6]
+        recent_end = daily.iloc[-1]
+        weekly_change = recent_end - recent_start
+        top_climber = weekly_change[valid_tickers].idxmax()
+        top_faller = weekly_change[valid_tickers].idxmin()
+        results["power"] = {
+            "climber": top_climber,
+            "climber_name": name_map.get(top_climber, top_climber),
+            "climber_change": weekly_change[top_climber],
+            "faller": top_faller,
+            "faller_name": name_map.get(top_faller, top_faller),
+            "faller_change": weekly_change[top_faller],
+        }
+    else:
+        results["power"] = {
+            "climber": "", "climber_name": "", "climber_change": 0,
+            "faller": "", "faller_name": "", "faller_change": 0,
+        }
+
+    return results
+
+
 tab_dashboard, tab_admin = st.tabs(["Dashboard", "Admin"])
 
 with tab_dashboard:
@@ -817,6 +1046,7 @@ with tab_dashboard:
         best_ticker = final_returns.index[0]
         worst_ticker = final_returns.index[-1]
         throne = compute_throne_history(returns, valid_tickers, NAME_MAP)
+        superlatives = compute_superlatives(returns, valid_tickers, NAME_MAP, ETF_MAP, throne)
 
         # --- Live status indicator ---
         now_et = datetime.datetime.now(ZoneInfo("America/New_York"))
@@ -857,7 +1087,7 @@ with tab_dashboard:
         metric_cols[0].markdown(
             f"""
             <div class="metric-card mvp">
-              <div class="metric-label">MVP</div>
+              <div class="metric-label">👑 MVP</div>
               <div class="metric-value positive">{ETF_EMOJI.get(ETF_MAP.get(best_ticker, ''), '')} {html_mod.escape(best_ticker)}</div>
               <div class="metric-detail">{html_mod.escape(NAME_MAP[best_ticker])} <span class="positive">{final_returns[best_ticker]:+.2f}%</span></div>
               <div class="metric-detail">🔥 {throne['mvp_streak']} day streak</div>
@@ -868,7 +1098,7 @@ with tab_dashboard:
         metric_cols[1].markdown(
             f"""
             <div class="metric-card bench">
-              <div class="metric-label">Benchwarmer</div>
+              <div class="metric-label">💩 Benchwarmer</div>
               <div class="metric-value negative">{ETF_EMOJI.get(ETF_MAP.get(worst_ticker, ''), '')} {html_mod.escape(worst_ticker)}</div>
               <div class="metric-detail">{html_mod.escape(NAME_MAP[worst_ticker])} <span class="negative">({abs(final_returns[worst_ticker]):.2f}%)</span></div>
               <div class="metric-detail">📉 {throne['bench_streak']} day streak</div>
@@ -936,6 +1166,167 @@ with tab_dashboard:
                 """,
                 unsafe_allow_html=True,
             )
+
+        # --- Superlatives Section ---
+        st.markdown("#### 🏆 Bragging Rights")
+        sup = superlatives
+
+        sup_row1 = st.columns(3)
+
+        # Comeback Kid
+        cb = sup["comeback"]
+        if cb["ticker"]:
+            sup_row1[0].markdown(
+                f"""<div class="metric-card" style="height:100%;">
+                  <div class="metric-label">🔄 Comeback Kid</div>
+                  <div class="metric-value positive">{html_mod.escape(cb['ticker'])}</div>
+                  <div class="metric-detail">{html_mod.escape(cb['name'])}</div>
+                  <div class="metric-detail">Low: <span class="negative">{cb['low']:+.2f}%</span> → Now: <span class="positive">{cb['final']:+.2f}%</span></div>
+                  <div class="metric-detail" style="font-size:0.75rem;opacity:0.7;">Recovery: +{cb['recovery']:.2f}pp</div>
+                </div>""",
+                unsafe_allow_html=True,
+            )
+
+        # Best Single Day
+        bd = sup.get("best_day")
+        if bd:
+            bd_date = bd["date"].strftime("%b %d") if hasattr(bd["date"], "strftime") else str(bd["date"])
+            sup_row1[1].markdown(
+                f"""<div class="metric-card" style="height:100%;">
+                  <div class="metric-label">🚀 Best Single Day</div>
+                  <div class="metric-value positive">{html_mod.escape(bd['ticker'])}</div>
+                  <div class="metric-detail">{html_mod.escape(bd['name'])}</div>
+                  <div class="metric-detail"><span class="positive">{bd['change']:+.2f}%</span> on {bd_date}</div>
+                </div>""",
+                unsafe_allow_html=True,
+            )
+
+        # Worst Single Day
+        wd = sup.get("worst_day")
+        if wd:
+            wd_date = wd["date"].strftime("%b %d") if hasattr(wd["date"], "strftime") else str(wd["date"])
+            sup_row1[2].markdown(
+                f"""<div class="metric-card" style="height:100%;">
+                  <div class="metric-label">💥 Worst Single Day</div>
+                  <div class="metric-value negative">{html_mod.escape(wd['ticker'])}</div>
+                  <div class="metric-detail">{html_mod.escape(wd['name'])}</div>
+                  <div class="metric-detail"><span class="negative">{wd['change']:+.2f}%</span> on {wd_date}</div>
+                </div>""",
+                unsafe_allow_html=True,
+            )
+
+        sup_row2 = st.columns(3)
+
+        # Longest Reign
+        lr = sup["longest_reign"]
+        if lr["ticker"]:
+            sup_row2[0].markdown(
+                f"""<div class="metric-card" style="height:100%;">
+                  <div class="metric-label">👑 Longest Reign</div>
+                  <div class="metric-value">{html_mod.escape(lr['ticker'])}</div>
+                  <div class="metric-detail">{html_mod.escape(lr['name'])}</div>
+                  <div class="metric-detail">{lr['days']} total days on the throne</div>
+                </div>""",
+                unsafe_allow_html=True,
+            )
+
+        # Rivalry
+        rv = sup["rivalry"]
+        if rv["ticker1"]:
+            sup_row2[1].markdown(
+                f"""<div class="metric-card" style="height:100%;">
+                  <div class="metric-label">⚔️ Rivalry</div>
+                  <div class="metric-value">{html_mod.escape(rv['ticker1'])} vs {html_mod.escape(rv['ticker2'])}</div>
+                  <div class="metric-detail">{html_mod.escape(rv['name1'])} vs {html_mod.escape(rv['name2'])}</div>
+                  <div class="metric-detail">Swapped {rv['swaps']}x on the throne</div>
+                </div>""",
+                unsafe_allow_html=True,
+            )
+
+        # ETF War
+        ew = sup["etf_war"]
+        if ew["etf"]:
+            etf_emoji = ETF_EMOJI.get(ew["etf"], "")
+            sup_row2[2].markdown(
+                f"""<div class="metric-card" style="height:100%;">
+                  <div class="metric-label">⚡ ETF War</div>
+                  <div class="metric-value">{etf_emoji} {html_mod.escape(ew['etf'])}</div>
+                  <div class="metric-detail">Longest daily win streak</div>
+                  <div class="metric-detail">🔥 {ew['streak']} consecutive days</div>
+                </div>""",
+                unsafe_allow_html=True,
+            )
+
+        sup_row3 = st.columns(3)
+
+        # Sleeper Pick
+        sp = sup["sleeper"]
+        if sp["ticker"]:
+            sup_row3[0].markdown(
+                f"""<div class="metric-card" style="height:100%;">
+                  <div class="metric-label">😴 Sleeper Pick</div>
+                  <div class="metric-value positive">{html_mod.escape(sp['ticker'])}</div>
+                  <div class="metric-detail">{html_mod.escape(sp['name'])}</div>
+                  <div class="metric-detail">Rank #{sp['start_rank']} → #{sp['end_rank']}</div>
+                  <div class="metric-detail" style="font-size:0.75rem;opacity:0.7;">Started bottom half, climbed highest</div>
+                </div>""",
+                unsafe_allow_html=True,
+            )
+
+        # Fallen Angel
+        fa = sup["fallen"]
+        if fa["ticker"]:
+            sup_row3[1].markdown(
+                f"""<div class="metric-card" style="height:100%;">
+                  <div class="metric-label">😇 Fallen Angel</div>
+                  <div class="metric-value negative">{html_mod.escape(fa['ticker'])}</div>
+                  <div class="metric-detail">{html_mod.escape(fa['name'])}</div>
+                  <div class="metric-detail">Rank #{fa['start_rank']} → #{fa['end_rank']}</div>
+                  <div class="metric-detail" style="font-size:0.75rem;opacity:0.7;">Started top half, dropped the most</div>
+                </div>""",
+                unsafe_allow_html=True,
+            )
+
+        # Middle Child
+        mc = sup["middle"]
+        if mc["ticker"]:
+            ret_class = "positive" if mc["return"] >= 0 else "negative"
+            sup_row3[2].markdown(
+                f"""<div class="metric-card" style="height:100%;">
+                  <div class="metric-label">🫥 Middle Child</div>
+                  <div class="metric-value">{html_mod.escape(mc['ticker'])}</div>
+                  <div class="metric-detail">{html_mod.escape(mc['name'])}</div>
+                  <div class="metric-detail">Return: <span class="{ret_class}">{mc['return']:+.2f}%</span></div>
+                  <div class="metric-detail" style="font-size:0.75rem;opacity:0.7;">Closest to 0%</div>
+                </div>""",
+                unsafe_allow_html=True,
+            )
+
+        # Power Rankings
+        pw = sup["power"]
+        if pw["climber"]:
+            st.markdown("#### 🔥 Hot or Not (Last 5 Trading Days)")
+            pw_cols = st.columns(2)
+            pw_cols[0].markdown(
+                f"""<div class="metric-card" style="height:100%;">
+                  <div class="metric-label">📈 Biggest Climber</div>
+                  <div class="metric-value positive">{html_mod.escape(pw['climber'])}</div>
+                  <div class="metric-detail">{html_mod.escape(pw['climber_name'])}</div>
+                  <div class="metric-detail"><span class="positive">{pw['climber_change']:+.2f}%</span> in 5 days</div>
+                </div>""",
+                unsafe_allow_html=True,
+            )
+            pw_cols[1].markdown(
+                f"""<div class="metric-card" style="height:100%;">
+                  <div class="metric-label">📉 Biggest Faller</div>
+                  <div class="metric-value negative">{html_mod.escape(pw['faller'])}</div>
+                  <div class="metric-detail">{html_mod.escape(pw['faller_name'])}</div>
+                  <div class="metric-detail"><span class="negative">{pw['faller_change']:+.2f}%</span> in 5 days</div>
+                </div>""",
+                unsafe_allow_html=True,
+            )
+
+        st.markdown("---")
 
         # --- ggbump-style sigmoid helper ---
         def sigmoid_between(x_from, x_to, y_from, y_to, n=100, smooth=8):
