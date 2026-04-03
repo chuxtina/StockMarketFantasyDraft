@@ -2298,7 +2298,7 @@ def generate_predictions(returns, valid_tickers, name_map, etf_map, final_return
     return predictions
 
 
-tab_dashboard, tab_admin = st.tabs(["Dashboard", "Admin"])
+tab_dashboard, tab_feud, tab_admin = st.tabs(["Dashboard", "Family Feud", "Admin"])
 
 with tab_dashboard:
     st.markdown("""
@@ -2359,6 +2359,13 @@ with tab_dashboard:
             st.stop()
 
         loading_msg.empty()
+
+        # Store data for other tabs
+        st.session_state["_returns"] = returns
+        st.session_state["_valid_tickers"] = valid_tickers
+        st.session_state["_start_prices"] = start_prices
+        st.session_state["_end_prices"] = end_prices
+        st.session_state["_dividends"] = dividends
 
         # --- Rank tickers by final return ---
         final_returns = returns[valid_tickers].iloc[-1].sort_values(ascending=False)
@@ -2885,70 +2892,6 @@ with tab_dashboard:
             sig_html += '</table>'
             st.markdown(f'<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">{sig_html}</div>', unsafe_allow_html=True)
             st.caption("Based on 14-day RSI, 10/20-day SMA crossover, and price vs 20-day SMA. Not financial advice.")
-
-        # --- System Predictions ---
-        st.markdown(
-            '<div style="display:flex;align-items:center;gap:0.5rem;margin:1.2rem 0 0.5rem;">'
-            '<span style="font-size:1.3rem;">\U0001f52e</span>'
-            '<span style="font-size:1.1rem;font-weight:800;letter-spacing:0.04em;text-transform:uppercase;'
-            'color:var(--accent);">Next Week\'s Predictions</span></div>',
-            unsafe_allow_html=True,
-        )
-        preds = generate_predictions(returns, valid_tickers, NAME_MAP, ETF_MAP, final_returns, dividends, start_prices, INVESTMENT)
-        pred_history = load_pred_history()
-
-        if preds:
-            record_predictions(preds, end_date.isoformat(), pred_history)
-
-            # Render all prediction cards as a single responsive HTML grid
-            pred_grid_html = '<div class="pred-grid">'
-            for pred in preds:
-                conf = pred.get("confidence", 50)
-                pred_key = f'{pred["title"]}_{pred["ticker"]}'
-                votes = pred_history.get("votes", {}).get(pred_key, {"up": 0, "down": 0})
-                total_votes = votes["up"] + votes["down"]
-                agree_pct = int(votes["up"] / total_votes * 100) if total_votes > 0 else 0
-
-                vote_bar = ""
-                if total_votes > 0:
-                    vote_bar = (
-                        f'<div style="display:flex;align-items:center;gap:0.4rem;margin-top:0.3rem;'
-                        f'padding-top:0.3rem;border-top:1px solid rgba(14,95,58,0.1);">'
-                        f'<span style="font-size:0.7rem;">\U0001f44d {votes["up"]}</span>'
-                        f'<span style="font-size:0.7rem;">\U0001f44e {votes["down"]}</span>'
-                        f'<span style="font-size:0.6rem;color:var(--muted);margin-left:auto;">{agree_pct}% agree</span>'
-                        f'</div>'
-                    )
-                pred_grid_html += (
-                    f'<div class="pred-card">'
-                    f'<div class="pred-icon">{pred["icon"]}</div>'
-                    f'<div class="pred-title">{html_mod.escape(pred["title"])}</div>'
-                    f'<div class="pred-ticker">{pred.get("emoji", "")} {html_mod.escape(pred["ticker"])}</div>'
-                    f'<div class="pred-name">{html_mod.escape(pred["name"])}</div>'
-                    f'<div class="pred-detail">{html_mod.escape(pred["detail"])}</div>'
-                    f'<div class="pred-confidence">{conf}% confidence</div>'
-                    f'{vote_bar}'
-                    f'</div>'
-                )
-            pred_grid_html += '</div>'
-            st.markdown(pred_grid_html, unsafe_allow_html=True)
-
-            past_results = check_past_predictions(pred_history, final_returns)
-            if past_results:
-                scored = [r for r in past_results if r["correct"] is not None]
-                if scored:
-                    correct_count = sum(1 for r in scored if r["correct"])
-                    total_scored = len(scored)
-                    accuracy = int(correct_count / total_scored * 100)
-                    st.markdown(
-                        f'<div style="margin-top:0.5rem;padding:0.5rem 0.8rem;background:rgba(14,95,58,0.06);'
-                        f'border:1px solid rgba(14,95,58,0.15);border-radius:12px;font-size:0.8rem;">'
-                        f'\U0001f3af <b>Past Accuracy:</b> {correct_count}/{total_scored} predictions correct ({accuracy}%)'
-                        f'</div>',
-                        unsafe_allow_html=True,
-                    )
-
-            st.caption("\U0001f916 System-generated based on 5-day momentum, volatility, and trend analysis. Not financial advice!")
 
         # --- Shots Fired ---
         st.markdown(
@@ -3540,6 +3483,342 @@ with tab_dashboard:
         st.markdown("---")
 
     live_dashboard()
+
+with tab_feud:
+    st.markdown(
+        '<div style="display:flex;align-items:center;gap:0.5rem;margin:0.5rem 0 0.8rem;">'
+        '<span style="font-size:1.5rem;">\U0001f3af</span>'
+        '<span style="font-size:1.3rem;font-weight:800;letter-spacing:0.04em;text-transform:uppercase;'
+        'color:var(--accent);">Prediction Game</span></div>',
+        unsafe_allow_html=True,
+    )
+
+    # Compute next Monday's week range
+    _now_et = datetime.datetime.now(ZoneInfo("America/New_York"))
+    _today = _now_et.date()
+    _days_until_monday = (7 - _today.weekday()) % 7
+    if _days_until_monday == 0 and _now_et.hour >= 9:
+        _days_until_monday = 7
+    _next_monday = _today + datetime.timedelta(days=_days_until_monday if _days_until_monday > 0 else 7)
+    _next_friday = _next_monday + datetime.timedelta(days=4)
+    _week_label = f"{_next_monday.strftime('%b %d')} – {_next_friday.strftime('%b %d')}"
+
+    # Voting deadline check
+    _vote_cutoff = datetime.datetime.combine(_next_monday, datetime.time(9, 0), tzinfo=ZoneInfo("America/New_York"))
+    _voting_open = _now_et < _vote_cutoff
+
+    # Build stock list for JS
+    _stock_list_js = json.dumps([{"ticker": p["ticker"], "name": p["name"], "etf": p.get("etf", "")} for p in PLAYERS])
+
+    # --- Challenge 1: MVP Vote ---
+    # --- Challenge 2: HOH Vote ---
+    # Both rendered as a single components.html block for interactivity
+
+    # Load current votes from Google Sheets
+    _vote_data = {}
+    try:
+        resp = requests.get(REACTIONS_SHEET_URL + "?action=get_votes", timeout=5)
+        if resp.status_code == 200:
+            _vote_data = resp.json()
+    except Exception:
+        pass
+
+    _mvp_votes = _vote_data.get("votes", {})
+    _mvp_total = _vote_data.get("total", 0)
+
+    # Build MVP vote bars HTML
+    _mvp_bars = ""
+    if _mvp_votes:
+        _sorted_votes = sorted(_mvp_votes.items(), key=lambda x: -x[1])
+        _top_votes = _sorted_votes[:4]
+        _other_count = sum(v for _, v in _sorted_votes[4:])
+        if _other_count > 0:
+            _top_votes.append(("Other", _other_count))
+        _bar_colors = ["#19a05f", "#0e5f3a", "#13492f", "#5d6f65", "#b8b8b8"]
+        for i, (ticker, count) in enumerate(_top_votes):
+            pct = int(count / _mvp_total * 100) if _mvp_total > 0 else 0
+            color = _bar_colors[min(i, len(_bar_colors) - 1)]
+            _mvp_bars += (
+                f'<div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.4rem;">'
+                f'<span style="font-weight:700;font-size:0.85rem;min-width:4.5rem;">{html_mod.escape(str(ticker))}</span>'
+                f'<div style="flex:1;height:26px;background:rgba(18,51,36,0.06);border-radius:8px;overflow:hidden;">'
+                f'<div style="height:100%;width:{max(pct, 5)}%;background:{color};border-radius:8px;'
+                f'display:flex;align-items:center;padding-left:0.5rem;font-size:0.7rem;font-weight:700;color:#fff;">'
+                f'&nbsp;{pct}%</div></div>'
+                f'<span style="font-size:0.78rem;color:#5d6f65;min-width:4rem;text-align:right;">{count} votes</span>'
+                f'</div>'
+            )
+
+    # Pre-build conditional sections (can't use ternary with unicode in f-strings)
+    if _voting_open:
+        _mvp_input_html = (
+            '<div style="position:relative;max-width:320px;margin-bottom:0.8rem;" id="mvp-search-wrap">'
+            '<span style="position:absolute;left:0.7rem;top:50%;transform:translateY(-50%);font-size:0.9rem;color:#5d6f65;pointer-events:none;">'
+            '\U0001f50d</span>'
+            '<input id="mvpInput" type="text" placeholder="Search a stock to vote..." autocomplete="off" '
+            'style="width:100%;padding:0.6rem 0.9rem 0.6rem 2.2rem;border:2px solid rgba(18,51,36,0.12);'
+            'border-radius:12px;font-family:inherit;font-size:0.9rem;font-weight:600;background:white;'
+            'color:#102018;outline:none;">'
+            '<div id="mvpDropdown" style="position:absolute;top:100%;left:0;right:0;background:white;'
+            'border:1px solid rgba(18,51,36,0.12);border-radius:12px;margin-top:4px;max-height:220px;'
+            'overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,0.1);z-index:10;display:none;"></div></div>'
+            '<div id="mvpPick" style="display:none;margin-bottom:0.8rem;">'
+            '<span style="display:inline-flex;align-items:center;gap:0.5rem;padding:0.4rem 0.8rem;'
+            'background:rgba(14,95,58,0.08);border:1px solid #0e5f3a;border-radius:12px;font-weight:700;'
+            'font-size:0.9rem;color:#0e5f3a;">Your pick: <span id="mvpPickTicker">\u2014</span> '
+            '<span id="mvpPickName" style="font-weight:400;color:#5d6f65;font-size:0.8rem;"></span> '
+            '<span onclick="changeMvp()" style="font-size:0.7rem;color:#5d6f65;cursor:pointer;text-decoration:underline;">change</span>'
+            '</span></div>'
+        )
+        _hoh_input_html = (
+            '<div style="display:flex;gap:0.5rem;margin-bottom:0.8rem;flex-wrap:wrap;" id="hohBtns">'
+            '<div class="hohBtn" onclick="selectHoh(this,\'ANTY\')" style="padding:0.5rem 1.2rem;border:2px solid rgba(18,51,36,0.12);border-radius:14px;cursor:pointer;font-weight:700;font-size:0.95rem;background:white;display:flex;align-items:center;gap:0.4rem;transition:all 0.15s;">'
+            '<span style="font-size:1.1rem;">\U0001f469\U0001f3fb</span> ANTY</div>'
+            '<div class="hohBtn" onclick="selectHoh(this,\'UNCL\')" style="padding:0.5rem 1.2rem;border:2px solid rgba(18,51,36,0.12);border-radius:14px;cursor:pointer;font-weight:700;font-size:0.95rem;background:white;display:flex;align-items:center;gap:0.4rem;transition:all 0.15s;">'
+            '<span style="font-size:1.1rem;">\U0001f468\u200d\U0001f9b3</span> UNCL</div>'
+            '<div class="hohBtn" onclick="selectHoh(this,\'KIDZ\')" style="padding:0.5rem 1.2rem;border:2px solid rgba(18,51,36,0.12);border-radius:14px;cursor:pointer;font-weight:700;font-size:0.95rem;background:white;display:flex;align-items:center;gap:0.4rem;transition:all 0.15s;">'
+            '<span style="font-size:1.1rem;">\U0001f476\U0001f3fb</span> KIDZ</div>'
+            '</div>'
+        )
+    else:
+        _mvp_input_html = (
+            '<div style="padding:0.5rem 0.8rem;background:rgba(209,74,52,0.08);border:1px solid rgba(209,74,52,0.2);'
+            'border-radius:12px;font-size:0.8rem;color:#8f2d1b;margin-bottom:0.8rem;">'
+            '\U0001f512 Voting is closed for this week.</div>'
+        )
+        _hoh_input_html = _mvp_input_html
+
+    _no_votes_html = '<div style="font-size:0.8rem;color:#5d6f65;">No votes yet \u2014 be the first!</div>'
+
+    _feud_html = f"""
+    <div style="font-family:'Space Grotesk',sans-serif;color:#102018;">
+
+      <!-- Challenge 1: MVP -->
+      <div style="background:rgba(251,253,250,0.96);border:1px solid rgba(18,51,36,0.12);
+          border-radius:20px;padding:1.2rem 1.4rem;box-shadow:0 12px 24px rgba(82,58,32,0.08);margin-bottom:1.2rem;">
+        <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#5d6f65;margin-bottom:0.3rem;">
+          Weekly Challenge #1</div>
+        <div style="font-size:1.05rem;font-weight:700;margin-bottom:0.2rem;">
+          \U0001f3c6 Who will be MVP next week?
+          <span style="display:inline-block;background:rgba(14,95,58,0.08);color:#0e5f3a;font-size:0.68rem;
+              font-weight:700;padding:0.15rem 0.5rem;border-radius:999px;margin-left:0.4rem;vertical-align:middle;">
+            {_week_label}</span>
+        </div>
+        <div style="font-size:0.78rem;color:#5d6f65;margin-bottom:0.6rem;">
+          The stock with the highest total return Mon–Fri wins.</div>
+
+        {_mvp_input_html}
+
+        <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#5d6f65;margin-top:0.3rem;margin-bottom:0.3rem;">
+          Community Votes ({_mvp_total} total)</div>
+        {_mvp_bars if _mvp_bars else _no_votes_html}
+      </div>
+
+      <!-- Challenge 2: HOH -->
+      <div style="background:rgba(251,253,250,0.96);border:1px solid rgba(18,51,36,0.12);
+          border-radius:20px;padding:1.2rem 1.4rem;box-shadow:0 12px 24px rgba(82,58,32,0.08);">
+        <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#5d6f65;margin-bottom:0.3rem;">
+          Weekly Challenge #2</div>
+        <div style="font-size:1.05rem;font-weight:700;margin-bottom:0.2rem;">
+          \U0001f3e0 Who will be Head of Household?
+          <span style="display:inline-block;background:rgba(14,95,58,0.08);color:#0e5f3a;font-size:0.68rem;
+              font-weight:700;padding:0.15rem 0.5rem;border-radius:999px;margin-left:0.4rem;vertical-align:middle;">
+            {_week_label}</span>
+        </div>
+        <div style="font-size:0.78rem;color:#5d6f65;margin-bottom:0.6rem;">
+          The ETF with the highest average return Mon–Fri wins.</div>
+
+        {_hoh_input_html}
+
+        <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#5d6f65;margin-top:0.3rem;margin-bottom:0.3rem;">
+          Community Votes</div>
+        <div style="font-size:0.8rem;color:#5d6f65;">HOH votes will appear here after first vote.</div>
+      </div>
+
+      <div style="margin-top:0.6rem;font-size:0.72rem;color:#5d6f65;">
+        \U0001f552 Voting closes Monday 9:00 AM ET &middot; Winner determined by Friday 4:00 PM ET close
+      </div>
+    </div>
+
+    <script>
+    var stocks = {_stock_list_js};
+    var sheetUrl = '{REACTIONS_SHEET_URL}';
+    </script>
+    """
+
+    # JS with backslashes must be a regular string, not f-string
+    _feud_js = """
+    <script>
+    var mvpInput = document.getElementById('mvpInput');
+    var mvpDropdown = document.getElementById('mvpDropdown');
+    if (mvpInput) {
+      mvpInput.addEventListener('focus', function() { renderMvpDD(this.value); });
+      mvpInput.addEventListener('input', function() { renderMvpDD(this.value); });
+      document.addEventListener('click', function(e) {
+        if (!e.target.closest('#mvp-search-wrap')) mvpDropdown.style.display = 'none';
+      });
+    }
+
+    function renderMvpDD(q) {
+      q = q.toLowerCase();
+      var f = stocks.filter(function(s) {
+        return s.ticker.toLowerCase().includes(q) || s.name.toLowerCase().includes(q);
+      }).slice(0, 8);
+      if (!f.length) {
+        mvpDropdown.innerHTML = '<div style="padding:0.5rem 0.9rem;color:#5d6f65;font-size:0.85rem;">No matches</div>';
+      } else {
+        mvpDropdown.innerHTML = f.map(function(s) {
+          return '<div style="padding:0.5rem 0.9rem;cursor:pointer;font-size:0.85rem;display:flex;justify-content:space-between;align-items:center;" ' +
+            'onmouseover="this.style.background=\'rgba(14,95,58,0.06)\'" onmouseout="this.style.background=\'\'" ' +
+            'onclick="selectMvp(\'' + s.ticker + '\',\'' + s.name + '\')">' +
+            '<span><b>' + s.ticker + '</b> <span style="color:#5d6f65;font-size:0.78rem;">' + s.name + '</span></span>' +
+            '<span style="font-size:0.65rem;font-weight:700;padding:0.1rem 0.4rem;border-radius:999px;background:rgba(14,95,58,0.08);color:#0e5f3a;">' + s.etf + '</span></div>';
+        }).join('');
+      }
+      mvpDropdown.style.display = 'block';
+    }
+
+    function selectMvp(ticker, name) {
+      mvpDropdown.style.display = 'none';
+      mvpInput.value = '';
+      document.getElementById('mvp-search-wrap').style.display = 'none';
+      document.getElementById('mvpPick').style.display = 'block';
+      document.getElementById('mvpPickTicker').textContent = ticker;
+      document.getElementById('mvpPickName').textContent = name;
+      var voterId = localStorage.getItem('feud_voter_id');
+      if (!voterId) { voterId = 'anon_' + Math.random().toString(36).substr(2, 9); localStorage.setItem('feud_voter_id', voterId); }
+      fetch(sheetUrl + '?action=vote&voter=' + encodeURIComponent(voterId) + '&pick=' + encodeURIComponent(ticker)).catch(function(){});
+      localStorage.setItem('feud_mvp_pick', ticker);
+    }
+
+    function changeMvp() {
+      document.getElementById('mvp-search-wrap').style.display = 'block';
+      document.getElementById('mvpPick').style.display = 'none';
+      if (mvpInput) mvpInput.focus();
+    }
+
+    var savedMvp = localStorage.getItem('feud_mvp_pick');
+    if (savedMvp && document.getElementById('mvpPick')) {
+      var s = stocks.find(function(x) { return x.ticker === savedMvp; });
+      if (s) {
+        document.getElementById('mvp-search-wrap').style.display = 'none';
+        document.getElementById('mvpPick').style.display = 'block';
+        document.getElementById('mvpPickTicker').textContent = s.ticker;
+        document.getElementById('mvpPickName').textContent = s.name;
+      }
+    }
+
+    function selectHoh(btn, etf) {
+      document.querySelectorAll('.hohBtn').forEach(function(b) {
+        b.style.borderColor = 'rgba(18,51,36,0.12)';
+        b.style.background = 'white';
+        b.style.color = '#102018';
+      });
+      btn.style.borderColor = '#0e5f3a';
+      btn.style.background = 'rgba(14,95,58,0.1)';
+      btn.style.color = '#0e5f3a';
+      localStorage.setItem('feud_hoh_pick', etf);
+      var voterId = localStorage.getItem('feud_voter_id');
+      if (!voterId) { voterId = 'anon_' + Math.random().toString(36).substr(2, 9); localStorage.setItem('feud_voter_id', voterId); }
+      fetch(sheetUrl + '?action=vote&voter=' + encodeURIComponent('hoh_' + voterId) + '&pick=' + encodeURIComponent(etf)).catch(function(){});
+    }
+
+    var savedHoh = localStorage.getItem('feud_hoh_pick');
+    if (savedHoh) {
+      document.querySelectorAll('.hohBtn').forEach(function(b) {
+        if (b.textContent.trim().includes(savedHoh)) {
+          b.style.borderColor = '#0e5f3a';
+          b.style.background = 'rgba(14,95,58,0.1)';
+          b.style.color = '#0e5f3a';
+        }
+      });
+    }
+
+    function resizeFrame() {
+      var h = document.body.scrollHeight + 10;
+      window.frameElement.style.height = h + 'px';
+    }
+    window.addEventListener('load', resizeFrame);
+    window.addEventListener('resize', resizeFrame);
+    setTimeout(resizeFrame, 50);
+    setTimeout(resizeFrame, 300);
+    </script>
+    """
+    _feud_html += _feud_js
+
+    components.html(_feud_html, height=700, scrolling=False)
+
+    # --- System Predictions (moved from Dashboard) ---
+    st.markdown(
+        '<div style="display:flex;align-items:center;gap:0.5rem;margin:1.2rem 0 0.5rem;">'
+        '<span style="font-size:1.3rem;">\U0001f52e</span>'
+        '<span style="font-size:1.1rem;font-weight:800;letter-spacing:0.04em;text-transform:uppercase;'
+        'color:var(--accent);">Next Week\'s Predictions</span></div>',
+        unsafe_allow_html=True,
+    )
+
+    if "_returns" in st.session_state:
+        _r = st.session_state["_returns"]
+        _vt = st.session_state["_valid_tickers"]
+        _sp = st.session_state["_start_prices"]
+        _div = st.session_state["_dividends"]
+        _fr = _r[_vt].iloc[-1].sort_values(ascending=False)
+        preds = generate_predictions(_r, _vt, NAME_MAP, ETF_MAP, _fr, _div, _sp, INVESTMENT)
+        pred_history = load_pred_history()
+
+        if preds:
+            record_predictions(preds, end_date.isoformat(), pred_history)
+
+            pred_grid_html = '<div class="pred-grid">'
+            for pred in preds:
+                conf = pred.get("confidence", 50)
+                pred_key = f'{pred["title"]}_{pred["ticker"]}'
+                votes = pred_history.get("votes", {}).get(pred_key, {"up": 0, "down": 0})
+                total_votes = votes["up"] + votes["down"]
+                agree_pct = int(votes["up"] / total_votes * 100) if total_votes > 0 else 0
+
+                vote_bar = ""
+                if total_votes > 0:
+                    vote_bar = (
+                        f'<div style="display:flex;align-items:center;gap:0.4rem;margin-top:0.3rem;'
+                        f'padding-top:0.3rem;border-top:1px solid rgba(14,95,58,0.1);">'
+                        f'<span style="font-size:0.7rem;">\U0001f44d {votes["up"]}</span>'
+                        f'<span style="font-size:0.7rem;">\U0001f44e {votes["down"]}</span>'
+                        f'<span style="font-size:0.6rem;color:var(--muted);margin-left:auto;">{agree_pct}% agree</span>'
+                        f'</div>'
+                    )
+                pred_grid_html += (
+                    f'<div class="pred-card">'
+                    f'<div class="pred-icon">{pred["icon"]}</div>'
+                    f'<div class="pred-title">{html_mod.escape(pred["title"])}</div>'
+                    f'<div class="pred-ticker">{pred.get("emoji", "")} {html_mod.escape(pred["ticker"])}</div>'
+                    f'<div class="pred-name">{html_mod.escape(pred["name"])}</div>'
+                    f'<div class="pred-detail">{html_mod.escape(pred["detail"])}</div>'
+                    f'<div class="pred-confidence">{conf}% confidence</div>'
+                    f'{vote_bar}'
+                    f'</div>'
+                )
+            pred_grid_html += '</div>'
+            st.markdown(pred_grid_html, unsafe_allow_html=True)
+
+            past_results = check_past_predictions(pred_history, _fr)
+            if past_results:
+                scored = [r for r in past_results if r["correct"] is not None]
+                if scored:
+                    correct_count = sum(1 for r in scored if r["correct"])
+                    total_scored = len(scored)
+                    accuracy = int(correct_count / total_scored * 100)
+                    st.markdown(
+                        f'<div style="margin-top:0.5rem;padding:0.5rem 0.8rem;background:rgba(14,95,58,0.06);'
+                        f'border:1px solid rgba(14,95,58,0.15);border-radius:12px;font-size:0.8rem;">'
+                        f'\U0001f3af <b>Past Accuracy:</b> {correct_count}/{total_scored} predictions correct ({accuracy}%)'
+                        f'</div>',
+                        unsafe_allow_html=True,
+                    )
+
+            st.caption("\U0001f916 System-generated based on 5-day momentum, volatility, and trend analysis. Not financial advice!")
+    else:
+        st.info("Visit the Dashboard tab first to load stock data.")
 
 with tab_admin:
     if not st.session_state.admin_authenticated:
