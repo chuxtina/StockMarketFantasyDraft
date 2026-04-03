@@ -478,11 +478,17 @@ div[data-testid="stPlotlyChart"] {
     box-shadow: var(--shadow);
     overflow: hidden;
 }
+.leaderboard-scroll {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    max-width: calc(100vw - 2rem);
+    border: 1px solid var(--border);
+    border-radius: 18px;
+}
 table.leaderboard {
     width: 100% !important;
     border-collapse: separate !important;
     border-spacing: 0;
-    overflow: hidden;
     border-radius: 18px;
     background: var(--panel-strong);
 }
@@ -644,7 +650,6 @@ hr {
     /* Global mobile overflow fix */
     .block-container, .block-container > div {
         max-width: 100vw !important;
-        overflow-x: hidden !important;
     }
     /* Market Pulse mobile */
     .recap-card {
@@ -3488,8 +3493,7 @@ with tab_dashboard:
             .apply(leaderboard_row_style, axis=1)
         )
         st.markdown(
-            f'<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;max-width:calc(100vw - 2rem);border:1px solid var(--border);border-radius:18px;">'
-            f'{styled_df.to_html(escape=False)}</div>',
+            f'<div class="leaderboard-scroll">{styled_df.to_html(escape=False)}</div>',
             unsafe_allow_html=True,
         )
         st.caption(
