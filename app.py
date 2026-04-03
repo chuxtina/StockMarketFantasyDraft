@@ -299,6 +299,10 @@ table td, table th, code, .mono { font-family: 'IBM Plex Mono', monospace !impor
 [data-testid="stHeader"] {
     background: transparent;
     z-index: 999 !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
 }
 /* Force the main menu popover above all content with solid background */
 div[data-testid="stMainMenuPopover"] {
