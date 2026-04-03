@@ -2527,36 +2527,7 @@ with tab_dashboard:
         )
         st.markdown(f'<div style="overflow-x: auto;">{styled_df.to_html(escape=False)}</div>', unsafe_allow_html=True)
 
-        # --- Emoji Reactions ---
-        st.markdown("#### \U0001f60e React to Stocks")
-        reactions_data = load_reactions()
-
-        sorted_tickers_for_reactions = final_returns.index.tolist()
-        reaction_tickers = sorted_tickers_for_reactions[:5] + sorted_tickers_for_reactions[-5:]
-
-        # Single compact table with one row per stock, emoji buttons inline
-        for ticker in reaction_tickers:
-            ticker_reactions = reactions_data.get(ticker, {})
-            ret_val = final_returns[ticker]
-            ret_class = "positive" if ret_val >= 0 else "negative"
-
-            cols = st.columns([2, 1, 1, 1, 1])
-            cols[0].markdown(
-                f'<div style="padding:0.2rem 0;">'
-                f'<b>{html_mod.escape(ticker)}</b> '
-                f'<span class="{ret_class}" style="font-size:0.82rem;">{ret_val:+.2f}%</span>'
-                f'</div>',
-                unsafe_allow_html=True,
-            )
-            for e_idx, emoji in enumerate(REACTION_EMOJIS):
-                count = ticker_reactions.get(emoji, 0)
-                label = f"{emoji} {count}" if count > 0 else emoji
-                if cols[e_idx + 1].button(label, key=f"react_{ticker}_{emoji}", use_container_width=True):
-                    if ticker not in reactions_data:
-                        reactions_data[ticker] = {}
-                    reactions_data[ticker][emoji] = count + 1
-                    save_reactions(reactions_data)
-                    st.rerun()
+        # (Emoji reactions removed)
 
         # --- Subscribe ---
         st.markdown("---")
