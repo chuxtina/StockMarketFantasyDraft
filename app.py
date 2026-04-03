@@ -478,14 +478,18 @@ div[data-testid="stPlotlyChart"] {
     overflow: hidden;
 }
 .leaderboard-scroll {
-    overflow-x: auto !important;
+    display: block !important;
+    overflow-x: scroll !important;
+    overflow-y: visible !important;
     -webkit-overflow-scrolling: touch;
-    max-width: calc(100vw - 2rem);
+    width: 100% !important;
+    max-width: calc(100vw - 4rem) !important;
     border: 1px solid var(--border);
     border-radius: 18px;
 }
 table.leaderboard {
     width: 100% !important;
+    min-width: 1400px;
     border-collapse: separate !important;
     border-spacing: 0;
     border-radius: 18px;
