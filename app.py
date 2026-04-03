@@ -509,29 +509,65 @@ hr {
         font-size: 0.72rem;
         padding: 0.3rem 0.6rem;
     }
+    /* Global mobile overflow fix */
+    .block-container, .block-container > div {
+        max-width: 100vw !important;
+        overflow-x: hidden !important;
+    }
     /* Market Pulse mobile */
     .recap-card {
-        padding: 0.8rem 1rem !important;
+        padding: 0.8rem 0.8rem !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
     }
     .recap-card > div:first-child {
         flex-direction: column !important;
         gap: 0.5rem !important;
     }
-    /* Signal bar text mobile */
-    .signal-table td, .signal-table th {
-        padding: 0.3rem 0.4rem !important;
-        font-size: 0.68rem !important;
+    .recap-card span[style*="font-size:2.4rem"] {
+        font-size: 1.8rem !important;
     }
-    /* Bragging rights table mobile */
+    .recap-card div[style*="font-size:1.2rem"] {
+        font-size: 1rem !important;
+    }
+    /* Signal table mobile - scrollable */
+    .signal-table {
+        display: block !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+        font-size: 0.65rem !important;
+    }
+    .signal-table td, .signal-table th {
+        padding: 0.25rem 0.35rem !important;
+        font-size: 0.62rem !important;
+        white-space: nowrap !important;
+    }
+    /* Bragging rights table mobile - scrollable */
+    table:not(.leaderboard):not(.signal-table) {
+        display: block !important;
+        overflow-x: auto !important;
+        -webkit-overflow-scrolling: touch;
+    }
     table td, table th {
-        font-size: 0.72rem;
+        font-size: 0.7rem;
     }
     /* Prediction cards mobile */
     .pred-card {
-        padding: 0.6rem 0.7rem !important;
+        padding: 0.5rem 0.6rem !important;
     }
     .pred-ticker {
-        font-size: 1rem !important;
+        font-size: 0.9rem !important;
+    }
+    .pred-icon {
+        font-size: 1.2rem !important;
+    }
+    .pred-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+    }
+    /* Multi-award bar mobile */
+    .sup-multi-bar {
+        flex-wrap: wrap !important;
+        font-size: 0.7rem !important;
     }
 }
 .throne-scroll {
@@ -2445,7 +2481,7 @@ with tab_dashboard:
         if pairs:
             table_html = table_html[:table_html.rfind('<tr><td colspan')]
         table_html += '</table>'
-        st.markdown(table_html, unsafe_allow_html=True)
+        st.markdown(f'<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">{table_html}</div>', unsafe_allow_html=True)
 
         # --- Market Pulse ---
         st.markdown("#### \U0001f4ca Market Pulse")
@@ -2590,7 +2626,7 @@ with tab_dashboard:
                     f'</tr>'
                 )
             sig_html += '</table>'
-            st.markdown(sig_html, unsafe_allow_html=True)
+            st.markdown(f'<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">{sig_html}</div>', unsafe_allow_html=True)
             st.caption("Based on 14-day RSI, 10/20-day SMA crossover, and price vs 20-day SMA. Not financial advice.")
 
         # --- System Predictions ---
