@@ -487,9 +487,13 @@ table.leaderboard {
     background: var(--panel-strong);
 }
 table.leaderboard td, table.leaderboard th {
-    padding: 12px 14px;
+    padding: 10px 8px;
     text-align: left;
     border-bottom: 1px solid rgba(18, 51, 36, 0.08);
+    white-space: nowrap;
+}
+table.leaderboard th {
+    white-space: normal !important;
 }
 table.leaderboard th {
     background: linear-gradient(90deg, #0d2f20 0%, #13492f 100%);
@@ -498,7 +502,11 @@ table.leaderboard th {
     top: 0;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    font-size: 0.75rem;
+    font-size: 0.7rem;
+    white-space: normal;
+    min-width: 60px;
+    padding: 10px 8px;
+    line-height: 1.3;
 }
 table.leaderboard tr:nth-child(even) td {
     background: rgba(16, 95, 58, 0.04);
