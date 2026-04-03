@@ -3041,7 +3041,10 @@ with tab_dashboard:
         // Auto-resize iframe to fit content
         function resizeFrame() {{
             var h = document.body.scrollHeight + 10;
-            window.frameElement.style.height = h + 'px';
+            // Try direct access first (works locally)
+            try {{ if (window.frameElement) window.frameElement.style.height = h + 'px'; }} catch(e) {{}}
+            // Also use postMessage for Streamlit Cloud (cross-origin)
+            window.parent.postMessage({{type: 'streamlit:setFrameHeight', height: h}}, '*');
         }}
         window.addEventListener('load', resizeFrame);
         window.addEventListener('resize', resizeFrame);
@@ -3052,8 +3055,8 @@ with tab_dashboard:
         </script>
         """
 
-        roast_height = len(roasts) * 105 + 40
-        components.html(roast_component_html, height=roast_height, scrolling=False)
+        roast_height = len(roasts) * 72 + 30
+        components.html(roast_component_html, height=roast_height, scrolling=True)
 
         # Next roast update time
         now_et = datetime.datetime.now(ZoneInfo("America/New_York"))
