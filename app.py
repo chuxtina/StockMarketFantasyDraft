@@ -190,6 +190,44 @@ html, body {
         display: none !important;
     }
 }
+/* Mobile landscape: short viewport height + wide screen */
+@media (max-height: 500px) and (orientation: landscape) {
+    [data-testid="stSidebar"] {
+        display: none !important;
+    }
+    [data-testid="stHeader"] {
+        display: none !important;
+    }
+    .block-container {
+        padding-top: 0.5rem !important;
+        padding-bottom: 0.5rem !important;
+    }
+    .hero-card {
+        padding: 0.8rem 1rem !important;
+        border-radius: 16px;
+        margin-bottom: 0.4rem !important;
+    }
+    .hero-title {
+        font-size: 1.2rem !important;
+        margin: 0.2rem 0 0.3rem !important;
+    }
+    .hero-meta {
+        gap: 0.3rem !important;
+        margin-top: 0.3rem !important;
+    }
+    .hero-pill {
+        font-size: 0.65rem !important;
+        padding: 0.2rem 0.5rem !important;
+    }
+    .metric-card {
+        padding: 0.5rem 0.7rem !important;
+        min-height: auto !important;
+    }
+    .section-card {
+        border-radius: 14px;
+        padding: 0.6rem 0.8rem;
+    }
+}
 * {
     font-family: 'Space Grotesk', sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Noto Color Emoji' !important;
 }
@@ -264,7 +302,6 @@ table td, table th, code, .mono { font-family: 'IBM Plex Mono', monospace !impor
 [data-testid="stHeader"] {
     background: transparent;
     z-index: 999 !important;
-    position: relative !important;
 }
 /* Force the main menu popover above all content with solid background */
 div[data-testid="stMainMenuPopover"] {
@@ -291,8 +328,12 @@ svg.main-svg {
     z-index: auto !important;
 }
 .block-container {
-    padding-top: 2.5rem;
+    padding-top: 0rem;
     padding-bottom: 3rem;
+}
+[data-testid="stAppViewBlockContainer"] > div:first-child {
+    margin-top: 0 !important;
+    padding-top: 0 !important;
 }
 .hero-card,
 .section-card {
@@ -2410,14 +2451,27 @@ with tab_dashboard:
                 unsafe_allow_html=True,
             )
 
-        metric_cols = st.columns(3)
+        # --- Signals & News ---
+        st.markdown(
+            '<div style="display:flex;align-items:center;gap:0.5rem;margin:1.2rem 0 0.5rem;">'
+            '<span style="font-size:1.1rem;font-weight:800;letter-spacing:0.04em;text-transform:uppercase;'
+            'color:var(--accent);">Who\'s Hot \U0001f525 Who\'s Not \U0001f4a9 Who\'s Meh \U0001f610</span></div>',
+            unsafe_allow_html=True,
+        )
+
+        meh = superlatives.get("middle", {})
+        meh_ticker = meh.get("ticker", "")
+        meh_ret = meh.get("return", 0)
+        meh_rank = meh.get("rank", 0)
+
+        metric_cols = st.columns(4)
         metric_cols[0].markdown(
             f"""
             <div class="metric-card mvp">
-              <div class="metric-label">👑 MVP</div>
+              <div class="metric-label">🔥</div>
               <div class="metric-value positive">{ETF_EMOJI.get(ETF_MAP.get(best_ticker, ''), '')} {html_mod.escape(best_ticker)}</div>
               <div class="metric-detail">{html_mod.escape(NAME_MAP[best_ticker])} <span class="positive">{final_returns[best_ticker]:+.2f}%</span></div>
-              <div class="metric-detail">🔥 {throne['mvp_streak']} day streak</div>
+              <div class="metric-detail">👑 {throne['mvp_streak']} day streak</div>
               <div class="metric-detail" style="font-size:0.75rem;opacity:0.7;">Highest total return</div>
             </div>
             """,
@@ -2426,11 +2480,23 @@ with tab_dashboard:
         metric_cols[1].markdown(
             f"""
             <div class="metric-card bench">
-              <div class="metric-label">💩 Benchwarmer</div>
+              <div class="metric-label">💩</div>
               <div class="metric-value negative">{ETF_EMOJI.get(ETF_MAP.get(worst_ticker, ''), '')} {html_mod.escape(worst_ticker)}</div>
               <div class="metric-detail">{html_mod.escape(NAME_MAP[worst_ticker])} <span class="negative">({abs(final_returns[worst_ticker]):.2f}%)</span></div>
               <div class="metric-detail">📉 {throne['bench_streak']} day streak</div>
               <div class="metric-detail" style="font-size:0.75rem;opacity:0.7;">Lowest total return</div>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        metric_cols[2].markdown(
+            f"""
+            <div class="metric-card meh">
+              <div class="metric-label">😐</div>
+              <div class="metric-value" style="color:var(--muted);">{ETF_EMOJI.get(ETF_MAP.get(meh_ticker, ''), '')} {html_mod.escape(meh_ticker)}</div>
+              <div class="metric-detail">{html_mod.escape(NAME_MAP.get(meh_ticker, ''))} <span style="color:var(--muted);">{meh_ret:+.2f}%</span></div>
+              <div class="metric-detail">📊 Rank #{meh_rank} of {len(valid_tickers)}</div>
+              <div class="metric-detail" style="font-size:0.75rem;opacity:0.7;">Closest to 0% return</div>
             </div>
             """,
             unsafe_allow_html=True,
@@ -2464,7 +2530,7 @@ with tab_dashboard:
                 f'<div class="etf-bar-bg">{left_half}{right_half}</div>'
                 f'</div>'
             )
-        metric_cols[2].markdown(
+        metric_cols[3].markdown(
             f"""
             <div class="metric-card" style="height:100%;">
               <div class="metric-label">ETF Standing</div>
@@ -2658,6 +2724,17 @@ with tab_dashboard:
         st.markdown(f'<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">{table_html}</div>', unsafe_allow_html=True)
 
         # --- Market Pulse ---
+        stock_signals = compute_signals(valid_tickers, start_date, end_date)
+
+        # Compute signal counts for the bar
+        buy_count = sum(1 for s in stock_signals.values() if s["signal"] == "BUY") if stock_signals else 0
+        sell_count = sum(1 for s in stock_signals.values() if s["signal"] == "SELL") if stock_signals else 0
+        hold_count = sum(1 for s in stock_signals.values() if s["signal"] == "HOLD") if stock_signals else 0
+        total_signals = buy_count + sell_count + hold_count
+        buy_pct = int(buy_count / total_signals * 100) if total_signals else 0
+        sell_pct = int(sell_count / total_signals * 100) if total_signals else 0
+        hold_pct = 100 - buy_pct - sell_pct
+
         st.markdown(
             '<div style="display:flex;align-items:center;gap:0.5rem;margin:1.2rem 0 0.5rem;">'
             '<span style="font-size:1.3rem;">\U0001f4ca</span>'
@@ -2685,6 +2762,19 @@ with tab_dashboard:
 
         trading_days = len(returns) - 1 if len(returns) > 1 else 0
 
+        signal_bar_html = ""
+        if stock_signals:
+            signal_bar_html = (
+                f'<div style="display:flex;border-radius:10px;overflow:hidden;height:34px;margin-top:0.6rem;">'
+                f'<div style="width:{buy_pct}%;background:#19a05f;display:flex;align-items:center;justify-content:center;'
+                f'font-size:clamp(0.6rem,2vw,0.75rem);font-weight:700;color:#fff;padding:0 0.3rem;">{buy_count} BUY</div>'
+                f'<div style="width:{hold_pct}%;background:#d7a83a;display:flex;align-items:center;justify-content:center;'
+                f'font-size:clamp(0.6rem,2vw,0.75rem);font-weight:700;color:#fff;padding:0 0.3rem;">{hold_count} HOLD</div>'
+                f'<div style="width:{sell_pct}%;background:#d14a34;display:flex;align-items:center;justify-content:center;'
+                f'font-size:clamp(0.6rem,2vw,0.75rem);font-weight:700;color:#fff;padding:0 0.3rem;">{sell_count} SELL</div>'
+                f'</div>'
+            )
+
         st.markdown(
             f'<div class="recap-card" style="padding:1.2rem 1.4rem;text-align:center;">'
             f'<div style="font-size:2.8rem;line-height:1;margin-bottom:0.3rem;">{mood_emoji}</div>'
@@ -2701,58 +2791,23 @@ with tab_dashboard:
             f'font-size:clamp(0.6rem,2vw,0.75rem);font-weight:700;color:#fff;padding:0 0.4rem;">'
             f'{red_count} down ({100-green_pct}%)</div>'
             f'</div>'
+            f'{signal_bar_html}'
             f'</div>',
             unsafe_allow_html=True,
         )
 
-        # --- Signals & News ---
-        st.markdown(
-            '<div style="display:flex;align-items:center;gap:0.5rem;margin:1.2rem 0 0.5rem;">'
-            '<span style="font-size:1.1rem;font-weight:800;letter-spacing:0.04em;text-transform:uppercase;'
-            'color:var(--accent);">Who\'s Hot \U0001f525 Who\'s Not \U0001f4a9 Who\'s Meh \U0001f610</span></div>',
-            unsafe_allow_html=True,
-        )
-
-        stock_signals = compute_signals(valid_tickers, start_date, end_date)
-
+        # --- Signal Table ---
+        st.markdown('<div style="margin-top:1rem;"></div>', unsafe_allow_html=True)
         if stock_signals:
-            # Count signals
-            buy_count = sum(1 for s in stock_signals.values() if s["signal"] == "BUY")
-            sell_count = sum(1 for s in stock_signals.values() if s["signal"] == "SELL")
-            hold_count = sum(1 for s in stock_signals.values() if s["signal"] == "HOLD")
-            total_signals = buy_count + sell_count + hold_count
-
-            # Signal bar (like green/red bar)
-            buy_pct = int(buy_count / total_signals * 100) if total_signals else 0
-            sell_pct = int(sell_count / total_signals * 100) if total_signals else 0
-            hold_pct = 100 - buy_pct - sell_pct
-
-            st.markdown(
-                f'<div style="display:flex;border-radius:8px;overflow:hidden;height:32px;margin-bottom:0.7rem;">'
-                f'<div style="width:{buy_pct}%;background:#19a05f;display:flex;align-items:center;justify-content:center;'
-                f'font-size:clamp(0.6rem,2vw,0.75rem);font-weight:700;color:#fff;padding:0 0.3rem;">{buy_count} BUY</div>'
-                f'<div style="width:{hold_pct}%;background:#d7a83a;display:flex;align-items:center;justify-content:center;'
-                f'font-size:clamp(0.6rem,2vw,0.75rem);font-weight:700;color:#fff;padding:0 0.3rem;">{hold_count} HOLD</div>'
-                f'<div style="width:{sell_pct}%;background:#d14a34;display:flex;align-items:center;justify-content:center;'
-                f'font-size:clamp(0.6rem,2vw,0.75rem);font-weight:700;color:#fff;padding:0 0.3rem;">{sell_count} SELL</div>'
-                f'</div>',
-                unsafe_allow_html=True,
-            )
-
-            # Sort by leaderboard rank (same order as standings)
             ranked_signals = [(ticker, stock_signals[ticker]) for ticker in final_returns.index if ticker in stock_signals]
-
-            # Fetch earnings data
             earnings_data = fetch_earnings(tuple(valid_tickers))
 
-            # Signal table
             sig_html = '<table class="signal-table">'
             sig_html += '<tr><th>Rank</th><th>Stock</th><th>Total Return</th><th>RSI</th><th>SMA Cross</th><th>vs 20d SMA</th><th>Signal</th><th>Next Earnings</th><th>Est. EPS</th><th>Last EPS</th></tr>'
             for rank, (ticker, sig) in enumerate(ranked_signals, start=1):
                 ret_val = final_returns[ticker] if ticker in final_returns.index else 0
                 ret_color = "#19a05f" if ret_val >= 0 else "#d14a34"
 
-                # RSI bar
                 rsi_val = sig["rsi"]
                 if rsi_val is not None:
                     if rsi_val < 30:
@@ -2768,21 +2823,17 @@ with tab_dashboard:
                 else:
                     rsi_html = '<span style="color:var(--muted);font-size:0.75rem;">N/A</span>'
 
-                # SMA cross
                 if sig["sma_cross"] is not None:
                     sma_html = '<span style="color:#19a05f;">\u2713 Bullish</span>' if sig["sma_cross"] else '<span style="color:#d14a34;">\u2717 Bearish</span>'
                 else:
                     sma_html = '<span style="color:var(--muted);">N/A</span>'
 
-                # Price vs SMA
                 if sig["price_vs_sma"] is not None:
                     pv_html = '<span style="color:#19a05f;">Above</span>' if sig["price_vs_sma"] else '<span style="color:#d14a34;">Below</span>'
                 else:
                     pv_html = '<span style="color:var(--muted);">N/A</span>'
 
-                # Signal badge
                 sig_class = f'signal-{sig["signal"].lower()}'
-                # Earnings data
                 earn = earnings_data.get(ticker, {})
                 earn_date = earn.get("next_date", "")
                 eps_est = earn.get("eps_est")
