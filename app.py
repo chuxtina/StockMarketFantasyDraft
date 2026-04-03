@@ -483,6 +483,30 @@ hr {
         font-size: 0.72rem;
         padding: 0.3rem 0.6rem;
     }
+    /* Market Pulse mobile */
+    .recap-card {
+        padding: 0.8rem 1rem !important;
+    }
+    .recap-card > div:first-child {
+        flex-direction: column !important;
+        gap: 0.5rem !important;
+    }
+    /* Signal bar text mobile */
+    .signal-table td, .signal-table th {
+        padding: 0.3rem 0.4rem !important;
+        font-size: 0.68rem !important;
+    }
+    /* Bragging rights table mobile */
+    table td, table th {
+        font-size: 0.72rem;
+    }
+    /* Prediction cards mobile */
+    .pred-card {
+        padding: 0.6rem 0.7rem !important;
+    }
+    .pred-ticker {
+        font-size: 1rem !important;
+    }
 }
 .throne-scroll {
     max-height: 320px;
@@ -2426,14 +2450,15 @@ with tab_dashboard:
             f'<span style="font-size:2.4rem;line-height:1;">{mood_emoji}</span>'
             f'<div>'
             f'<div style="font-size:1.2rem;font-weight:700;color:#f4f0e3;">{mood_text}</div>'
-            f'<div style="font-size:0.8rem;opacity:0.7;">{start_date.strftime("%b %d")} \u2013 {end_date.strftime("%b %d, %Y")} &middot; {trading_days} trading days &middot; Avg return: {avg_return:+.2f}%</div>'
+            f'<div style="font-size:0.78rem;opacity:0.7;">{start_date.strftime("%b %d")} \u2013 {end_date.strftime("%b %d, %Y")}</div>'
+            f'<div style="font-size:0.78rem;opacity:0.7;">{trading_days} trading days &middot; Avg return: {avg_return:+.2f}%</div>'
             f'</div>'
             f'</div>'
             f'<div style="display:flex;border-radius:8px;overflow:hidden;height:32px;">'
             f'<div style="width:{green_pct}%;background:#19a05f;display:flex;align-items:center;justify-content:center;'
-            f'font-size:0.75rem;font-weight:700;color:#fff;gap:0.3rem;">\U0001f7e2 {green_count} stocks up ({green_pct}%)</div>'
+            f'font-size:clamp(0.6rem,2vw,0.75rem);font-weight:700;color:#fff;gap:0.2rem;padding:0 0.3rem;">{green_count} up ({green_pct}%)</div>'
             f'<div style="width:{100-green_pct}%;background:#d14a34;display:flex;align-items:center;justify-content:center;'
-            f'font-size:0.75rem;font-weight:700;color:#fff;gap:0.3rem;">\U0001f534 {red_count} stocks down ({100-green_pct}%)</div>'
+            f'font-size:clamp(0.6rem,2vw,0.75rem);font-weight:700;color:#fff;gap:0.2rem;padding:0 0.3rem;">{red_count} down ({100-green_pct}%)</div>'
             f'</div>'
             f'</div>',
             unsafe_allow_html=True,
@@ -2459,11 +2484,11 @@ with tab_dashboard:
             st.markdown(
                 f'<div style="display:flex;border-radius:8px;overflow:hidden;height:32px;margin-bottom:0.7rem;">'
                 f'<div style="width:{buy_pct}%;background:#19a05f;display:flex;align-items:center;justify-content:center;'
-                f'font-size:0.75rem;font-weight:700;color:#fff;">\U0001f7e2 {buy_count} BUY</div>'
+                f'font-size:clamp(0.6rem,2vw,0.75rem);font-weight:700;color:#fff;padding:0 0.3rem;">{buy_count} BUY</div>'
                 f'<div style="width:{hold_pct}%;background:#d7a83a;display:flex;align-items:center;justify-content:center;'
-                f'font-size:0.75rem;font-weight:700;color:#fff;">\U0001f7e1 {hold_count} HOLD</div>'
+                f'font-size:clamp(0.6rem,2vw,0.75rem);font-weight:700;color:#fff;padding:0 0.3rem;">{hold_count} HOLD</div>'
                 f'<div style="width:{sell_pct}%;background:#d14a34;display:flex;align-items:center;justify-content:center;'
-                f'font-size:0.75rem;font-weight:700;color:#fff;">\U0001f534 {sell_count} SELL</div>'
+                f'font-size:clamp(0.6rem,2vw,0.75rem);font-weight:700;color:#fff;padding:0 0.3rem;">{sell_count} SELL</div>'
                 f'</div>',
                 unsafe_allow_html=True,
             )
