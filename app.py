@@ -2364,7 +2364,7 @@ with tab_dashboard:
                 f'<div style="display:flex;align-items:center;gap:0.4rem;margin-bottom:0.3rem;">'
                 f'<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--muted);"></span>'
                 f'<span style="font-size:0.78rem;color:var(--muted);">'
-                f'Closed &middot; {live_timestamp}'
+                f'Market <strong>CLOSED</strong> &middot; {live_timestamp}'
                 f'</span></div>',
                 unsafe_allow_html=True,
             )
