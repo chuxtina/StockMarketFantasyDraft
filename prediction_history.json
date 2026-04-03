@@ -1,0 +1,50 @@
+{
+  "votes": {},
+  "past": [
+    {
+      "recorded_date": "2026-04-02",
+      "end_date": "2026-04-02",
+      "title": "Predicted MVP",
+      "ticker": "SNDK",
+      "confidence": 94,
+      "detail": "Strong momentum (+18.66%) + 4/5 green days",
+      "return_at_prediction": null
+    },
+    {
+      "recorded_date": "2026-04-02",
+      "end_date": "2026-04-02",
+      "title": "Breakout Watch",
+      "ticker": "SNDK",
+      "confidence": 70,
+      "detail": "High volatility (\u00b18.71%) with upward momentum",
+      "return_at_prediction": null
+    },
+    {
+      "recorded_date": "2026-04-02",
+      "end_date": "2026-04-02",
+      "title": "Danger Zone",
+      "ticker": "CIFR",
+      "confidence": 75,
+      "detail": "Dropping -11.23% over 5 days with high volatility",
+      "return_at_prediction": null
+    },
+    {
+      "recorded_date": "2026-04-02",
+      "end_date": "2026-04-02",
+      "title": "Bounce-Back Pick",
+      "ticker": "ANET",
+      "confidence": 44,
+      "detail": "Below average but 2 straight green days (+2.93%)",
+      "return_at_prediction": null
+    },
+    {
+      "recorded_date": "2026-04-02",
+      "end_date": "2026-04-02",
+      "title": "Hot ETF",
+      "ticker": "KIDZ",
+      "confidence": 30,
+      "detail": "Avg 5-day momentum: +2.53% across 10 stocks",
+      "return_at_prediction": null
+    }
+  ]
+}

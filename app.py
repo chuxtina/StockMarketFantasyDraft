@@ -884,6 +884,22 @@ div[data-testid="stButton"]:has(button) {
     color: var(--accent);
     margin-top: 0.3rem;
 }
+/* Shrink vote buttons inside prediction cards */
+.pred-vote-row button {
+    padding: 0.15rem 0.4rem !important;
+    min-height: 0 !important;
+    font-size: 0.75rem !important;
+    border-radius: 8px !important;
+    background: rgba(14,95,58,0.08) !important;
+    color: var(--text) !important;
+    border: 1px solid var(--border) !important;
+}
+.pred-vote-row button:hover {
+    background: rgba(14,95,58,0.18) !important;
+}
+.pred-vote-row [data-testid="stHorizontalBlock"] {
+    gap: 0.3rem !important;
+}
 
 /* --- Confetti --- */
 @keyframes confetti-fall {
@@ -1677,6 +1693,85 @@ def save_reactions(data):
         json.dump(data, f)
 
 
+# --- Prediction History Storage ---
+PRED_HISTORY_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "prediction_history.json")
+
+
+def load_pred_history():
+    try:
+        with open(PRED_HISTORY_FILE) as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {"votes": {}, "past": []}
+
+
+def save_pred_history(data):
+    with open(PRED_HISTORY_FILE, "w") as f:
+        json.dump(data, f, indent=2, default=str)
+
+
+def record_predictions(preds, end_date_str, pred_history):
+    """Save current predictions so we can check accuracy later."""
+    today = datetime.date.today().isoformat()
+    # Only record once per day
+    existing_dates = [p.get("recorded_date") for p in pred_history.get("past", [])]
+    if today in existing_dates:
+        return
+    for pred in preds:
+        pred_history.setdefault("past", []).append({
+            "recorded_date": today,
+            "end_date": end_date_str,
+            "title": pred["title"],
+            "ticker": pred["ticker"],
+            "confidence": pred.get("confidence", 50),
+            "detail": pred["detail"],
+            "return_at_prediction": None,  # filled in when we check later
+        })
+    save_pred_history(pred_history)
+
+
+def check_past_predictions(pred_history, current_returns):
+    """Check past predictions and compute accuracy. Only evaluates predictions older than 5 days."""
+    today = datetime.date.today()
+    results = []
+    for pred in pred_history.get("past", []):
+        # Only check predictions that are at least 5 days old
+        try:
+            pred_date = datetime.date.fromisoformat(pred["recorded_date"])
+        except (ValueError, KeyError):
+            continue
+        if (today - pred_date).days < 5:
+            continue
+
+        ticker = pred["ticker"]
+        if ticker in current_returns.index:
+            current_ret = current_returns[ticker]
+            title = pred["title"]
+            if title == "Predicted MVP":
+                correct = ticker == current_returns.idxmax()
+                actual = f"Actual MVP: {current_returns.idxmax()} ({current_returns.max():+.2f}%)"
+            elif title == "Breakout Watch":
+                correct = current_ret > current_returns.median()
+                actual = f"Return: {current_ret:+.2f}%"
+            elif title == "Danger Zone":
+                correct = current_ret < current_returns.median()
+                actual = f"Return: {current_ret:+.2f}%"
+            elif title == "Bounce-Back Pick":
+                correct = current_ret > 0
+                actual = f"Return: {current_ret:+.2f}%"
+            else:
+                correct = None
+                actual = f"Return: {current_ret:+.2f}%"
+            results.append({
+                "date": pred["recorded_date"],
+                "title": title,
+                "ticker": ticker,
+                "confidence": pred["confidence"],
+                "correct": correct,
+                "actual": actual,
+            })
+    return results
+
 
 # --- System Predictions ---
 def generate_predictions(returns, valid_tickers, name_map, etf_map, final_returns, dividends, start_prices, investment):
@@ -2415,22 +2510,83 @@ with tab_dashboard:
         # --- System Predictions ---
         st.markdown("#### \U0001f52e Next Week's Predictions")
         preds = generate_predictions(returns, valid_tickers, NAME_MAP, ETF_MAP, final_returns, dividends, start_prices, INVESTMENT)
+        pred_history = load_pred_history()
+
         if preds:
-            pred_html = '<div class="pred-grid">'
-            for pred in preds:
+            # Record predictions for future tracking
+            record_predictions(preds, end_date.isoformat(), pred_history)
+
+            # Render each prediction as a column with card + vote buttons
+            pred_cols = st.columns(len(preds))
+            for i, pred in enumerate(preds):
                 conf = pred.get("confidence", 50)
-                pred_html += (
-                    f'<div class="pred-card">'
-                    f'<div class="pred-icon">{pred["icon"]}</div>'
-                    f'<div class="pred-title">{html_mod.escape(pred["title"])}</div>'
-                    f'<div class="pred-ticker">{pred.get("emoji", "")} {html_mod.escape(pred["ticker"])}</div>'
-                    f'<div class="pred-name">{html_mod.escape(pred["name"])}</div>'
-                    f'<div class="pred-detail">{html_mod.escape(pred["detail"])}</div>'
-                    f'<div class="pred-confidence">{conf}% confidence</div>'
-                    f'</div>'
-                )
-            pred_html += '</div>'
-            st.markdown(pred_html, unsafe_allow_html=True)
+                pred_key = f'{pred["title"]}_{pred["ticker"]}'
+                votes = pred_history.get("votes", {}).get(pred_key, {"up": 0, "down": 0})
+                total_votes = votes["up"] + votes["down"]
+                agree_pct = int(votes["up"] / total_votes * 100) if total_votes > 0 else 0
+
+                vote_html = ""
+                if total_votes > 0:
+                    vote_html = (
+                        f'<div style="font-size:0.65rem;color:var(--muted);margin-top:0.25rem;">'
+                        f'\U0001f44d {votes["up"]} \u00b7 \U0001f44e {votes["down"]}'
+                        f' \u00b7 {agree_pct}% agree</div>'
+                    )
+
+                with pred_cols[i]:
+                    vote_bar = ""
+                    if total_votes > 0:
+                        vote_bar = (
+                            f'<div style="display:flex;align-items:center;gap:0.4rem;margin-top:0.3rem;'
+                            f'padding-top:0.3rem;border-top:1px solid rgba(14,95,58,0.1);">'
+                            f'<span style="font-size:0.7rem;">\U0001f44d {votes["up"]}</span>'
+                            f'<span style="font-size:0.7rem;">\U0001f44e {votes["down"]}</span>'
+                            f'<span style="font-size:0.6rem;color:var(--muted);margin-left:auto;">{agree_pct}% agree</span>'
+                            f'</div>'
+                        )
+
+                    st.markdown(
+                        f'<div class="pred-card">'
+                        f'<div class="pred-icon">{pred["icon"]}</div>'
+                        f'<div class="pred-title">{html_mod.escape(pred["title"])}</div>'
+                        f'<div class="pred-ticker">{pred.get("emoji", "")} {html_mod.escape(pred["ticker"])}</div>'
+                        f'<div class="pred-name">{html_mod.escape(pred["name"])}</div>'
+                        f'<div class="pred-detail">{html_mod.escape(pred["detail"])}</div>'
+                        f'<div class="pred-confidence">{conf}% confidence</div>'
+                        f'{vote_bar}'
+                        f'</div>',
+                        unsafe_allow_html=True,
+                    )
+                    bc = st.columns(2)
+                    with bc[0]:
+                        up_label = f"\U0001f44d {votes['up']}" if votes["up"] > 0 else "\U0001f44d"
+                        if st.button(up_label, key=f"vote_up_{pred_key}", use_container_width=True):
+                            pred_history.setdefault("votes", {}).setdefault(pred_key, {"up": 0, "down": 0})["up"] += 1
+                            save_pred_history(pred_history)
+                            st.rerun()
+                    with bc[1]:
+                        down_label = f"\U0001f44e {votes['down']}" if votes["down"] > 0 else "\U0001f44e"
+                        if st.button(down_label, key=f"vote_down_{pred_key}", use_container_width=True):
+                            pred_history.setdefault("votes", {}).setdefault(pred_key, {"up": 0, "down": 0})["down"] += 1
+                            save_pred_history(pred_history)
+                            st.rerun()
+
+            # Show past prediction accuracy (only for predictions older than 5 days)
+            past_results = check_past_predictions(pred_history, final_returns)
+            if past_results:
+                scored = [r for r in past_results if r["correct"] is not None]
+                if scored:
+                    correct_count = sum(1 for r in scored if r["correct"])
+                    total_scored = len(scored)
+                    accuracy = int(correct_count / total_scored * 100)
+                    st.markdown(
+                        f'<div style="margin-top:0.5rem;padding:0.5rem 0.8rem;background:rgba(14,95,58,0.06);'
+                        f'border:1px solid rgba(14,95,58,0.15);border-radius:12px;font-size:0.8rem;">'
+                        f'\U0001f3af <b>Past Accuracy:</b> {correct_count}/{total_scored} predictions correct ({accuracy}%)'
+                        f'</div>',
+                        unsafe_allow_html=True,
+                    )
+
             st.caption("\U0001f916 System-generated based on 5-day momentum, volatility, and trend analysis. Not financial advice!")
 
         st.markdown("---")
