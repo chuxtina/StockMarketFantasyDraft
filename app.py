@@ -625,7 +625,7 @@ st.markdown("""
 .ticker-track {
     display: flex;
     gap: 2.5rem;
-    animation: ticker-scroll 45s linear infinite;
+    animation: ticker-scroll 200s linear infinite;
     white-space: nowrap;
     width: max-content;
 }
