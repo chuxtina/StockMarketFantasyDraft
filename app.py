@@ -179,7 +179,6 @@ st.markdown("""
 }
 /* Fix Safari mobile whitespace/overflow */
 html, body {
-    overflow-x: hidden !important;
     -webkit-overflow-scrolling: touch;
 }
 @media (max-width: 768px) {
