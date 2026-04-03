@@ -3052,7 +3052,7 @@ with tab_dashboard:
         </script>
         """
 
-        roast_height = len(roasts) * 75 + 30
+        roast_height = len(roasts) * 105 + 40
         components.html(roast_component_html, height=roast_height, scrolling=False)
 
         # Next roast update time
