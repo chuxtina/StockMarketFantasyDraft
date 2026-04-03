@@ -2474,7 +2474,13 @@ with tab_dashboard:
 
         # --- Superlatives Section ---
         st.markdown("")
-        st.markdown("#### \U0001f3c6 Bragging Rights")
+        st.markdown(
+            '<div style="display:flex;align-items:center;gap:0.5rem;margin:1.2rem 0 0.5rem;">'
+            '<span style="font-size:1.3rem;">\U0001f3c6</span>'
+            '<span style="font-size:1.1rem;font-weight:800;letter-spacing:0.04em;text-transform:uppercase;'
+            'color:var(--accent);">Bragging Rights</span></div>',
+            unsafe_allow_html=True,
+        )
         sup = superlatives
 
         def _find_badge(name):
@@ -2650,14 +2656,18 @@ with tab_dashboard:
         st.markdown(f'<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">{table_html}</div>', unsafe_allow_html=True)
 
         # --- Market Pulse ---
-        st.markdown("#### \U0001f4ca Market Pulse")
+        st.markdown(
+            '<div style="display:flex;align-items:center;gap:0.5rem;margin:1.2rem 0 0.5rem;">'
+            '<span style="font-size:1.3rem;">\U0001f4ca</span>'
+            '<span style="font-size:1.1rem;font-weight:800;letter-spacing:0.04em;text-transform:uppercase;'
+            'color:var(--accent);">Market Pulse</span></div>',
+            unsafe_allow_html=True,
+        )
         green_count = int((final_returns > 0).sum())
         red_count = int((final_returns <= 0).sum())
         total_stocks = len(final_returns)
         green_pct = int(green_count / total_stocks * 100) if total_stocks else 0
         avg_return = final_returns.mean()
-        mvp_changes_total = len([e for e in throne["mvp_history"] if e.get("prev_ticker")])
-        pw = superlatives.get("power", {})
 
         # Mood
         if green_pct >= 70:
@@ -2674,27 +2684,32 @@ with tab_dashboard:
         trading_days = len(returns) - 1 if len(returns) > 1 else 0
 
         st.markdown(
-            f'<div class="recap-card" style="padding:1rem 1.3rem;">'
-            f'<div style="display:flex;align-items:center;gap:1rem;margin-bottom:0.7rem;">'
-            f'<span style="font-size:2.4rem;line-height:1;">{mood_emoji}</span>'
-            f'<div>'
-            f'<div style="font-size:1.2rem;font-weight:700;color:#f4f0e3;">{mood_text}</div>'
-            f'<div style="font-size:0.78rem;opacity:0.7;">{start_date.strftime("%b %d")} \u2013 {end_date.strftime("%b %d, %Y")}</div>'
-            f'<div style="font-size:0.78rem;opacity:0.7;">{trading_days} trading days &middot; Avg return: {avg_return:+.2f}%</div>'
-            f'</div>'
-            f'</div>'
-            f'<div style="display:flex;border-radius:8px;overflow:hidden;height:32px;">'
+            f'<div class="recap-card" style="padding:1.2rem 1.4rem;text-align:center;">'
+            f'<div style="font-size:2.8rem;line-height:1;margin-bottom:0.3rem;">{mood_emoji}</div>'
+            f'<div style="font-size:1.3rem;font-weight:800;color:#f4f0e3;margin-bottom:0.15rem;">{mood_text}</div>'
+            f'<div style="font-size:0.78rem;opacity:0.65;margin-bottom:0.05rem;">'
+            f'{start_date.strftime("%b %d")} \u2013 {end_date.strftime("%b %d, %Y")}</div>'
+            f'<div style="font-size:0.78rem;opacity:0.65;margin-bottom:0.8rem;">'
+            f'{trading_days} trading days &middot; Avg return: {avg_return:+.2f}%</div>'
+            f'<div style="display:flex;border-radius:10px;overflow:hidden;height:34px;">'
             f'<div style="width:{green_pct}%;background:#19a05f;display:flex;align-items:center;justify-content:center;'
-            f'font-size:clamp(0.6rem,2vw,0.75rem);font-weight:700;color:#fff;gap:0.2rem;padding:0 0.3rem;">{green_count} up ({green_pct}%)</div>'
+            f'font-size:clamp(0.6rem,2vw,0.75rem);font-weight:700;color:#fff;padding:0 0.4rem;">'
+            f'{green_count} up ({green_pct}%)</div>'
             f'<div style="width:{100-green_pct}%;background:#d14a34;display:flex;align-items:center;justify-content:center;'
-            f'font-size:clamp(0.6rem,2vw,0.75rem);font-weight:700;color:#fff;gap:0.2rem;padding:0 0.3rem;">{red_count} down ({100-green_pct}%)</div>'
+            f'font-size:clamp(0.6rem,2vw,0.75rem);font-weight:700;color:#fff;padding:0 0.4rem;">'
+            f'{red_count} down ({100-green_pct}%)</div>'
             f'</div>'
             f'</div>',
             unsafe_allow_html=True,
         )
 
         # --- Signals & News ---
-        st.markdown("#### Who's Hot \U0001f525, Who's Not \U0001f4a9, Who's Meh \U0001f610")
+        st.markdown(
+            '<div style="display:flex;align-items:center;gap:0.5rem;margin:1.2rem 0 0.5rem;">'
+            '<span style="font-size:1.1rem;font-weight:800;letter-spacing:0.04em;text-transform:uppercase;'
+            'color:var(--accent);">Who\'s Hot \U0001f525 Who\'s Not \U0001f4a9 Who\'s Meh \U0001f610</span></div>',
+            unsafe_allow_html=True,
+        )
 
         stock_signals = compute_signals(valid_tickers, start_date, end_date)
 
@@ -2797,7 +2812,13 @@ with tab_dashboard:
 
         # --- System Predictions ---
         st.markdown("")
-        st.markdown("#### \U0001f52e Next Week's Predictions")
+        st.markdown(
+            '<div style="display:flex;align-items:center;gap:0.5rem;margin:1.2rem 0 0.5rem;">'
+            '<span style="font-size:1.3rem;">\U0001f52e</span>'
+            '<span style="font-size:1.1rem;font-weight:800;letter-spacing:0.04em;text-transform:uppercase;'
+            'color:var(--accent);">Next Week\'s Predictions</span></div>',
+            unsafe_allow_html=True,
+        )
         preds = generate_predictions(returns, valid_tickers, NAME_MAP, ETF_MAP, final_returns, dividends, start_prices, INVESTMENT)
         pred_history = load_pred_history()
 
@@ -2855,7 +2876,13 @@ with tab_dashboard:
             st.caption("\U0001f916 System-generated based on 5-day momentum, volatility, and trend analysis. Not financial advice!")
 
         # --- Shots Fired ---
-        st.markdown("#### \U0001f4a5 Shots Fired")
+        st.markdown(
+            '<div style="display:flex;align-items:center;gap:0.5rem;margin:1.2rem 0 0.5rem;">'
+            '<span style="font-size:1.3rem;">\U0001f4a5</span>'
+            '<span style="font-size:1.1rem;font-weight:800;letter-spacing:0.04em;text-transform:uppercase;'
+            'color:var(--accent);">Shots Fired</span></div>',
+            unsafe_allow_html=True,
+        )
 
         def _generate_roasts(final_rets, name_map, throne, superlatives, returns_df, valid_tickers):
             roasts = []
@@ -2934,7 +2961,13 @@ with tab_dashboard:
         )
 
         # --- Weekly Report ---
-        st.markdown("#### \U0001f4cb Weekly Report")
+        st.markdown(
+            '<div style="display:flex;align-items:center;gap:0.5rem;margin:1.2rem 0 0.5rem;">'
+            '<span style="font-size:1.3rem;">\U0001f4cb</span>'
+            '<span style="font-size:1.1rem;font-weight:800;letter-spacing:0.04em;text-transform:uppercase;'
+            'color:var(--accent);">Weekly Report</span></div>',
+            unsafe_allow_html=True,
+        )
         green_count_wr = int((final_returns > 0).sum())
         red_count_wr = int((final_returns <= 0).sum())
         avg_ret_wr = final_returns.mean()
