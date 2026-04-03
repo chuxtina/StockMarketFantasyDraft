@@ -468,7 +468,28 @@ hr {
         border-radius: 18px;
     }
     .hero-title {
-        font-size: 1.5rem;
+        font-size: 1.2rem !important;
+        margin: 0.2rem 0 0.3rem !important;
+    }
+    .hero-card {
+        padding: 0.7rem 0.9rem !important;
+        margin-bottom: 0.4rem !important;
+    }
+    .hero-meta {
+        gap: 0.3rem !important;
+        margin-top: 0.3rem !important;
+    }
+    .hero-pill {
+        font-size: 0.65rem !important;
+        padding: 0.2rem 0.5rem !important;
+    }
+    /* MVP/Benchwarmer side by side on mobile */
+    .metric-card {
+        padding: 0.55rem 0.7rem !important;
+        min-height: auto !important;
+    }
+    .metric-value {
+        font-size: 1.1rem !important;
     }
     .hero-subtitle {
         font-size: 0.85rem;
@@ -553,16 +574,25 @@ hr {
     }
     /* Prediction cards mobile */
     .pred-card {
-        padding: 0.5rem 0.6rem !important;
+        padding: 0.4rem 0.5rem !important;
+        min-height: auto !important;
     }
     .pred-ticker {
-        font-size: 0.9rem !important;
+        font-size: 0.85rem !important;
     }
     .pred-icon {
-        font-size: 1.2rem !important;
+        font-size: 1rem !important;
+        margin-bottom: 0.1rem !important;
     }
-    .pred-grid {
-        grid-template-columns: repeat(2, 1fr) !important;
+    .pred-title {
+        font-size: 0.6rem !important;
+    }
+    .pred-name, .pred-detail {
+        font-size: 0.65rem !important;
+    }
+    .pred-confidence {
+        font-size: 0.58rem !important;
+        padding: 0.05rem 0.35rem !important;
     }
     /* Multi-award bar mobile */
     .sup-multi-bar {
@@ -907,8 +937,11 @@ div[data-testid="stButton"]:has(button) {
 /* --- Predictions --- */
 .pred-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 0.6rem;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 0.5rem;
+}
+@media (max-width: 768px) {
+    .pred-grid { grid-template-columns: repeat(2, 1fr); }
 }
 .pred-card {
     background: linear-gradient(135deg, rgba(14,95,58,0.06), rgba(14,95,58,0.02));
@@ -983,30 +1016,35 @@ div[data-testid="stButton"]:has(button) {
 .signal-sell { background: rgba(209,74,52,0.12); color: #d14a34; }
 .signal-hold { background: rgba(18,51,36,0.08); color: var(--muted); }
 .signal-table {
-    width: 100%;
-    border-collapse: separate;
+    width: 100% !important;
+    border-collapse: separate !important;
     border-spacing: 0;
-    border-radius: 16px;
     overflow: hidden;
+    border-radius: 18px;
     background: var(--panel-strong);
-    border: 1px solid var(--border);
 }
 .signal-table th {
-    background: linear-gradient(90deg, #0d2f20, #13492f);
+    background: linear-gradient(90deg, #0d2f20 0%, #13492f 100%);
     color: #f4f0e3;
-    padding: 0.5rem 0.7rem;
-    text-align: left;
-    font-size: 0.7rem;
+    position: sticky;
+    top: 0;
     text-transform: uppercase;
     letter-spacing: 0.06em;
+    font-size: 0.75rem;
+    padding: 12px 14px;
+    text-align: left;
 }
 .signal-table td {
-    padding: 0.4rem 0.7rem;
-    border-bottom: 1px solid rgba(18,51,36,0.06);
-    font-size: 0.82rem;
+    padding: 12px 14px;
+    text-align: left;
+    border-bottom: 1px solid rgba(18, 51, 36, 0.08);
 }
 .signal-table tr:nth-child(even) td {
-    background: rgba(16,95,58,0.03);
+    background: rgba(16, 95, 58, 0.04);
+}
+.signal-table tr td:first-child {
+    font-weight: 700;
+    color: var(--accent);
 }
 .news-item {
     padding: 0.5rem 0;
@@ -1113,7 +1151,7 @@ def fetch_returns(tickers, start, end):
         end=end + datetime.timedelta(days=1),
         auto_adjust=True,
         progress=False,
-        threads=False,
+        threads=True,
     )
 
     if data.empty:
@@ -1159,10 +1197,10 @@ def fetch_dividends(tickers, start, end):
 @st.cache_data(ttl=3600)
 def compute_signals(tickers, start, end):
     """Compute technical buy/sell signals from price data."""
-    # Fetch extra history for indicator warm-up
+    # Fetch extra history for indicator warm-up (30 extra calendar days)
     extended_start = start - datetime.timedelta(days=45)
     data = yf.download(tickers, start=extended_start, end=end + datetime.timedelta(days=1),
-                       auto_adjust=True, progress=False, threads=False)
+                       auto_adjust=True, progress=False, threads=True)
     if data.empty:
         return {}
 
@@ -1230,38 +1268,36 @@ def compute_signals(tickers, start, end):
 
 @st.cache_data(ttl=7200)
 def fetch_news_batch(tickers_tuple):
-    """Fetch latest news for tickers via yfinance. Returns list of article dicts."""
-    articles = []
-    for ticker in tickers_tuple:
+    """Fetch latest news for tickers via yfinance using threads."""
+    from concurrent.futures import ThreadPoolExecutor
+
+    def _fetch_one(ticker):
         try:
             t = yf.Ticker(ticker)
             news = t.news
             if news:
-                for item in news[:1]:  # 1 headline per ticker
-                    # yfinance nests data under "content"
-                    content = item.get("content", item)
-                    title = content.get("title", "") or item.get("title", "")
-                    publisher = content.get("provider", {}).get("displayName", "") if isinstance(content.get("provider"), dict) else item.get("publisher", "")
-                    link = content.get("canonicalUrl", {}).get("url", "") if isinstance(content.get("canonicalUrl"), dict) else item.get("link", "")
-                    pub_date = content.get("pubDate", "") or item.get("providerPublishTime", "")
-                    if title:
-                        articles.append({
-                            "ticker": ticker,
-                            "title": title,
-                            "publisher": publisher,
-                            "link": link,
-                            "date": pub_date,
-                        })
+                item = news[0]
+                content = item.get("content", item)
+                title = content.get("title", "") or item.get("title", "")
+                publisher = content.get("provider", {}).get("displayName", "") if isinstance(content.get("provider"), dict) else item.get("publisher", "")
+                link = content.get("canonicalUrl", {}).get("url", "") if isinstance(content.get("canonicalUrl"), dict) else item.get("link", "")
+                if title:
+                    return {"ticker": ticker, "title": title, "publisher": publisher, "link": link}
         except Exception:
-            continue
-    return articles
+            pass
+        return None
+
+    with ThreadPoolExecutor(max_workers=10) as pool:
+        results = pool.map(_fetch_one, tickers_tuple)
+    return [r for r in results if r]
 
 
 @st.cache_data(ttl=86400)
 def fetch_earnings(tickers_tuple):
-    """Fetch next earnings date and EPS estimates for tickers via yfinance."""
-    earnings = {}
-    for ticker in tickers_tuple:
+    """Fetch next earnings date and EPS estimates for tickers via yfinance using threads."""
+    from concurrent.futures import ThreadPoolExecutor
+
+    def _fetch_one(ticker):
         try:
             t = yf.Ticker(ticker)
             cal = t.calendar
@@ -1269,23 +1305,20 @@ def fetch_earnings(tickers_tuple):
                 earnings_dates = cal.get("Earnings Date", [])
                 next_date = earnings_dates[0].strftime("%b %d") if earnings_dates else ""
                 eps_est = cal.get("Earnings Average")
-                eps_high = cal.get("Earnings High")
-                eps_low = cal.get("Earnings Low")
-                # Get actual EPS from info
                 info = t.info
                 eps_actual = info.get("trailingEps")
-                earnings[ticker] = {
+                return ticker, {
                     "next_date": next_date,
                     "eps_est": round(eps_est, 2) if eps_est else None,
-                    "eps_high": round(eps_high, 2) if eps_high else None,
-                    "eps_low": round(eps_low, 2) if eps_low else None,
                     "eps_actual": round(eps_actual, 2) if eps_actual else None,
                 }
-            else:
-                earnings[ticker] = {"next_date": "", "eps_est": None, "eps_high": None, "eps_low": None, "eps_actual": None}
         except Exception:
-            earnings[ticker] = {"next_date": "", "eps_est": None, "eps_high": None, "eps_low": None, "eps_actual": None}
-    return earnings
+            pass
+        return ticker, {"next_date": "", "eps_est": None, "eps_actual": None}
+
+    with ThreadPoolExecutor(max_workers=10) as pool:
+        results = pool.map(_fetch_one, tickers_tuple)
+    return dict(results)
 
 
 def compute_throne_history(returns, valid_tickers, name_map):
@@ -1584,8 +1617,10 @@ def generate_trash_talk(throne, superlatives, final_returns, name_map, etf_map, 
     """Generate news headline ticker for all stocks."""
     lines = []
 
-    # Fetch latest news headlines for all stocks
-    all_news = fetch_news_batch(tuple(valid_tickers))
+    # Fetch latest news headlines for top 15 and bottom 15 stocks (not all 71)
+    news_candidates = list(final_returns.head(15).index) + list(final_returns.tail(15).index)
+    news_candidates = list(dict.fromkeys(news_candidates))  # dedupe
+    all_news = fetch_news_batch(tuple(news_candidates))
     # Deduplicate: one headline per ticker (first = most recent)
     seen_tickers = set()
     for article in all_news:
@@ -1956,9 +1991,9 @@ def check_past_predictions(pred_history, current_returns):
             elif title == "Danger Zone":
                 correct = current_ret < current_returns.median()
                 actual = f"Return: {current_ret:+.2f}%"
-            elif title == "Bounce-Back Pick":
-                correct = current_ret > 0
-                actual = f"Return: {current_ret:+.2f}%"
+            elif title == "Predicted Benchwarmer":
+                correct = ticker == current_returns.idxmin()
+                actual = f"Actual Bench: {current_returns.idxmin()} ({current_returns.min():+.2f}%)"
             else:
                 correct = None
                 actual = f"Return: {current_ret:+.2f}%"
@@ -2053,23 +2088,23 @@ def generate_predictions(returns, valid_tickers, name_map, etf_map, final_return
             "emoji": etf_emoji,
         })
 
-    # --- Prediction 4: Bounce-Back Pick (oversold + showing signs of recovery) ---
-    # Stock that dropped a lot overall but had positive last 2 days
-    last2 = daily_changes.iloc[-2:]
+    # --- Prediction 4: Predicted Benchwarmer (worst momentum + negative trend) ---
+    bench_scores = {}
     for t in valid_tickers:
-        if final_returns[t] < final_returns.median() and (last2[t] > 0).all():
-            recovery_strength = last2[t].sum()
-            etf_emoji = ETF_EMOJI.get(etf_map.get(t, ""), "")
-            predictions.append({
-                "icon": "\U0001f4aa",
-                "title": "Bounce-Back Pick",
-                "ticker": t,
-                "name": name_map.get(t, t),
-                "detail": f"Below average but 2 straight green days (+{recovery_strength:.2f}%)",
-                "confidence": min(55, max(25, int(recovery_strength * 15))),
-                "emoji": etf_emoji,
-            })
-            break
+        if momentum[t] < 0:
+            bench_scores[t] = abs(momentum[t]) * (1 + (5 - positive_days[t]) / 5)
+    if bench_scores:
+        bench_pred = max(bench_scores, key=bench_scores.get)
+        etf_emoji = ETF_EMOJI.get(etf_map.get(bench_pred, ""), "")
+        predictions.append({
+            "icon": "\U0001f4a9",
+            "title": "Predicted Benchwarmer",
+            "ticker": bench_pred,
+            "name": name_map.get(bench_pred, bench_pred),
+            "detail": f"Dropping {momentum[bench_pred]:+.2f}% with {int(positive_days[bench_pred])}/5 green days",
+            "confidence": min(90, max(35, int(bench_scores[bench_pred] * 8))),
+            "emoji": etf_emoji,
+        })
 
     # --- Prediction 5: ETF to Watch ---
     etf_momentum = {}
@@ -2085,13 +2120,66 @@ def generate_predictions(returns, valid_tickers, name_map, etf_map, final_return
         etf_emoji = ETF_EMOJI.get(hot_etf, "")
         predictions.append({
             "icon": "\U0001f4c8",
-            "title": "Hot ETF",
+            "title": "Head of Household",
             "ticker": hot_etf,
             "name": f"{etf_emoji} {hot_etf} Division",
             "detail": f"Avg 5-day momentum: {etf_avg_mom[hot_etf]:+.2f}% across {etf_counts[hot_etf]} stocks",
             "confidence": min(65, max(30, int(abs(etf_avg_mom[hot_etf]) * 10))),
             "emoji": etf_emoji,
         })
+
+    # --- Prediction 6: Next Throne Change ---
+    # Stock most likely to dethrone current MVP
+    current_mvp = final_returns.idxmax()
+    challengers = {t: scores[t] for t in valid_tickers if t != current_mvp and scores.get(t, 0) > 0}
+    if challengers:
+        challenger = max(challengers, key=challengers.get)
+        etf_emoji = ETF_EMOJI.get(etf_map.get(challenger, ""), "")
+        predictions.append({
+            "icon": "\U0001f93a",
+            "title": "Throne Challenger",
+            "ticker": challenger,
+            "name": name_map.get(challenger, challenger),
+            "detail": f"Most likely to dethrone {current_mvp} next week",
+            "confidence": min(60, max(25, int(challengers[challenger] * 80))),
+            "emoji": etf_emoji,
+        })
+
+    # --- Prediction 7: Sleeper of the Week ---
+    # Stock in bottom half with strongest upward momentum
+    bottom_half = final_returns.tail(len(final_returns) // 2).index
+    sleeper_scores = {t: momentum[t] for t in bottom_half if t in momentum.index and momentum[t] > 0}
+    if sleeper_scores:
+        sleeper = max(sleeper_scores, key=sleeper_scores.get)
+        etf_emoji = ETF_EMOJI.get(etf_map.get(sleeper, ""), "")
+        predictions.append({
+            "icon": "\U0001f634",
+            "title": "Sleeper Alert",
+            "ticker": sleeper,
+            "name": name_map.get(sleeper, sleeper),
+            "detail": f"Bottom half but gaining {sleeper_scores[sleeper]:+.2f}% momentum",
+            "confidence": min(50, max(20, int(sleeper_scores[sleeper] * 10))),
+            "emoji": etf_emoji,
+        })
+
+    # --- Prediction 8: Volatility Bomb ---
+    if len(recent_changes) > 0:
+        vol_scores = recent_changes.std()
+        vol_bomb = vol_scores[valid_tickers].idxmax()
+        vol_val = vol_scores[vol_bomb]
+        etf_emoji = ETF_EMOJI.get(etf_map.get(vol_bomb, ""), "")
+        predictions.append({
+            "icon": "\U0001f4a3",
+            "title": "Volatility Bomb",
+            "ticker": vol_bomb,
+            "name": name_map.get(vol_bomb, vol_bomb),
+            "detail": f"Avg daily swing of \u00b1{vol_val:.2f}% \u2014 expect fireworks",
+            "confidence": min(70, max(30, int(vol_val * 12))),
+            "emoji": etf_emoji,
+        })
+
+    # Sort by confidence descending
+    predictions.sort(key=lambda p: p.get("confidence", 0), reverse=True)
 
     return predictions
 
@@ -2102,7 +2190,7 @@ with tab_dashboard:
     st.markdown("""
     <section class="hero-card">
       <div class="hero-top-row">
-        <h1 class="hero-title">Stock Market Draft Standings</h1>
+        <h1 class="hero-title">🧷 No Diaper Change Standings</h1>
       </div>
       <div class="hero-meta">
         <span class="hero-pill">Window: """ + start_date.strftime("%b %d, %Y") + """ to """ + end_date.strftime("%b %d, %Y") + """</span>
@@ -2114,6 +2202,17 @@ with tab_dashboard:
 
     @st.fragment(run_every=REFRESH_INTERVAL)
     def live_dashboard():
+        loading_msg = st.empty()
+        loading_msg.markdown(
+            '<div style="text-align:center;padding:2rem 1rem;color:var(--muted);">'
+            '<div style="display:inline-block;width:40px;height:40px;border:4px solid rgba(14,95,58,0.15);'
+            'border-top:4px solid var(--accent);border-radius:50%;animation:spin 0.8s linear infinite;margin-bottom:0.8rem;"></div>'
+            '<div style="font-size:1.2rem;font-weight:600;">Loading dashboard...</div>'
+            '<div style="font-size:0.8rem;margin-top:0.2rem;">Fetching stock data, news & signals</div>'
+            '</div>'
+            '<style>@keyframes spin { 0% { transform:rotate(0deg); } 100% { transform:rotate(360deg); } }</style>',
+            unsafe_allow_html=True,
+        )
         if start_date >= end_date:
             st.error("Start date must be before end date.")
             st.stop()
@@ -2144,6 +2243,8 @@ with tab_dashboard:
         if not valid_tickers:
             st.error("No valid ticker data to display.")
             st.stop()
+
+        loading_msg.empty()
 
         # --- Rank tickers by final return ---
         final_returns = returns[valid_tickers].iloc[-1].sort_values(ascending=False)
@@ -2638,50 +2739,38 @@ with tab_dashboard:
         if preds:
             record_predictions(preds, end_date.isoformat(), pred_history)
 
-            pred_cols = st.columns(len(preds))
-            for i, pred in enumerate(preds):
+            # Render all prediction cards as a single responsive HTML grid
+            pred_grid_html = '<div class="pred-grid">'
+            for pred in preds:
                 conf = pred.get("confidence", 50)
                 pred_key = f'{pred["title"]}_{pred["ticker"]}'
                 votes = pred_history.get("votes", {}).get(pred_key, {"up": 0, "down": 0})
                 total_votes = votes["up"] + votes["down"]
                 agree_pct = int(votes["up"] / total_votes * 100) if total_votes > 0 else 0
 
-                with pred_cols[i]:
-                    vote_bar = ""
-                    if total_votes > 0:
-                        vote_bar = (
-                            f'<div style="display:flex;align-items:center;gap:0.4rem;margin-top:0.3rem;'
-                            f'padding-top:0.3rem;border-top:1px solid rgba(14,95,58,0.1);">'
-                            f'<span style="font-size:0.7rem;">\U0001f44d {votes["up"]}</span>'
-                            f'<span style="font-size:0.7rem;">\U0001f44e {votes["down"]}</span>'
-                            f'<span style="font-size:0.6rem;color:var(--muted);margin-left:auto;">{agree_pct}% agree</span>'
-                            f'</div>'
-                        )
-                    st.markdown(
-                        f'<div class="pred-card">'
-                        f'<div class="pred-icon">{pred["icon"]}</div>'
-                        f'<div class="pred-title">{html_mod.escape(pred["title"])}</div>'
-                        f'<div class="pred-ticker">{pred.get("emoji", "")} {html_mod.escape(pred["ticker"])}</div>'
-                        f'<div class="pred-name">{html_mod.escape(pred["name"])}</div>'
-                        f'<div class="pred-detail">{html_mod.escape(pred["detail"])}</div>'
-                        f'<div class="pred-confidence">{conf}% confidence</div>'
-                        f'{vote_bar}'
-                        f'</div>',
-                        unsafe_allow_html=True,
+                vote_bar = ""
+                if total_votes > 0:
+                    vote_bar = (
+                        f'<div style="display:flex;align-items:center;gap:0.4rem;margin-top:0.3rem;'
+                        f'padding-top:0.3rem;border-top:1px solid rgba(14,95,58,0.1);">'
+                        f'<span style="font-size:0.7rem;">\U0001f44d {votes["up"]}</span>'
+                        f'<span style="font-size:0.7rem;">\U0001f44e {votes["down"]}</span>'
+                        f'<span style="font-size:0.6rem;color:var(--muted);margin-left:auto;">{agree_pct}% agree</span>'
+                        f'</div>'
                     )
-                    bc = st.columns(2)
-                    with bc[0]:
-                        up_label = f"\U0001f44d {votes['up']}" if votes["up"] > 0 else "\U0001f44d"
-                        if st.button(up_label, key=f"vote_up_{pred_key}", use_container_width=True):
-                            pred_history.setdefault("votes", {}).setdefault(pred_key, {"up": 0, "down": 0})["up"] += 1
-                            save_pred_history(pred_history)
-                            st.rerun()
-                    with bc[1]:
-                        down_label = f"\U0001f44e {votes['down']}" if votes["down"] > 0 else "\U0001f44e"
-                        if st.button(down_label, key=f"vote_down_{pred_key}", use_container_width=True):
-                            pred_history.setdefault("votes", {}).setdefault(pred_key, {"up": 0, "down": 0})["down"] += 1
-                            save_pred_history(pred_history)
-                            st.rerun()
+                pred_grid_html += (
+                    f'<div class="pred-card">'
+                    f'<div class="pred-icon">{pred["icon"]}</div>'
+                    f'<div class="pred-title">{html_mod.escape(pred["title"])}</div>'
+                    f'<div class="pred-ticker">{pred.get("emoji", "")} {html_mod.escape(pred["ticker"])}</div>'
+                    f'<div class="pred-name">{html_mod.escape(pred["name"])}</div>'
+                    f'<div class="pred-detail">{html_mod.escape(pred["detail"])}</div>'
+                    f'<div class="pred-confidence">{conf}% confidence</div>'
+                    f'{vote_bar}'
+                    f'</div>'
+                )
+            pred_grid_html += '</div>'
+            st.markdown(pred_grid_html, unsafe_allow_html=True)
 
             past_results = check_past_predictions(pred_history, final_returns)
             if past_results:
@@ -2816,19 +2905,42 @@ with tab_dashboard:
             f'<div style="font-size:0.9rem;font-weight:700;color:#f87171;margin-top:0.2rem;">{final_returns[worst_ticker]:+.2f}%</div>'
             f'<div style="font-size:0.68rem;opacity:0.6;">{throne["bench_streak"]}d streak</div>'
             f'</div></div>'
-            '<div style="display:flex;gap:0.5rem;text-align:center;margin-bottom:0.7rem;">'
-            f'<div style="flex:1;background:rgba(255,255,255,0.06);border-radius:10px;padding:0.4rem;">'
-            f'<div style="font-size:1.1rem;font-weight:700;">{green_count_wr}</div>'
-            f'<div style="font-size:0.6rem;opacity:0.6;">\U0001f7e2 Up</div></div>'
-            f'<div style="flex:1;background:rgba(255,255,255,0.06);border-radius:10px;padding:0.4rem;">'
-            f'<div style="font-size:1.1rem;font-weight:700;">{red_count_wr}</div>'
-            f'<div style="font-size:0.6rem;opacity:0.6;">\U0001f534 Down</div></div>'
-            f'<div style="flex:1;background:rgba(255,255,255,0.06);border-radius:10px;padding:0.4rem;">'
-            f'<div style="font-size:1.1rem;font-weight:700;">{avg_ret_wr:+.1f}%</div>'
-            f'<div style="font-size:0.6rem;opacity:0.6;">Avg Return</div></div>'
-            f'<div style="flex:1;background:rgba(255,255,255,0.06);border-radius:10px;padding:0.4rem;">'
-            f'<div style="font-size:1.1rem;font-weight:700;">{mvp_changes_wr}</div>'
-            f'<div style="font-size:0.6rem;opacity:0.6;">Throne Swaps</div></div></div>'
+            '<div style="display:flex;gap:0.5rem;text-align:center;margin-bottom:0.7rem;align-items:stretch;">'
+            f'<div style="flex:1;background:rgba(255,255,255,0.06);border-radius:10px;padding:0.4rem;display:flex;flex-direction:column;justify-content:center;">'
+            f'<div style="font-size:1.1rem;font-weight:700;">{ETF_EMOJI.get(etf_ranked[0][0], "")} {etf_ranked[0][0]}</div>'
+            f'<div style="font-size:0.6rem;opacity:0.6;">\U0001f3c6 Best ETF</div></div>'
+            f'<div style="flex:1;background:rgba(255,255,255,0.06);border-radius:10px;padding:0.4rem;display:flex;flex-direction:column;justify-content:center;">'
+        )
+        # Build throne drama for center box
+        recent_drama = []
+        for entry in throne["mvp_history"][:3]:
+            if entry.get("prev_ticker"):
+                if hasattr(entry["date"], "date"):
+                    entry_date = entry["date"].date()
+                else:
+                    entry_date = entry["date"]
+                if (end_date - entry_date).days <= 7:
+                    recent_drama.append(f'{html_mod.escape(entry["ticker"])} \U0001f97e {html_mod.escape(entry["prev_ticker"])}')
+        for entry in throne["bench_history"][:3]:
+            if entry.get("prev_ticker"):
+                if hasattr(entry["date"], "date"):
+                    entry_date = entry["date"].date()
+                else:
+                    entry_date = entry["date"]
+                if (end_date - entry_date).days <= 7:
+                    recent_drama.append(f'{html_mod.escape(entry["ticker"])} \U0001f97e {html_mod.escape(entry["prev_ticker"])}')
+
+        if recent_drama:
+            drama_text = " | ".join(recent_drama[:2])
+            wr_html += f'<div style="font-size:0.72rem;font-weight:600;">{drama_text}</div>'
+        else:
+            wr_html += f'<div style="font-size:0.9rem;font-weight:700;">\U0001f512 Stable</div>'
+        wr_html += (
+            f'<div style="font-size:0.6rem;opacity:0.6;">\U0001f3ac Throne Drama</div></div>'
+            f'<div style="flex:1;background:rgba(255,255,255,0.06);border-radius:10px;padding:0.4rem;display:flex;flex-direction:column;justify-content:center;">'
+            f'<div style="font-size:0.85rem;font-weight:700;white-space:nowrap;">{int(green_count_wr/len(final_returns)*100)}% vibing</div>'
+            f'<div style="font-size:0.85rem;font-weight:700;white-space:nowrap;">{int(red_count_wr/len(final_returns)*100)}% crying</div>'
+            f'<div style="font-size:0.6rem;opacity:0.6;">\U0001f60e Draft Mood</div></div></div>'
         )
         wr_html += '<div style="display:flex;gap:0.8rem;">'
         wr_html += '<div style="flex:1;"><div style="font-size:0.65rem;text-transform:uppercase;opacity:0.6;margin-bottom:0.3rem;">\U0001f3c6 Top 5</div>'
