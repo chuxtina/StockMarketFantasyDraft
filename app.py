@@ -2479,7 +2479,7 @@ with tab_dashboard:
                 f'<div style="display:flex;align-items:center;gap:0.4rem;margin-bottom:0;">'
                 f'<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:var(--muted);"></span>'
                 f'<span style="font-size:0.78rem;color:var(--muted);">'
-                f'Market <strong>CLOSED</strong> &middot; {live_timestamp}'
+                f'Market: <strong>CLOSED</strong> &middot; {live_timestamp}'
                 f'</span></div>'
                 f'<div style="font-size:0.75rem;color:var(--muted);margin:0.15rem 0 0.5rem 0;">'
                 f'\U0001f514 Opens {next_open_label} &middot; {countdown_iframe}'
@@ -3078,8 +3078,8 @@ with tab_dashboard:
 
         next_close = _next_market_close(now_et)
         st.caption(
-            f"\U0001f4a5 Roasts update after each trading day \u00b7 "
-            f"Next shots fired: {next_close.strftime('%a %b %d')} after 4:00 PM ET"
+            f"\U0001f4a5 Roasts refresh daily \u00b7 "
+            f"Fresh burns incoming \u00b7 Next drop: {next_close.strftime('%a %b %d')} after market close"
         )
 
         # --- Weekly Report ---
@@ -3501,10 +3501,30 @@ with tab_dashboard:
             .set_table_attributes('class="leaderboard"')
             .apply(leaderboard_row_style, axis=1)
         )
-        st.markdown(
-            f'<div class="leaderboard-scroll">{styled_df.to_html(escape=False)}</div>',
-            unsafe_allow_html=True,
+        _lb_html = (
+            '<style>'
+            '.lb-wrap::-webkit-scrollbar { height:6px; width:6px; }'
+            '.lb-wrap::-webkit-scrollbar-track { background:rgba(18,51,36,0.04); border-radius:3px; }'
+            '.lb-wrap::-webkit-scrollbar-thumb { background:rgba(18,51,36,0.15); border-radius:3px; }'
+            '.lb-wrap::-webkit-scrollbar-thumb:hover { background:rgba(18,51,36,0.3); }'
+            '.lb-wrap { scrollbar-width:thin; scrollbar-color:rgba(18,51,36,0.15) rgba(18,51,36,0.04); }'
+            'table.leaderboard { min-width:max-content; width:100%; border-collapse:separate; border-spacing:0; border-radius:18px; background:rgba(251,253,250,0.96); }'
+            'table.leaderboard td, table.leaderboard th { padding:10px 8px; text-align:left; border-bottom:1px solid rgba(18,51,36,0.06); border-right:1px solid rgba(18,51,36,0.04); white-space:nowrap; font-family:"Space Grotesk",sans-serif; font-size:0.82rem; }'
+            'table.leaderboard th { white-space:normal; background:linear-gradient(90deg,#0d2f20,#13492f); color:#f4f0e3; text-transform:uppercase; letter-spacing:0.06em; font-family:"Space Grotesk",sans-serif; font-size:0.72rem; font-weight:700; min-width:60px; line-height:1.3; padding:10px 8px; position:sticky; top:0; z-index:1; }'
+            'table.leaderboard tr:nth-child(even) td { background:rgba(16,95,58,0.04); }'
+            'table.leaderboard tbody tr:hover td { background:rgba(14,95,58,0.08); }'
+            '.signal-badge { display:inline-block; padding:0.1rem 0.5rem; border-radius:999px; font-size:0.68rem; font-weight:700; letter-spacing:0.03em; }'
+            '.signal-buy { background:rgba(25,160,95,0.15); color:#19a05f; }'
+            '.signal-sell { background:rgba(209,74,52,0.12); color:#d14a34; }'
+            '.signal-hold { background:rgba(18,51,36,0.08); color:#5d6f65; }'
+            '.rsi-bar { display:inline-block; width:50px; height:8px; background:rgba(18,51,36,0.08); border-radius:4px; vertical-align:middle; margin-right:4px; }'
+            '.rsi-bar-fill { height:100%; border-radius:4px; }'
+            '</style>'
+            '<div class="lb-wrap" style="overflow:auto;-webkit-overflow-scrolling:touch;max-height:620px;border-radius:18px;border:1px solid rgba(18,51,36,0.12);">'
+            + styled_df.to_html(escape=False)
+            + '</div>'
         )
+        components.html(_lb_html, height=650, scrolling=False)
         st.caption(
             "**Price Return (%)** is the percentage change in share price over the period, excluding dividends. "
             "**Total Return (%)** includes dividends."
