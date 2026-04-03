@@ -1013,26 +1013,7 @@ st.markdown("""
 }
 
 /* --- Emoji Reactions --- */
-.reaction-bar {
-    display: inline-flex;
-    gap: 0.3rem;
-    align-items: center;
-    font-size: 0.85rem;
-}
-.reaction-bar .count {
-    font-size: 0.7rem;
-    color: var(--muted);
-    font-weight: 600;
-    margin-right: 0.3rem;
-}
-/* Shrink reaction emoji buttons */
-[data-testid="stColumn"] [data-testid="stButton"] button[kind="secondary"] {
-    min-height: 0;
-}
-div[data-testid="stButton"] button[key*="react_"],
-div[data-testid="stButton"]:has(button) {
-    min-height: 0;
-}
+/* Roast reaction buttons - handled inside components.html */
 
 /* --- Predictions --- */
 .pred-grid {
@@ -2035,7 +2016,7 @@ def get_daily_trivia(ticker):
 
 # --- Emoji Reactions Storage ---
 REACTIONS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "reactions.json")
-REACTION_EMOJIS = ["\U0001f525", "\U0001f5d1\ufe0f", "\U0001f680", "\U0001f921"]
+REACTION_EMOJIS = ["\U0001f602", "\U0001f480", "\U0001f525", "\U0001f4af"]  # 😂 💀 🔥 💯
 
 
 def load_reactions():
@@ -3030,19 +3011,121 @@ with tab_dashboard:
             return roasts
 
         roasts = _generate_roasts(final_returns, NAME_MAP, throne, superlatives, returns, valid_tickers)
-        roast_html = ""
-        for roast in roasts:
-            roast_html += (
-                f'<div style="padding:0.55rem 0;border-bottom:1px solid rgba(18,51,36,0.08);'
-                f'font-size:0.88rem;line-height:1.55;">{roast}</div>'
+
+        # Load server-side reaction counts
+        all_reactions = load_reactions()
+
+        # Build roast HTML with reaction buttons
+        roast_items_html = ""
+        for idx, roast in enumerate(roasts):
+            roast_key = f"roast_{idx}"
+            roast_counts = all_reactions.get(roast_key, {})
+            btns = ""
+            for emoji in REACTION_EMOJIS:
+                count = roast_counts.get(emoji, 0)
+                count_str = f'<span class="rcount">{count}</span>' if count > 0 else ""
+                btns += (
+                    f'<span class="roast-react-btn" data-roast="{roast_key}" data-emoji="{emoji}" '
+                    f'onclick="toggleReact(this)">{emoji}{count_str}</span>'
+                )
+            roast_items_html += (
+                f'<div style="padding:0.6rem 0;border-bottom:1px solid rgba(18,51,36,0.08);">'
+                f'<div style="font-size:0.88rem;line-height:1.55;">{roast}</div>'
+                f'<div class="roast-reactions">{btns}</div>'
+                f'</div>'
             )
-        st.markdown(
-            f'<div style="background:var(--panel-strong);border:1px solid var(--border);border-radius:20px;'
-            f'padding:1rem 1.2rem;box-shadow:var(--shadow);">'
-            f'{roast_html}'
-            f'</div>',
-            unsafe_allow_html=True,
-        )
+
+        roast_component_html = f"""
+        <div style="background:rgba(251,253,250,0.96);border:1px solid rgba(18,51,36,0.12);border-radius:20px;
+            padding:1rem 1.2rem;box-shadow:0 18px 44px rgba(16,42,32,0.12);font-family:'Space Grotesk',sans-serif;">
+            {roast_items_html}
+        </div>
+        <style>
+        .roast-reactions {{
+            display: flex; gap: 0.3rem; margin-top: 0.35rem; flex-wrap: wrap;
+        }}
+        .roast-react-btn {{
+            display: inline-flex; align-items: center; gap: 0.2rem;
+            padding: 0.15rem 0.45rem; border: 1px solid rgba(18,51,36,0.12);
+            border-radius: 999px; background: white; font-size: 0.78rem;
+            cursor: pointer; transition: all 0.15s ease; user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }}
+        .roast-react-btn:hover, .roast-react-btn:active {{
+            border-color: #0e5f3a; background: rgba(14,95,58,0.06); transform: scale(1.08);
+        }}
+        .roast-react-btn.active {{
+            border-color: #0e5f3a; background: rgba(14,95,58,0.1);
+        }}
+        .roast-react-btn .rcount {{
+            font-weight: 600; color: #5d6f65; font-size: 0.68rem;
+        }}
+        @media (max-width: 768px) {{
+            .roast-react-btn {{ padding: 0.25rem 0.55rem; font-size: 0.85rem; }}
+        }}
+        </style>
+        <script>
+        var userReacts = JSON.parse(localStorage.getItem('roast_reacts') || '{{}}'  );
+        var serverCounts = JSON.parse(localStorage.getItem('roast_server_counts') || '{{}}');
+
+        document.querySelectorAll('.roast-react-btn').forEach(function(btn) {{
+            var key = btn.dataset.roast + '_' + btn.dataset.emoji;
+            if (userReacts[key]) btn.classList.add('active');
+        }});
+
+        function toggleReact(btn) {{
+            var roastKey = btn.dataset.roast;
+            var emoji = btn.dataset.emoji;
+            var key = roastKey + '_' + emoji;
+            var countEl = btn.querySelector('.rcount');
+            var currentCount = countEl ? parseInt(countEl.textContent) : 0;
+
+            if (btn.classList.contains('active')) {{
+                btn.classList.remove('active');
+                currentCount = Math.max(0, currentCount - 1);
+                delete userReacts[key];
+            }} else {{
+                btn.classList.add('active');
+                currentCount += 1;
+                userReacts[key] = true;
+            }}
+
+            localStorage.setItem('roast_reacts', JSON.stringify(userReacts));
+
+            // Track server-side counts
+            if (!serverCounts[roastKey]) serverCounts[roastKey] = {{}};
+            serverCounts[roastKey][emoji] = currentCount;
+            localStorage.setItem('roast_server_counts', JSON.stringify(serverCounts));
+
+            if (currentCount > 0) {{
+                if (countEl) {{
+                    countEl.textContent = currentCount;
+                }} else {{
+                    btn.innerHTML = emoji + '<span class="rcount">' + currentCount + '</span>';
+                }}
+            }} else {{
+                btn.innerHTML = emoji;
+            }}
+
+            btn.style.transform = 'scale(1.25)';
+            setTimeout(function() {{ btn.style.transform = ''; }}, 150);
+        }}
+        </script>
+        """
+
+        roast_height = len(roasts) * 75 + 40
+        components.html(roast_component_html, height=roast_height, scrolling=False)
+
+        # Sync localStorage reactions back to server via a hidden reader component
+        sync_html = """
+        <script>
+        var counts = localStorage.getItem('roast_server_counts');
+        if (counts) {
+            window.parent.postMessage({type: 'roast_reactions', data: counts}, '*');
+        }
+        </script>
+        """
+        components.html(sync_html, height=0)
 
         # Next roast update time
         now_et = datetime.datetime.now(ZoneInfo("America/New_York"))
