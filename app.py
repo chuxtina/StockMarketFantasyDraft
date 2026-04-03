@@ -3149,7 +3149,8 @@ with tab_dashboard:
         </script>
         """
 
-        components.html(roast_component_html, height=0, scrolling=False)
+        roast_height = len(roasts) * 75 + 30
+        components.html(roast_component_html, height=roast_height, scrolling=False)
 
         # Next roast update time
         now_et = datetime.datetime.now(ZoneInfo("America/New_York"))
