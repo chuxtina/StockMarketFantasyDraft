@@ -599,24 +599,6 @@ st.markdown("""
     padding: 0.6rem 0;
     margin-bottom: 0.75rem;
     overflow: hidden;
-    position: relative;
-}
-.trash-talk-ticker::before,
-.trash-talk-ticker::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    width: 2rem;
-    z-index: 2;
-}
-.trash-talk-ticker::before {
-    left: 0;
-    background: linear-gradient(90deg, #0d2f20, transparent);
-}
-.trash-talk-ticker::after {
-    right: 0;
-    background: linear-gradient(270deg, #13492f, transparent);
 }
 @keyframes ticker-scroll {
     0% { transform: translateX(0); }
@@ -625,7 +607,7 @@ st.markdown("""
 .ticker-track {
     display: flex;
     gap: 2.5rem;
-    animation: ticker-scroll 200s linear infinite;
+    animation: ticker-scroll 500s linear infinite;
     white-space: nowrap;
     width: max-content;
 }
@@ -901,6 +883,78 @@ div[data-testid="stButton"]:has(button) {
     gap: 0.3rem !important;
 }
 
+/* --- Signals & News --- */
+.signal-badge {
+    display: inline-block;
+    padding: 0.1rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+}
+.signal-buy { background: rgba(25,160,95,0.15); color: #19a05f; }
+.signal-sell { background: rgba(209,74,52,0.12); color: #d14a34; }
+.signal-hold { background: rgba(18,51,36,0.08); color: var(--muted); }
+.signal-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    border-radius: 16px;
+    overflow: hidden;
+    background: var(--panel-strong);
+    border: 1px solid var(--border);
+}
+.signal-table th {
+    background: linear-gradient(90deg, #0d2f20, #13492f);
+    color: #f4f0e3;
+    padding: 0.5rem 0.7rem;
+    text-align: left;
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+}
+.signal-table td {
+    padding: 0.4rem 0.7rem;
+    border-bottom: 1px solid rgba(18,51,36,0.06);
+    font-size: 0.82rem;
+}
+.signal-table tr:nth-child(even) td {
+    background: rgba(16,95,58,0.03);
+}
+.news-item {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid rgba(18,51,36,0.08);
+}
+.news-item:last-child { border-bottom: none; }
+.news-item a {
+    color: var(--text);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+.news-item a:hover { color: var(--accent); }
+.news-item .news-meta {
+    font-size: 0.7rem;
+    color: var(--muted);
+    margin-top: 0.1rem;
+}
+.rsi-bar {
+    display: inline-block;
+    width: 50px;
+    height: 6px;
+    background: rgba(18,51,36,0.1);
+    border-radius: 3px;
+    position: relative;
+    vertical-align: middle;
+}
+.rsi-bar-fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    height: 100%;
+    border-radius: 3px;
+}
+
 /* --- Confetti --- */
 @keyframes confetti-fall {
     0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
@@ -1013,6 +1067,138 @@ def fetch_dividends(tickers, start, end):
         except Exception:
             divs[ticker] = 0.0
     return divs
+
+
+@st.cache_data(ttl=3600)
+def compute_signals(tickers, start, end):
+    """Compute technical buy/sell signals from price data."""
+    # Fetch extra history for indicator warm-up
+    extended_start = start - datetime.timedelta(days=45)
+    data = yf.download(tickers, start=extended_start, end=end + datetime.timedelta(days=1),
+                       auto_adjust=True, progress=False, threads=False)
+    if data.empty:
+        return {}
+
+    close = data["Close"]
+    if isinstance(close, pd.Series):
+        close = close.to_frame(name=tickers[0])
+    close = close.ffill().bfill()
+
+    signals = {}
+    for ticker in tickers:
+        if ticker not in close.columns or close[ticker].isna().all():
+            continue
+        prices = close[ticker].dropna()
+        if len(prices) < 20:
+            signals[ticker] = {"rsi": None, "signal": "HOLD", "score": 0, "sma_cross": None, "price_vs_sma": None}
+            continue
+
+        # RSI (14-day)
+        delta = prices.diff()
+        gain = delta.where(delta > 0, 0).rolling(window=14).mean()
+        loss = (-delta.where(delta < 0, 0)).rolling(window=14).mean()
+        rs = gain / loss
+        rsi = 100 - (100 / (1 + rs))
+        current_rsi = float(rsi.iloc[-1]) if not pd.isna(rsi.iloc[-1]) else 50
+
+        # SMA crossover (10 vs 20)
+        sma10 = prices.rolling(window=10).mean()
+        sma20 = prices.rolling(window=20).mean()
+        sma_cross = bool(sma10.iloc[-1] > sma20.iloc[-1])
+
+        # Price vs 20-day SMA
+        price_vs_sma = bool(prices.iloc[-1] > sma20.iloc[-1])
+
+        # Composite score
+        score = 0
+        if current_rsi < 30:
+            score += 1
+        elif current_rsi > 70:
+            score -= 1
+        if sma_cross:
+            score += 1
+        else:
+            score -= 1
+        if price_vs_sma:
+            score += 1
+        else:
+            score -= 1
+
+        if score >= 2:
+            signal = "BUY"
+        elif score <= -2:
+            signal = "SELL"
+        else:
+            signal = "HOLD"
+
+        signals[ticker] = {
+            "rsi": round(current_rsi, 1),
+            "signal": signal,
+            "score": score,
+            "sma_cross": sma_cross,
+            "price_vs_sma": price_vs_sma,
+        }
+    return signals
+
+
+@st.cache_data(ttl=7200)
+def fetch_news_batch(tickers_tuple):
+    """Fetch latest news for tickers via yfinance. Returns list of article dicts."""
+    articles = []
+    for ticker in tickers_tuple:
+        try:
+            t = yf.Ticker(ticker)
+            news = t.news
+            if news:
+                for item in news[:1]:  # 1 headline per ticker
+                    # yfinance nests data under "content"
+                    content = item.get("content", item)
+                    title = content.get("title", "") or item.get("title", "")
+                    publisher = content.get("provider", {}).get("displayName", "") if isinstance(content.get("provider"), dict) else item.get("publisher", "")
+                    link = content.get("canonicalUrl", {}).get("url", "") if isinstance(content.get("canonicalUrl"), dict) else item.get("link", "")
+                    pub_date = content.get("pubDate", "") or item.get("providerPublishTime", "")
+                    if title:
+                        articles.append({
+                            "ticker": ticker,
+                            "title": title,
+                            "publisher": publisher,
+                            "link": link,
+                            "date": pub_date,
+                        })
+        except Exception:
+            continue
+    return articles
+
+
+@st.cache_data(ttl=86400)
+def fetch_earnings(tickers_tuple):
+    """Fetch next earnings date and EPS estimates for tickers via yfinance."""
+    earnings = {}
+    for ticker in tickers_tuple:
+        try:
+            t = yf.Ticker(ticker)
+            cal = t.calendar
+            if cal is not None and isinstance(cal, dict):
+                earnings_dates = cal.get("Earnings Date", [])
+                next_date = earnings_dates[0].strftime("%b %d") if earnings_dates else ""
+                eps_est = cal.get("Earnings Average")
+                eps_high = cal.get("Earnings High")
+                eps_low = cal.get("Earnings Low")
+                # Get actual EPS from info
+                info = t.info
+                eps_actual = info.get("trailingEps")
+                earnings[ticker] = {
+                    "next_date": next_date,
+                    "eps_est": round(eps_est, 2) if eps_est else None,
+                    "eps_high": round(eps_high, 2) if eps_high else None,
+                    "eps_low": round(eps_low, 2) if eps_low else None,
+                    "eps_actual": round(eps_actual, 2) if eps_actual else None,
+                }
+            else:
+                earnings[ticker] = {"next_date": "", "eps_est": None, "eps_high": None, "eps_low": None, "eps_actual": None}
+        except Exception:
+            earnings[ticker] = {"next_date": "", "eps_est": None, "eps_high": None, "eps_low": None, "eps_actual": None}
+    return earnings
 
 
 def compute_throne_history(returns, valid_tickers, name_map):
@@ -1306,120 +1492,20 @@ def compute_superlatives(returns, valid_tickers, name_map, etf_map, throne):
     return results
 
 
-# --- Trash Talk Generator ---
+# --- News Ticker Generator ---
 def generate_trash_talk(throne, superlatives, final_returns, name_map, etf_map, returns, valid_tickers):
-    """Generate snarky auto-commentary from game data."""
+    """Generate news headline ticker for all stocks."""
     lines = []
-    ETF_EMOJI = {"UNCL": "\U0001f468\u200d\U0001f9b3", "ANTY": "\U0001f469\U0001f3fb", "KIDZ": "\U0001f476\U0001f3fb"}
 
-    # MVP throne commentary
-    mvp_hist = throne["mvp_history"]
-    if mvp_hist:
-        current_mvp = mvp_hist[0]
-        ticker = current_mvp["ticker"]
-        ret = current_mvp["return_pct"]
-        streak = throne["mvp_streak"]
-        if streak >= 5:
-            lines.append(f"\U0001f451 {ticker} has held the crown for {streak} straight days. Is anyone even trying?")
-        elif current_mvp.get("prev_ticker"):
-            prev = current_mvp["prev_ticker"]
-            lines.append(f"\U0001f4a5 {ticker} just snatched the throne from {prev}! Hostile takeover complete.")
-        else:
-            lines.append(f"\U0001f451 {ticker} reigns supreme at {ret:+.2f}%")
-
-    # Benchwarmer commentary
-    bench_hist = throne["bench_history"]
-    if bench_hist:
-        current_bench = bench_hist[0]
-        ticker = current_bench["ticker"]
-        b_streak = throne["bench_streak"]
-        if b_streak >= 5:
-            lines.append(f"\U0001f6bd {ticker} has been the benchwarmer for {b_streak} days straight. Somebody call a lifeguard.")
-        elif current_bench.get("prev_ticker"):
-            lines.append(f"\U0001f4c9 {ticker} sinks to dead last, replacing {current_bench['prev_ticker']} in the hall of shame.")
-        else:
-            lines.append(f"\U0001f4a9 {ticker} is still holding down the bottom. Impressive commitment.")
-
-    # Best single day
-    bd = superlatives.get("best_day")
-    if bd:
-        lines.append(f"\U0001f680 {bd['ticker']} rocketed {bd['change']:+.2f}% in a single day \u2014 absolute moonshot!")
-
-    # Worst single day
-    wd = superlatives.get("worst_day")
-    if wd:
-        lines.append(f"\U0001f4a3 {wd['ticker']} cratered {wd['change']:+.2f}% in one day. Thoughts and prayers.")
-
-    # Rivalry
-    rv = superlatives.get("rivalry")
-    if rv and rv.get("ticker1") and rv["swaps"] > 2:
-        lines.append(f"\u2694\ufe0f {rv['ticker1']} and {rv['ticker2']} have swapped {rv['swaps']} times. Get a room.")
-
-    # Comeback
-    cb = superlatives.get("comeback")
-    if cb and cb.get("ticker") and cb.get("low", 0) < -5:
-        lines.append(f"\U0001f9d7 {cb['ticker']} hit rock bottom at {cb['low']:+.2f}% and clawed back to {cb['final']:+.2f}%. Respect.")
-
-    # Power rankings
-    pw = superlatives.get("power")
-    if pw and pw.get("climber") and pw["climber_change"] > 3:
-        lines.append(f"\U0001f525 {pw['climber']} surged {pw['climber_change']:+.2f}% in 5 days \u2014 somebody's cooking!")
-    if pw and pw.get("faller") and pw["faller_change"] < -3:
-        lines.append(f"\U0001f9ca {pw['faller']} dropped {pw['faller_change']:+.2f}% in 5 days. Ice cold.")
-
-    # Sleeper
-    sp = superlatives.get("sleeper")
-    if sp and sp.get("ticker") and sp.get("end_rank", 99) <= 5:
-        lines.append(f"\U0001f634 {sp['ticker']} started at #{sp['start_rank']} and snuck up to #{sp['end_rank']}. Nobody saw that coming.")
-
-    # Fallen angel
-    fa = superlatives.get("fallen")
-    if fa and fa.get("ticker"):
-        lines.append(f"\U0001f607 {fa['ticker']} fell from #{fa['start_rank']} to #{fa['end_rank']}. How the mighty have fallen.")
-
-    # ETF War
-    ew = superlatives.get("etf_war")
-    if ew and ew.get("etf") and ew["streak"] > 3:
-        emoji = ETF_EMOJI.get(ew["etf"], "")
-        lines.append(f"\u26a1 {emoji} {ew['etf']} dominated for {ew['streak']} straight days. ETF supremacy!")
-
-    # Middle child
-    mc = superlatives.get("middle")
-    if mc and mc.get("ticker"):
-        lines.append(f"\U0001fae5 {mc['ticker']} is at exactly {mc['return']:+.2f}%. The Switzerland of stocks.")
-
-    # Add some random flavor if we have enough tickers
-    if len(valid_tickers) > 5:
-        top3 = final_returns.head(3).index.tolist()
-        bot3 = final_returns.tail(3).index.tolist()
-        lines.append(f"\U0001f3c6 Top 3: {', '.join(top3)} \u2014 Bottom 3: {', '.join(bot3)}. Choose your fighter.")
-
-    # Per-stock one-liners for every stock
-    total = len(final_returns)
-    for rank, (ticker, ret) in enumerate(final_returns.items(), start=1):
-        pct_pos = rank / total  # 0 = best, 1 = worst
-        if rank == 1:
-            continue  # MVP already covered
-        elif rank == total:
-            continue  # benchwarmer already covered
-        elif ret > 10:
-            lines.append(f"\U0001f4b0 {ticker} at {ret:+.1f}% \u2014 printing money over here.")
-        elif ret > 5:
-            lines.append(f"\U0001f4c8 {ticker} cruising at {ret:+.1f}%. Quiet confidence.")
-        elif ret > 2:
-            lines.append(f"\U0001f60f {ticker} at {ret:+.1f}%. Slow and steady, not flashy but it works.")
-        elif ret > 0:
-            lines.append(f"\U0001f90f {ticker} barely green at {ret:+.1f}%. Hanging on by a thread.")
-        elif ret > -2:
-            lines.append(f"\U0001f611 {ticker} at {ret:+.1f}%. Basically flat. Are you even trying?")
-        elif ret > -5:
-            lines.append(f"\U0001f612 {ticker} slipping at {ret:+.1f}%. Not great, not terrible.")
-        elif ret > -10:
-            lines.append(f"\U0001f62c {ticker} down {ret:+.1f}%. Might want to look away.")
-        elif ret > -15:
-            lines.append(f"\U0001f4c9 {ticker} tanking at {ret:+.1f}%. Ouch.")
-        else:
-            lines.append(f"\U0001f525 {ticker} in freefall at {ret:+.1f}%. Someone check on them.")
+    # Fetch latest news headlines for all stocks
+    all_news = fetch_news_batch(tuple(valid_tickers))
+    # Deduplicate: one headline per ticker (first = most recent)
+    seen_tickers = set()
+    for article in all_news:
+        t = article["ticker"]
+        if t not in seen_tickers:
+            seen_tickers.add(t)
+            lines.append(f"\U0001f4f0 {t}: {article['title']}")
 
     return lines
 
@@ -2069,25 +2155,6 @@ with tab_dashboard:
                 unsafe_allow_html=True,
             )
 
-        # --- Daily Trivia (only if we have a specific fact) ---
-        trivia_fact = None
-        trivia_ticker = None
-        # Try MVP first, then benchwarmer, then any stock with trivia
-        for candidate in [best_ticker, worst_ticker] + list(final_returns.index):
-            fact = get_daily_trivia(candidate)
-            if fact:
-                trivia_ticker = candidate
-                trivia_fact = fact
-                break
-        if trivia_fact:
-            st.markdown(
-                f'<div class="trivia-card">'
-                f'<div class="trivia-label">\U0001f4a1 Did You Know? \u2014 {html_mod.escape(trivia_ticker)}</div>'
-                f'<div class="trivia-text">{html_mod.escape(trivia_fact)}</div>'
-                f'</div>',
-                unsafe_allow_html=True,
-            )
-
         metric_cols = st.columns(3)
         metric_cols[0].markdown(
             f"""
@@ -2153,6 +2220,7 @@ with tab_dashboard:
         )
 
         # --- Superlatives Section ---
+        st.markdown("")
         st.markdown("#### \U0001f3c6 Bragging Rights")
         sup = superlatives
 
@@ -2225,7 +2293,15 @@ with tab_dashboard:
             dw_low = float(returns[dead_weight].min())
             badges_data.append(("\U0001faa8", "Dead Weight", f'{dead_weight} ({dw_low:+.2f}% \u2192 {final_returns[dead_weight]:+.2f}%)', "Went down and stayed down"))
 
-        # Pair 5: The Terminator vs Middle Child
+        # Pair 5: Dark Horse vs Fallen Angel
+        horse = _find_badge("Dark Horse")
+        fa = sup["fallen"]
+        if horse and horse["unlocked"]:
+            badges_data.append(("\U0001f40e", "Dark Horse", horse["holder"], "Bottom half \u2192 climbed highest"))
+        if fa["ticker"]:
+            badges_data.append(("\U0001f607", "Fallen Angel", f'{fa["ticker"]} (#{fa["start_rank"]}\u2192#{fa["end_rank"]})', "Top half \u2192 dropped the most"))
+
+        # Pair 6: The Terminator vs Middle Child
         term = _find_badge("The Terminator")
         mc = sup["middle"]
         if term:
@@ -2233,7 +2309,7 @@ with tab_dashboard:
         if mc["ticker"]:
             badges_data.append(("\U0001fae5", "Middle Child", f'{mc["ticker"]} ({mc["return"]:+.2f}%)', "Closest to 0%"))
 
-        # Pair 6: Rivalry vs ETF War
+        # Pair 7: Rivalry vs ETF War
         rv = sup["rivalry"]
         ew = sup["etf_war"]
         if rv["ticker1"]:
@@ -2241,14 +2317,6 @@ with tab_dashboard:
         if ew["etf"]:
             etf_emoji = ETF_EMOJI.get(ew["etf"], "")
             badges_data.append(("\u26a1", "ETF War", f'{etf_emoji} {ew["etf"]} ({ew["streak"]}d)', "Longest daily win streak"))
-
-        # Pair 7: Dark Horse vs Fallen Angel
-        horse = _find_badge("Dark Horse")
-        fa = sup["fallen"]
-        if horse and horse["unlocked"]:
-            badges_data.append(("\U0001f40e", "Dark Horse", horse["holder"], "Bottom half \u2192 climbed highest"))
-        if fa["ticker"]:
-            badges_data.append(("\U0001f607", "Fallen Angel", f'{fa["ticker"]} (#{fa["start_rank"]}\u2192#{fa["end_rank"]})', "Top half \u2192 dropped the most"))
 
         # Pair 8: Dividend King vs All Talk
         divking = _find_badge("Dividend King")
@@ -2371,6 +2439,179 @@ with tab_dashboard:
             unsafe_allow_html=True,
         )
 
+        # --- Signals & News ---
+        st.markdown("#### Who's Hot \U0001f525, Who's Not \U0001f4a9, Who's Meh \U0001f610")
+
+        stock_signals = compute_signals(valid_tickers, start_date, end_date)
+
+        if stock_signals:
+            # Count signals
+            buy_count = sum(1 for s in stock_signals.values() if s["signal"] == "BUY")
+            sell_count = sum(1 for s in stock_signals.values() if s["signal"] == "SELL")
+            hold_count = sum(1 for s in stock_signals.values() if s["signal"] == "HOLD")
+            total_signals = buy_count + sell_count + hold_count
+
+            # Signal bar (like green/red bar)
+            buy_pct = int(buy_count / total_signals * 100) if total_signals else 0
+            sell_pct = int(sell_count / total_signals * 100) if total_signals else 0
+            hold_pct = 100 - buy_pct - sell_pct
+
+            st.markdown(
+                f'<div style="display:flex;border-radius:8px;overflow:hidden;height:32px;margin-bottom:0.7rem;">'
+                f'<div style="width:{buy_pct}%;background:#19a05f;display:flex;align-items:center;justify-content:center;'
+                f'font-size:0.75rem;font-weight:700;color:#fff;">\U0001f7e2 {buy_count} BUY</div>'
+                f'<div style="width:{hold_pct}%;background:#d7a83a;display:flex;align-items:center;justify-content:center;'
+                f'font-size:0.75rem;font-weight:700;color:#fff;">\U0001f7e1 {hold_count} HOLD</div>'
+                f'<div style="width:{sell_pct}%;background:#d14a34;display:flex;align-items:center;justify-content:center;'
+                f'font-size:0.75rem;font-weight:700;color:#fff;">\U0001f534 {sell_count} SELL</div>'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+
+            # Sort by leaderboard rank (same order as standings)
+            ranked_signals = [(ticker, stock_signals[ticker]) for ticker in final_returns.index if ticker in stock_signals]
+
+            # Fetch earnings data
+            earnings_data = fetch_earnings(tuple(valid_tickers))
+
+            # Signal table
+            sig_html = '<table class="signal-table">'
+            sig_html += '<tr><th>Rank</th><th>Stock</th><th>Total Return</th><th>RSI</th><th>SMA Cross</th><th>vs 20d SMA</th><th>Signal</th><th>Next Earnings</th><th>Est. EPS</th><th>Last EPS</th></tr>'
+            for rank, (ticker, sig) in enumerate(ranked_signals, start=1):
+                ret_val = final_returns[ticker] if ticker in final_returns.index else 0
+                ret_color = "#19a05f" if ret_val >= 0 else "#d14a34"
+
+                # RSI bar
+                rsi_val = sig["rsi"]
+                if rsi_val is not None:
+                    if rsi_val < 30:
+                        rsi_color = "#19a05f"
+                    elif rsi_val > 70:
+                        rsi_color = "#d14a34"
+                    else:
+                        rsi_color = "#d7a83a"
+                    rsi_html = (
+                        f'<div class="rsi-bar"><div class="rsi-bar-fill" style="width:{rsi_val}%;background:{rsi_color};"></div></div>'
+                        f' <span style="font-size:0.75rem;">{rsi_val}</span>'
+                    )
+                else:
+                    rsi_html = '<span style="color:var(--muted);font-size:0.75rem;">N/A</span>'
+
+                # SMA cross
+                if sig["sma_cross"] is not None:
+                    sma_html = '<span style="color:#19a05f;">\u2713 Bullish</span>' if sig["sma_cross"] else '<span style="color:#d14a34;">\u2717 Bearish</span>'
+                else:
+                    sma_html = '<span style="color:var(--muted);">N/A</span>'
+
+                # Price vs SMA
+                if sig["price_vs_sma"] is not None:
+                    pv_html = '<span style="color:#19a05f;">Above</span>' if sig["price_vs_sma"] else '<span style="color:#d14a34;">Below</span>'
+                else:
+                    pv_html = '<span style="color:var(--muted);">N/A</span>'
+
+                # Signal badge
+                sig_class = f'signal-{sig["signal"].lower()}'
+                # Earnings data
+                earn = earnings_data.get(ticker, {})
+                earn_date = earn.get("next_date", "")
+                eps_est = earn.get("eps_est")
+                eps_actual = earn.get("eps_actual")
+                eps_est_html = f'${eps_est:.2f}' if eps_est is not None else '<span style="color:var(--muted);">—</span>'
+                if eps_actual is not None:
+                    eps_actual_html = f'${eps_actual:.2f}'
+                else:
+                    eps_actual_html = '<span style="color:var(--muted);">—</span>'
+                earn_date_html = earn_date if earn_date else '<span style="color:var(--muted);">—</span>'
+
+                sig_html += (
+                    f'<tr>'
+                    f'<td style="font-weight:700;color:var(--accent);">{rank}</td>'
+                    f'<td><b>{html_mod.escape(ticker)}</b> <span style="color:var(--muted);font-size:0.72rem;">{html_mod.escape(NAME_MAP.get(ticker, ""))}</span></td>'
+                    f'<td style="color:{ret_color};font-weight:600;">{ret_val:+.2f}%</td>'
+                    f'<td>{rsi_html}</td>'
+                    f'<td style="font-size:0.78rem;">{sma_html}</td>'
+                    f'<td style="font-size:0.78rem;">{pv_html}</td>'
+                    f'<td><span class="signal-badge {sig_class}">{sig["signal"]}</span></td>'
+                    f'<td style="font-size:0.78rem;">{earn_date_html}</td>'
+                    f'<td style="font-size:0.78rem;">{eps_est_html}</td>'
+                    f'<td style="font-size:0.78rem;">{eps_actual_html}</td>'
+                    f'</tr>'
+                )
+            sig_html += '</table>'
+            st.markdown(sig_html, unsafe_allow_html=True)
+            st.caption("Based on 14-day RSI, 10/20-day SMA crossover, and price vs 20-day SMA. Not financial advice.")
+
+        # --- System Predictions ---
+        st.markdown("")
+        st.markdown("#### \U0001f52e Next Week's Predictions")
+        preds = generate_predictions(returns, valid_tickers, NAME_MAP, ETF_MAP, final_returns, dividends, start_prices, INVESTMENT)
+        pred_history = load_pred_history()
+
+        if preds:
+            record_predictions(preds, end_date.isoformat(), pred_history)
+
+            pred_cols = st.columns(len(preds))
+            for i, pred in enumerate(preds):
+                conf = pred.get("confidence", 50)
+                pred_key = f'{pred["title"]}_{pred["ticker"]}'
+                votes = pred_history.get("votes", {}).get(pred_key, {"up": 0, "down": 0})
+                total_votes = votes["up"] + votes["down"]
+                agree_pct = int(votes["up"] / total_votes * 100) if total_votes > 0 else 0
+
+                with pred_cols[i]:
+                    vote_bar = ""
+                    if total_votes > 0:
+                        vote_bar = (
+                            f'<div style="display:flex;align-items:center;gap:0.4rem;margin-top:0.3rem;'
+                            f'padding-top:0.3rem;border-top:1px solid rgba(14,95,58,0.1);">'
+                            f'<span style="font-size:0.7rem;">\U0001f44d {votes["up"]}</span>'
+                            f'<span style="font-size:0.7rem;">\U0001f44e {votes["down"]}</span>'
+                            f'<span style="font-size:0.6rem;color:var(--muted);margin-left:auto;">{agree_pct}% agree</span>'
+                            f'</div>'
+                        )
+                    st.markdown(
+                        f'<div class="pred-card">'
+                        f'<div class="pred-icon">{pred["icon"]}</div>'
+                        f'<div class="pred-title">{html_mod.escape(pred["title"])}</div>'
+                        f'<div class="pred-ticker">{pred.get("emoji", "")} {html_mod.escape(pred["ticker"])}</div>'
+                        f'<div class="pred-name">{html_mod.escape(pred["name"])}</div>'
+                        f'<div class="pred-detail">{html_mod.escape(pred["detail"])}</div>'
+                        f'<div class="pred-confidence">{conf}% confidence</div>'
+                        f'{vote_bar}'
+                        f'</div>',
+                        unsafe_allow_html=True,
+                    )
+                    bc = st.columns(2)
+                    with bc[0]:
+                        up_label = f"\U0001f44d {votes['up']}" if votes["up"] > 0 else "\U0001f44d"
+                        if st.button(up_label, key=f"vote_up_{pred_key}", use_container_width=True):
+                            pred_history.setdefault("votes", {}).setdefault(pred_key, {"up": 0, "down": 0})["up"] += 1
+                            save_pred_history(pred_history)
+                            st.rerun()
+                    with bc[1]:
+                        down_label = f"\U0001f44e {votes['down']}" if votes["down"] > 0 else "\U0001f44e"
+                        if st.button(down_label, key=f"vote_down_{pred_key}", use_container_width=True):
+                            pred_history.setdefault("votes", {}).setdefault(pred_key, {"up": 0, "down": 0})["down"] += 1
+                            save_pred_history(pred_history)
+                            st.rerun()
+
+            past_results = check_past_predictions(pred_history, final_returns)
+            if past_results:
+                scored = [r for r in past_results if r["correct"] is not None]
+                if scored:
+                    correct_count = sum(1 for r in scored if r["correct"])
+                    total_scored = len(scored)
+                    accuracy = int(correct_count / total_scored * 100)
+                    st.markdown(
+                        f'<div style="margin-top:0.5rem;padding:0.5rem 0.8rem;background:rgba(14,95,58,0.06);'
+                        f'border:1px solid rgba(14,95,58,0.15);border-radius:12px;font-size:0.8rem;">'
+                        f'\U0001f3af <b>Past Accuracy:</b> {correct_count}/{total_scored} predictions correct ({accuracy}%)'
+                        f'</div>',
+                        unsafe_allow_html=True,
+                    )
+
+            st.caption("\U0001f916 System-generated based on 5-day momentum, volatility, and trend analysis. Not financial advice!")
+
         # --- Shots Fired ---
         st.markdown("#### \U0001f4a5 Shots Fired")
 
@@ -2451,7 +2692,7 @@ with tab_dashboard:
         )
 
         # --- Weekly Report ---
-        st.markdown("#### \U0001f4e3 Weekly Report")
+        st.markdown("#### \U0001f4cb Weekly Report")
         green_count_wr = int((final_returns > 0).sum())
         red_count_wr = int((final_returns <= 0).sum())
         avg_ret_wr = final_returns.mean()
@@ -2533,88 +2774,6 @@ with tab_dashboard:
             )
         wr_html += '</div>'
         st.markdown(wr_html, unsafe_allow_html=True)
-
-        # --- System Predictions ---
-        st.markdown("#### \U0001f52e Next Week's Predictions")
-        preds = generate_predictions(returns, valid_tickers, NAME_MAP, ETF_MAP, final_returns, dividends, start_prices, INVESTMENT)
-        pred_history = load_pred_history()
-
-        if preds:
-            # Record predictions for future tracking
-            record_predictions(preds, end_date.isoformat(), pred_history)
-
-            # Render each prediction as a column with card + vote buttons
-            pred_cols = st.columns(len(preds))
-            for i, pred in enumerate(preds):
-                conf = pred.get("confidence", 50)
-                pred_key = f'{pred["title"]}_{pred["ticker"]}'
-                votes = pred_history.get("votes", {}).get(pred_key, {"up": 0, "down": 0})
-                total_votes = votes["up"] + votes["down"]
-                agree_pct = int(votes["up"] / total_votes * 100) if total_votes > 0 else 0
-
-                vote_html = ""
-                if total_votes > 0:
-                    vote_html = (
-                        f'<div style="font-size:0.65rem;color:var(--muted);margin-top:0.25rem;">'
-                        f'\U0001f44d {votes["up"]} \u00b7 \U0001f44e {votes["down"]}'
-                        f' \u00b7 {agree_pct}% agree</div>'
-                    )
-
-                with pred_cols[i]:
-                    vote_bar = ""
-                    if total_votes > 0:
-                        vote_bar = (
-                            f'<div style="display:flex;align-items:center;gap:0.4rem;margin-top:0.3rem;'
-                            f'padding-top:0.3rem;border-top:1px solid rgba(14,95,58,0.1);">'
-                            f'<span style="font-size:0.7rem;">\U0001f44d {votes["up"]}</span>'
-                            f'<span style="font-size:0.7rem;">\U0001f44e {votes["down"]}</span>'
-                            f'<span style="font-size:0.6rem;color:var(--muted);margin-left:auto;">{agree_pct}% agree</span>'
-                            f'</div>'
-                        )
-
-                    st.markdown(
-                        f'<div class="pred-card">'
-                        f'<div class="pred-icon">{pred["icon"]}</div>'
-                        f'<div class="pred-title">{html_mod.escape(pred["title"])}</div>'
-                        f'<div class="pred-ticker">{pred.get("emoji", "")} {html_mod.escape(pred["ticker"])}</div>'
-                        f'<div class="pred-name">{html_mod.escape(pred["name"])}</div>'
-                        f'<div class="pred-detail">{html_mod.escape(pred["detail"])}</div>'
-                        f'<div class="pred-confidence">{conf}% confidence</div>'
-                        f'{vote_bar}'
-                        f'</div>',
-                        unsafe_allow_html=True,
-                    )
-                    bc = st.columns(2)
-                    with bc[0]:
-                        up_label = f"\U0001f44d {votes['up']}" if votes["up"] > 0 else "\U0001f44d"
-                        if st.button(up_label, key=f"vote_up_{pred_key}", use_container_width=True):
-                            pred_history.setdefault("votes", {}).setdefault(pred_key, {"up": 0, "down": 0})["up"] += 1
-                            save_pred_history(pred_history)
-                            st.rerun()
-                    with bc[1]:
-                        down_label = f"\U0001f44e {votes['down']}" if votes["down"] > 0 else "\U0001f44e"
-                        if st.button(down_label, key=f"vote_down_{pred_key}", use_container_width=True):
-                            pred_history.setdefault("votes", {}).setdefault(pred_key, {"up": 0, "down": 0})["down"] += 1
-                            save_pred_history(pred_history)
-                            st.rerun()
-
-            # Show past prediction accuracy (only for predictions older than 5 days)
-            past_results = check_past_predictions(pred_history, final_returns)
-            if past_results:
-                scored = [r for r in past_results if r["correct"] is not None]
-                if scored:
-                    correct_count = sum(1 for r in scored if r["correct"])
-                    total_scored = len(scored)
-                    accuracy = int(correct_count / total_scored * 100)
-                    st.markdown(
-                        f'<div style="margin-top:0.5rem;padding:0.5rem 0.8rem;background:rgba(14,95,58,0.06);'
-                        f'border:1px solid rgba(14,95,58,0.15);border-radius:12px;font-size:0.8rem;">'
-                        f'\U0001f3af <b>Past Accuracy:</b> {correct_count}/{total_scored} predictions correct ({accuracy}%)'
-                        f'</div>',
-                        unsafe_allow_html=True,
-                    )
-
-            st.caption("\U0001f916 System-generated based on 5-day momentum, volatility, and trend analysis. Not financial advice!")
 
         st.markdown("---")
 
