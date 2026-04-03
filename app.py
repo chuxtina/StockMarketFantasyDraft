@@ -3044,6 +3044,23 @@ with tab_dashboard:
             unsafe_allow_html=True,
         )
 
+        # Next roast update time
+        now_et = datetime.datetime.now(ZoneInfo("America/New_York"))
+        def _next_market_close(dt):
+            """Find the next market close (4 PM ET on a trading day)."""
+            candidate = dt.replace(hour=16, minute=0, second=0, microsecond=0)
+            if dt >= candidate:
+                candidate += datetime.timedelta(days=1)
+            while candidate.weekday() >= 5 or candidate.date() in _us_market_holidays(candidate.year):
+                candidate += datetime.timedelta(days=1)
+            return candidate
+
+        next_close = _next_market_close(now_et)
+        st.caption(
+            f"\U0001f4a5 Roasts update after each trading day \u00b7 "
+            f"Next shots fired: {next_close.strftime('%a %b %d')} after 4:00 PM ET"
+        )
+
         # --- Weekly Report ---
         st.markdown(
             '<div style="display:flex;align-items:center;gap:0.5rem;margin:1.2rem 0 0.5rem;">'
