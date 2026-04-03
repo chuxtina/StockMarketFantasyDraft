@@ -1394,6 +1394,33 @@ def generate_trash_talk(throne, superlatives, final_returns, name_map, etf_map, 
         bot3 = final_returns.tail(3).index.tolist()
         lines.append(f"\U0001f3c6 Top 3: {', '.join(top3)} \u2014 Bottom 3: {', '.join(bot3)}. Choose your fighter.")
 
+    # Per-stock one-liners for every stock
+    total = len(final_returns)
+    for rank, (ticker, ret) in enumerate(final_returns.items(), start=1):
+        pct_pos = rank / total  # 0 = best, 1 = worst
+        if rank == 1:
+            continue  # MVP already covered
+        elif rank == total:
+            continue  # benchwarmer already covered
+        elif ret > 10:
+            lines.append(f"\U0001f4b0 {ticker} at {ret:+.1f}% \u2014 printing money over here.")
+        elif ret > 5:
+            lines.append(f"\U0001f4c8 {ticker} cruising at {ret:+.1f}%. Quiet confidence.")
+        elif ret > 2:
+            lines.append(f"\U0001f60f {ticker} at {ret:+.1f}%. Slow and steady, not flashy but it works.")
+        elif ret > 0:
+            lines.append(f"\U0001f90f {ticker} barely green at {ret:+.1f}%. Hanging on by a thread.")
+        elif ret > -2:
+            lines.append(f"\U0001f611 {ticker} at {ret:+.1f}%. Basically flat. Are you even trying?")
+        elif ret > -5:
+            lines.append(f"\U0001f612 {ticker} slipping at {ret:+.1f}%. Not great, not terrible.")
+        elif ret > -10:
+            lines.append(f"\U0001f62c {ticker} down {ret:+.1f}%. Might want to look away.")
+        elif ret > -15:
+            lines.append(f"\U0001f4c9 {ticker} tanking at {ret:+.1f}%. Ouch.")
+        else:
+            lines.append(f"\U0001f525 {ticker} in freefall at {ret:+.1f}%. Someone check on them.")
+
     return lines
 
 
