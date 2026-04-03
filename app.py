@@ -183,7 +183,7 @@ html, body {
     -webkit-overflow-scrolling: touch;
 }
 @media (max-width: 768px) {
-    [data-testid="stSidebar"] {
+    [data-testid="stSidebar"][aria-expanded="false"] {
         display: none !important;
     }
 }
