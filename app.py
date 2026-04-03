@@ -1,8 +1,12 @@
 import html as html_mod
 import json
 import datetime
+import random
+import hashlib
+import os
 from datetime import timedelta
 from zoneinfo import ZoneInfo
+from collections import Counter
 import requests
 import streamlit as st
 import streamlit.components.v1 as components
@@ -588,6 +592,317 @@ hr {
 
 st.markdown("""
 <style>
+/* --- Trash Talk Ticker --- */
+.trash-talk-ticker {
+    background: linear-gradient(90deg, #0d2f20, #13492f);
+    border-radius: 16px;
+    padding: 0.6rem 0;
+    margin-bottom: 0.75rem;
+    overflow: hidden;
+    position: relative;
+}
+.trash-talk-ticker::before,
+.trash-talk-ticker::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 2rem;
+    z-index: 2;
+}
+.trash-talk-ticker::before {
+    left: 0;
+    background: linear-gradient(90deg, #0d2f20, transparent);
+}
+.trash-talk-ticker::after {
+    right: 0;
+    background: linear-gradient(270deg, #13492f, transparent);
+}
+@keyframes ticker-scroll {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+}
+.ticker-track {
+    display: flex;
+    gap: 2.5rem;
+    animation: ticker-scroll 45s linear infinite;
+    white-space: nowrap;
+    width: max-content;
+}
+.ticker-item {
+    color: #f4f0e3;
+    font-size: 0.82rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+
+/* --- Bragging Rights Badge Grid --- */
+.sup-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+@media (max-width: 1200px) {
+    .sup-grid { grid-template-columns: repeat(5, 1fr); }
+}
+@media (max-width: 768px) {
+    .sup-grid { grid-template-columns: repeat(3, 1fr); }
+}
+.sup-badge {
+    background: linear-gradient(180deg, rgba(255,255,255,0.96) 0%, rgba(242,248,241,0.96) 100%);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 0.65rem 0.5rem 0.55rem;
+    text-align: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 120px;
+    justify-content: flex-start;
+}
+.sup-badge:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(16, 42, 32, 0.12);
+}
+.sup-badge-icon {
+    font-size: 1.8rem;
+    line-height: 1;
+    margin-bottom: 0.2rem;
+}
+.sup-badge-name {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--text);
+    line-height: 1.2;
+}
+.sup-badge-holder {
+    font-size: 0.68rem;
+    color: var(--muted);
+    margin-top: 0.1rem;
+    line-height: 1.2;
+}
+.sup-badge-desc {
+    font-size: 0.6rem;
+    color: var(--muted);
+    opacity: 0.65;
+    margin-top: 0.1rem;
+    line-height: 1.2;
+}
+.sup-multi-bar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.6rem;
+    padding: 0.5rem 0.8rem;
+    background: rgba(215,168,58,0.08);
+    border: 1px solid rgba(215,168,58,0.2);
+    border-radius: 12px;
+    font-size: 0.78rem;
+    margin-bottom: 0.5rem;
+    align-items: center;
+}
+.sup-multi-bar .multi-label {
+    font-weight: 700;
+    color: var(--accent-2);
+}
+.sup-multi-stock {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    background: rgba(255,255,255,0.6);
+    border-radius: 999px;
+    padding: 0.15rem 0.55rem;
+    font-size: 0.72rem;
+}
+.sup-multi-stock b {
+    color: var(--text);
+}
+
+/* --- Achievements / Badges --- */
+.badge-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
+    gap: 0.6rem;
+}
+.badge-card {
+    background: linear-gradient(135deg, rgba(255,255,255,0.96), rgba(242,248,241,0.96));
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 0.75rem 0.8rem;
+    text-align: center;
+    transition: transform 0.2s, box-shadow 0.2s;
+    position: relative;
+    overflow: hidden;
+}
+.badge-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(16, 42, 32, 0.15);
+}
+.badge-card.locked {
+    opacity: 0.4;
+    filter: grayscale(1);
+}
+.badge-icon {
+    font-size: 2rem;
+    margin-bottom: 0.2rem;
+}
+.badge-name {
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: var(--text);
+}
+.badge-holder {
+    font-size: 0.7rem;
+    color: var(--muted);
+    margin-top: 0.15rem;
+}
+
+/* --- Weekly Recap --- */
+.recap-card {
+    background: linear-gradient(135deg, #0d2f20 0%, #1a5c3a 50%, #0d2f20 100%);
+    border-radius: 24px;
+    padding: 1.4rem 1.5rem;
+    color: #f4f0e3;
+    position: relative;
+    overflow: hidden;
+}
+.recap-card::after {
+    content: '';
+    position: absolute;
+    top: -30%;
+    right: -10%;
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(215,168,58,0.25), transparent 65%);
+}
+.recap-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 0.8rem;
+    color: var(--accent-2);
+}
+.recap-line {
+    font-size: 0.88rem;
+    padding: 0.25rem 0;
+    opacity: 0.92;
+}
+
+/* --- Trivia --- */
+.trivia-card {
+    background: linear-gradient(135deg, rgba(215,168,58,0.08), rgba(215,168,58,0.02));
+    border: 1px solid rgba(215,168,58,0.25);
+    border-radius: 16px;
+    padding: 0.8rem 1rem;
+    margin-bottom: 0.75rem;
+}
+.trivia-label {
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--accent-2);
+    margin-bottom: 0.25rem;
+}
+.trivia-text {
+    font-size: 0.88rem;
+    color: var(--text);
+    line-height: 1.4;
+}
+
+/* --- Emoji Reactions --- */
+.reaction-bar {
+    display: inline-flex;
+    gap: 0.3rem;
+    align-items: center;
+    font-size: 0.85rem;
+}
+.reaction-bar .count {
+    font-size: 0.7rem;
+    color: var(--muted);
+    font-weight: 600;
+    margin-right: 0.3rem;
+}
+/* Shrink reaction emoji buttons */
+[data-testid="stColumn"] [data-testid="stButton"] button[kind="secondary"] {
+    min-height: 0;
+}
+div[data-testid="stButton"] button[key*="react_"],
+div[data-testid="stButton"]:has(button) {
+    min-height: 0;
+}
+
+/* --- Predictions --- */
+.pred-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 0.6rem;
+}
+.pred-card {
+    background: linear-gradient(135deg, rgba(14,95,58,0.06), rgba(14,95,58,0.02));
+    border: 1px solid rgba(14,95,58,0.2);
+    border-radius: 16px;
+    padding: 0.8rem 1rem;
+    position: relative;
+}
+.pred-card .pred-icon {
+    font-size: 1.5rem;
+    margin-bottom: 0.2rem;
+}
+.pred-card .pred-title {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--muted);
+}
+.pred-card .pred-ticker {
+    font-size: 1.3rem;
+    font-weight: 700;
+    color: var(--text);
+}
+.pred-card .pred-name {
+    font-size: 0.8rem;
+    color: var(--muted);
+}
+.pred-card .pred-detail {
+    font-size: 0.78rem;
+    color: var(--text);
+    margin-top: 0.2rem;
+    opacity: 0.85;
+}
+.pred-confidence {
+    display: inline-block;
+    background: rgba(14,95,58,0.12);
+    border-radius: 999px;
+    padding: 0.1rem 0.5rem;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--accent);
+    margin-top: 0.3rem;
+}
+
+/* --- Confetti --- */
+@keyframes confetti-fall {
+    0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
+.confetti-piece {
+    position: fixed;
+    top: -10px;
+    z-index: 9999;
+    pointer-events: none;
+    animation: confetti-fall 3s ease-in-out forwards;
+}
+
+</style>
+""", unsafe_allow_html=True)
+
+st.markdown("""
+<style>
 /* Default: dark arrow for light background (collapsed sidebar) */
 [data-testid="stIconMaterial"] {
     color: #102018 !important;
@@ -825,8 +1140,6 @@ def compute_superlatives(returns, valid_tickers, name_map, etf_map, throne):
         }
 
     # --- Throne Stats ---
-    from collections import Counter
-
 
     # Longest Reign: stock with the most total days on any throne
     reign_counts = Counter()
@@ -977,6 +1290,515 @@ def compute_superlatives(returns, valid_tickers, name_map, etf_map, throne):
     return results
 
 
+# --- Trash Talk Generator ---
+def generate_trash_talk(throne, superlatives, final_returns, name_map, etf_map, returns, valid_tickers):
+    """Generate snarky auto-commentary from game data."""
+    lines = []
+    ETF_EMOJI = {"UNCL": "\U0001f468\u200d\U0001f9b3", "ANTY": "\U0001f469\U0001f3fb", "KIDZ": "\U0001f476\U0001f3fb"}
+
+    # MVP throne commentary
+    mvp_hist = throne["mvp_history"]
+    if mvp_hist:
+        current_mvp = mvp_hist[0]
+        ticker = current_mvp["ticker"]
+        ret = current_mvp["return_pct"]
+        streak = throne["mvp_streak"]
+        if streak >= 5:
+            lines.append(f"\U0001f451 {ticker} has held the crown for {streak} straight days. Is anyone even trying?")
+        elif current_mvp.get("prev_ticker"):
+            prev = current_mvp["prev_ticker"]
+            lines.append(f"\U0001f4a5 {ticker} just snatched the throne from {prev}! Hostile takeover complete.")
+        else:
+            lines.append(f"\U0001f451 {ticker} reigns supreme at {ret:+.2f}%")
+
+    # Benchwarmer commentary
+    bench_hist = throne["bench_history"]
+    if bench_hist:
+        current_bench = bench_hist[0]
+        ticker = current_bench["ticker"]
+        b_streak = throne["bench_streak"]
+        if b_streak >= 5:
+            lines.append(f"\U0001f6bd {ticker} has been the benchwarmer for {b_streak} days straight. Somebody call a lifeguard.")
+        elif current_bench.get("prev_ticker"):
+            lines.append(f"\U0001f4c9 {ticker} sinks to dead last, replacing {current_bench['prev_ticker']} in the hall of shame.")
+        else:
+            lines.append(f"\U0001f4a9 {ticker} is still holding down the bottom. Impressive commitment.")
+
+    # Best single day
+    bd = superlatives.get("best_day")
+    if bd:
+        lines.append(f"\U0001f680 {bd['ticker']} rocketed {bd['change']:+.2f}% in a single day \u2014 absolute moonshot!")
+
+    # Worst single day
+    wd = superlatives.get("worst_day")
+    if wd:
+        lines.append(f"\U0001f4a3 {wd['ticker']} cratered {wd['change']:+.2f}% in one day. Thoughts and prayers.")
+
+    # Rivalry
+    rv = superlatives.get("rivalry")
+    if rv and rv.get("ticker1") and rv["swaps"] > 2:
+        lines.append(f"\u2694\ufe0f {rv['ticker1']} and {rv['ticker2']} have swapped {rv['swaps']} times. Get a room.")
+
+    # Comeback
+    cb = superlatives.get("comeback")
+    if cb and cb.get("ticker") and cb.get("low", 0) < -5:
+        lines.append(f"\U0001f9d7 {cb['ticker']} hit rock bottom at {cb['low']:+.2f}% and clawed back to {cb['final']:+.2f}%. Respect.")
+
+    # Power rankings
+    pw = superlatives.get("power")
+    if pw and pw.get("climber") and pw["climber_change"] > 3:
+        lines.append(f"\U0001f525 {pw['climber']} surged {pw['climber_change']:+.2f}% in 5 days \u2014 somebody's cooking!")
+    if pw and pw.get("faller") and pw["faller_change"] < -3:
+        lines.append(f"\U0001f9ca {pw['faller']} dropped {pw['faller_change']:+.2f}% in 5 days. Ice cold.")
+
+    # Sleeper
+    sp = superlatives.get("sleeper")
+    if sp and sp.get("ticker") and sp.get("end_rank", 99) <= 5:
+        lines.append(f"\U0001f634 {sp['ticker']} started at #{sp['start_rank']} and snuck up to #{sp['end_rank']}. Nobody saw that coming.")
+
+    # Fallen angel
+    fa = superlatives.get("fallen")
+    if fa and fa.get("ticker"):
+        lines.append(f"\U0001f607 {fa['ticker']} fell from #{fa['start_rank']} to #{fa['end_rank']}. How the mighty have fallen.")
+
+    # ETF War
+    ew = superlatives.get("etf_war")
+    if ew and ew.get("etf") and ew["streak"] > 3:
+        emoji = ETF_EMOJI.get(ew["etf"], "")
+        lines.append(f"\u26a1 {emoji} {ew['etf']} dominated for {ew['streak']} straight days. ETF supremacy!")
+
+    # Middle child
+    mc = superlatives.get("middle")
+    if mc and mc.get("ticker"):
+        lines.append(f"\U0001fae5 {mc['ticker']} is at exactly {mc['return']:+.2f}%. The Switzerland of stocks.")
+
+    # Add some random flavor if we have enough tickers
+    if len(valid_tickers) > 5:
+        top3 = final_returns.head(3).index.tolist()
+        bot3 = final_returns.tail(3).index.tolist()
+        lines.append(f"\U0001f3c6 Top 3: {', '.join(top3)} \u2014 Bottom 3: {', '.join(bot3)}. Choose your fighter.")
+
+    return lines
+
+
+# --- Achievements / Badges ---
+def compute_achievements(returns, valid_tickers, name_map, dividends, throne, final_returns, start_prices, investment):
+    """Compute fun achievement badges."""
+    badges = []
+    daily = returns[valid_tickers]
+    daily_changes = daily.diff()
+
+    # Diamond Hands: held MVP for 10+ days total
+    if len(daily) > 1:
+        daily_mvp = daily.iloc[1:].idxmax(axis=1)
+        mvp_counts = Counter(daily_mvp)
+        if mvp_counts:
+            top_mvp, top_count = mvp_counts.most_common(1)[0]
+            badges.append({
+                "icon": "\U0001f48e", "name": "Diamond Hands",
+                "desc": f"Most days as MVP",
+                "holder": f"{top_mvp} ({top_count}d)",
+                "unlocked": top_count >= 5,
+            })
+
+    # Rollercoaster: biggest intraday swing range
+    if len(daily_changes) > 1:
+        changes = daily_changes.iloc[1:]
+        volatility = changes.std()
+        wild = volatility.idxmax()
+        badges.append({
+            "icon": "\U0001f3a2", "name": "Rollercoaster",
+            "desc": "Most volatile stock",
+            "holder": f"{wild} (\u00b1{volatility[wild]:.2f}%/day)",
+            "unlocked": True,
+        })
+
+    # Dividend King: highest dividend income
+    if dividends:
+        div_income = {}
+        for t in valid_tickers:
+            shares = investment / start_prices[t]
+            div_income[t] = shares * dividends.get(t, 0.0)
+        best_div = max(div_income, key=div_income.get)
+        badges.append({
+            "icon": "\U0001f4b0", "name": "Dividend King",
+            "desc": "Most dividend income",
+            "holder": f"{best_div} (${div_income[best_div]:.2f})",
+            "unlocked": div_income[best_div] > 0,
+        })
+
+    # Steady Eddie: lowest volatility
+    if len(daily_changes) > 1:
+        changes = daily_changes.iloc[1:]
+        volatility = changes.std()
+        steady = volatility.idxmin()
+        badges.append({
+            "icon": "\U0001f9d8", "name": "Steady Eddie",
+            "desc": "Least volatile stock",
+            "holder": f"{steady} (\u00b1{volatility[steady]:.2f}%/day)",
+            "unlocked": True,
+        })
+
+    # Moonshot: biggest single-day gain
+    if len(daily_changes) > 1:
+        changes = daily_changes.iloc[1:]
+        best_idx = changes.stack().idxmax()
+        best_val = changes.loc[best_idx[0], best_idx[1]]
+        badges.append({
+            "icon": "\U0001f315", "name": "Moonshot",
+            "desc": "Biggest single-day gain",
+            "holder": f"{best_idx[1]} (+{best_val:.2f}%)",
+            "unlocked": best_val > 3,
+        })
+
+    # Crash Landing: biggest single-day loss
+    if len(daily_changes) > 1:
+        changes = daily_changes.iloc[1:]
+        worst_idx = changes.stack().idxmin()
+        worst_val = changes.loc[worst_idx[0], worst_idx[1]]
+        badges.append({
+            "icon": "\U0001f4a5", "name": "Crash Landing",
+            "desc": "Biggest single-day loss",
+            "holder": f"{worst_idx[1]} ({worst_val:+.2f}%)",
+            "unlocked": worst_val < -3,
+        })
+
+    # The Terminator: took the throne most times
+    throne_takes = Counter()
+    for entry in throne["mvp_history"]:
+        throne_takes[entry["ticker"]] += 1
+    if throne_takes:
+        term_ticker, term_count = throne_takes.most_common(1)[0]
+        badges.append({
+            "icon": "\U0001f916", "name": "The Terminator",
+            "desc": "Took MVP throne most times",
+            "holder": f"{term_ticker} ({term_count}x)",
+            "unlocked": term_count >= 2,
+        })
+
+    # Iron Throne: longest continuous MVP streak
+    sw = throne.get("streak_winner", {})
+    if sw.get("ticker") and sw.get("type") == "mvp":
+        badges.append({
+            "icon": "\u2694\ufe0f", "name": "Iron Throne",
+            "desc": "Longest MVP streak ever",
+            "holder": f"{sw['ticker']} ({sw['streak']}d)",
+            "unlocked": sw["streak"] >= 5,
+        })
+
+    # Bottom Feeder: longest benchwarmer streak
+    if len(daily) > 1:
+        daily_bench = daily.iloc[1:].idxmin(axis=1)
+        bench_counts = Counter(daily_bench)
+        if bench_counts:
+            worst_bench, worst_count = bench_counts.most_common(1)[0]
+            badges.append({
+                "icon": "\U0001f40c", "name": "Bottom Feeder",
+                "desc": "Most days as benchwarmer",
+                "holder": f"{worst_bench} ({worst_count}d)",
+                "unlocked": worst_count >= 5,
+            })
+
+    # Photo Finish: two stocks closest in final return
+    sorted_rets = final_returns.sort_values(ascending=False)
+    if len(sorted_rets) >= 2:
+        min_gap = float('inf')
+        photo_pair = ("", "")
+        for i in range(len(sorted_rets) - 1):
+            gap = abs(sorted_rets.iloc[i] - sorted_rets.iloc[i + 1])
+            if gap < min_gap:
+                min_gap = gap
+                photo_pair = (sorted_rets.index[i], sorted_rets.index[i + 1])
+        badges.append({
+            "icon": "\U0001f4f8", "name": "Photo Finish",
+            "desc": "Closest return gap",
+            "holder": f"{photo_pair[0]} vs {photo_pair[1]} ({min_gap:.2f}%)",
+            "unlocked": min_gap < 1.0,
+        })
+
+    # Dark Horse: started in bottom 25%, finished in top 25%
+    if len(daily) > 1:
+        first_ranks = daily.iloc[1].rank(ascending=False)
+        final_ranks = daily.iloc[-1].rank(ascending=False)
+        total = len(valid_tickers)
+        q1 = total * 0.25
+        q4 = total * 0.75
+        dark_horses = [t for t in valid_tickers if first_ranks[t] > q4 and final_ranks[t] <= q1]
+        if dark_horses:
+            best_horse = max(dark_horses, key=lambda t: final_returns[t])
+            badges.append({
+                "icon": "\U0001f40e", "name": "Dark Horse",
+                "desc": "Bottom 25% \u2192 Top 25%",
+                "holder": f"{best_horse} (#{int(first_ranks[best_horse])}\u2192#{int(final_ranks[best_horse])})",
+                "unlocked": True,
+            })
+        else:
+            badges.append({
+                "icon": "\U0001f40e", "name": "Dark Horse",
+                "desc": "Bottom 25% \u2192 Top 25%",
+                "holder": "No one yet",
+                "unlocked": False,
+            })
+
+    return badges
+
+
+# --- Stock Trivia ---
+STOCK_TRIVIA = {
+    "AAPL": [
+        "Apple's first logo featured Isaac Newton sitting under a tree.",
+        "The original Apple I computer sold for $666.66.",
+        "Apple has more cash reserves than most countries' GDP.",
+    ],
+    "MSFT": [
+        "Microsoft's first product was a BASIC interpreter for the Altair 8800.",
+        "Bill Gates' SAT score was 1590 out of 1600.",
+        "The name 'Microsoft' is a blend of 'microcomputer' and 'software'.",
+    ],
+    "AMZN": [
+        "Amazon was originally going to be called 'Cadabra' (as in abracadabra).",
+        "Jeff Bezos' first office desk was made from a door.",
+        "Amazon's first book order was 'Fluid Concepts and Creative Analogies'.",
+    ],
+    "GOOG": [
+        "Google's original name was 'BackRub'.",
+        "The first Google Doodle was a Burning Man stick figure in 1998.",
+        "'Googol' (the number 10^100) inspired the name Google.",
+    ],
+    "META": [
+        "Facebook was originally limited to Harvard students only.",
+        "The iconic blue color was chosen because Zuckerberg is red-green colorblind.",
+        "Facebook's 'Like' button was almost called the 'Awesome' button.",
+    ],
+    "NVDA": [
+        "NVIDIA's name comes from 'invidia', the Latin word for envy.",
+        "The company was founded in a Denny's restaurant in 1993.",
+        "NVIDIA's first product, the NV1, could also play Sega Saturn games.",
+    ],
+    "TSLA": [
+        "Tesla's first car, the Roadster, was built on a Lotus Elise chassis.",
+        "The Tesla logo is actually a cross-section of an electric motor.",
+        "SpaceX launched a Tesla Roadster into space in 2018.",
+    ],
+    "NFLX": [
+        "Netflix was founded because Reed Hastings got a $40 late fee from Blockbuster.",
+        "Netflix's first DVD shipped was 'Beetlejuice' in 1998.",
+        "The company considered naming itself 'Kibble' at one point.",
+    ],
+    "DIS": [
+        "Walt Disney was fired from a newspaper for 'lacking imagination'.",
+        "Mickey Mouse was originally going to be named 'Mortimer Mouse'.",
+        "Disney World is roughly the same size as San Francisco.",
+    ],
+    "COST": [
+        "Costco sells more hot dogs than every MLB stadium combined.",
+        "The Costco hot dog combo has been $1.50 since 1985.",
+        "Costco's Kirkland Signature is one of the largest brands in the world.",
+    ],
+    "COIN": [
+        "Coinbase was the first crypto company to go public on the Nasdaq.",
+        "The company was founded in a two-bedroom apartment in San Francisco.",
+    ],
+    "AMD": [
+        "AMD was founded by Jerry Sanders, a former Fairchild Semiconductor exec.",
+        "AMD and Intel were both founded within a year of each other (1968-1969).",
+    ],
+    "INTC": [
+        "Intel's first product was a memory chip, not a processor.",
+        "The Intel Inside jingle is one of the most recognized sounds in advertising.",
+        "Gordon Moore (of Moore's Law) co-founded Intel.",
+    ],
+    "WMT": [
+        "The first Walmart opened in 1962 in Rogers, Arkansas.",
+        "Walmart is the world's largest employer with over 2 million workers.",
+    ],
+    "BRK-B": [
+        "Berkshire Hathaway was originally a textile company.",
+        "Warren Buffett bought his first stock at age 11.",
+        "Berkshire's Class A shares are the most expensive stock in the world.",
+    ],
+    "RBLX": [
+        "Over half of American kids under 16 play Roblox.",
+        "Roblox was originally called 'DynaBlocks' when it launched in 2004.",
+    ],
+    "MCD": [
+        "McDonald's serves about 69 million customers daily worldwide.",
+        "The Big Mac was invented by a franchisee, not McDonald's corporate.",
+    ],
+    "PLTR": [
+        "Palantir is named after the seeing stones in Lord of the Rings.",
+        "The company was co-founded by Peter Thiel and Alex Karp.",
+    ],
+    "MSTR": [
+        "MicroStrategy holds over 200,000 Bitcoin on its balance sheet.",
+        "The company rebranded to 'Strategy' but its ticker is still MSTR.",
+    ],
+}
+
+# Generic trivia for stocks without specific entries
+GENERIC_TRIVIA = [
+    "The stock market has returned an average of about 10% per year since 1926.",
+    "The NYSE was founded under a buttonwood tree on Wall Street in 1792.",
+    "The term 'bull market' may come from bulls attacking by thrusting horns upward.",
+    "The worst single-day crash in history was Black Monday (Oct 19, 1987) \u2014 down 22.6%.",
+    "Over 90% of day traders lose money according to academic studies.",
+    "The S&P 500 has had a positive annual return in about 73% of years since 1926.",
+    "Warren Buffett's first stock purchase was at age 11 \u2014 he bought Cities Service Preferred.",
+    "The word 'stock' comes from the old English word for a tree trunk or block of wood.",
+]
+
+
+def get_daily_trivia(ticker):
+    """Get a deterministic-but-daily-rotating trivia for a ticker."""
+    today_str = datetime.date.today().isoformat()
+    seed = hashlib.md5(f"{ticker}{today_str}".encode()).hexdigest()
+    facts = STOCK_TRIVIA.get(ticker, GENERIC_TRIVIA)
+    idx = int(seed, 16) % len(facts)
+    return facts[idx]
+
+
+# --- Emoji Reactions Storage ---
+REACTIONS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "reactions.json")
+REACTION_EMOJIS = ["\U0001f525", "\U0001f5d1\ufe0f", "\U0001f680", "\U0001f921"]
+
+
+def load_reactions():
+    try:
+        with open(REACTIONS_FILE) as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {}
+
+
+def save_reactions(data):
+    with open(REACTIONS_FILE, "w") as f:
+        json.dump(data, f)
+
+
+
+# --- System Predictions ---
+def generate_predictions(returns, valid_tickers, name_map, etf_map, final_returns, dividends, start_prices, investment):
+    """Generate system predictions for next week based on momentum, trends, and patterns."""
+    predictions = []
+    daily = returns[valid_tickers]
+    daily_changes = daily.diff()
+    ETF_EMOJI = {"UNCL": "\U0001f468\u200d\U0001f9b3", "ANTY": "\U0001f469\U0001f3fb", "KIDZ": "\U0001f476\U0001f3fb"}
+
+    if len(daily) < 6:
+        return predictions
+
+    # 5-day momentum
+    recent = daily.iloc[-6:]
+    momentum = recent.iloc[-1] - recent.iloc[0]
+
+    # Volatility (last 10 days or available)
+    lookback = min(10, len(daily_changes) - 1)
+    recent_changes = daily_changes.iloc[-lookback:]
+    volatility = recent_changes.std()
+
+    # Trend consistency: how many of last 5 days were positive moves
+    last5_changes = daily_changes.iloc[-5:]
+    positive_days = (last5_changes > 0).sum()
+
+    # --- Prediction 1: Most Likely MVP Next Week ---
+    # Score = momentum * 0.5 + trend_consistency * 0.3 + current_return * 0.2
+    scores = {}
+    for t in valid_tickers:
+        mom_score = momentum[t] / max(abs(momentum).max(), 0.01)  # normalize
+        trend_score = positive_days[t] / 5.0
+        ret_score = final_returns[t] / max(abs(final_returns).max(), 0.01)
+        scores[t] = mom_score * 0.5 + trend_score * 0.3 + ret_score * 0.2
+    mvp_pred = max(scores, key=scores.get)
+    etf_emoji = ETF_EMOJI.get(etf_map.get(mvp_pred, ""), "")
+    predictions.append({
+        "icon": "\U0001f451",
+        "title": "Predicted MVP",
+        "ticker": mvp_pred,
+        "name": name_map.get(mvp_pred, mvp_pred),
+        "detail": f"Strong momentum ({momentum[mvp_pred]:+.2f}%) + {int(positive_days[mvp_pred])}/5 green days",
+        "confidence": min(95, max(40, int(scores[mvp_pred] * 100))),
+        "emoji": etf_emoji,
+    })
+
+    # --- Prediction 2: Breakout Candidate (high volatility + recent uptrend) ---
+    breakout_scores = {}
+    for t in valid_tickers:
+        if volatility[t] > volatility.median() and momentum[t] > 0:
+            breakout_scores[t] = volatility[t] * momentum[t]
+    if breakout_scores:
+        breakout = max(breakout_scores, key=breakout_scores.get)
+        etf_emoji = ETF_EMOJI.get(etf_map.get(breakout, ""), "")
+        predictions.append({
+            "icon": "\U0001f4a5",
+            "title": "Breakout Watch",
+            "ticker": breakout,
+            "name": name_map.get(breakout, breakout),
+            "detail": f"High volatility (\u00b1{volatility[breakout]:.2f}%) with upward momentum",
+            "confidence": min(70, max(30, int(breakout_scores[breakout] * 10))),
+            "emoji": etf_emoji,
+        })
+
+    # --- Prediction 3: Danger Zone (negative momentum + high volatility) ---
+    danger_scores = {}
+    for t in valid_tickers:
+        if momentum[t] < 0:
+            danger_scores[t] = abs(momentum[t]) * (1 + volatility[t])
+    if danger_scores:
+        danger = max(danger_scores, key=danger_scores.get)
+        etf_emoji = ETF_EMOJI.get(etf_map.get(danger, ""), "")
+        predictions.append({
+            "icon": "\u26a0\ufe0f",
+            "title": "Danger Zone",
+            "ticker": danger,
+            "name": name_map.get(danger, danger),
+            "detail": f"Dropping {momentum[danger]:+.2f}% over 5 days with high volatility",
+            "confidence": min(75, max(35, int(danger_scores[danger] * 5))),
+            "emoji": etf_emoji,
+        })
+
+    # --- Prediction 4: Bounce-Back Pick (oversold + showing signs of recovery) ---
+    # Stock that dropped a lot overall but had positive last 2 days
+    last2 = daily_changes.iloc[-2:]
+    for t in valid_tickers:
+        if final_returns[t] < final_returns.median() and (last2[t] > 0).all():
+            recovery_strength = last2[t].sum()
+            etf_emoji = ETF_EMOJI.get(etf_map.get(t, ""), "")
+            predictions.append({
+                "icon": "\U0001f4aa",
+                "title": "Bounce-Back Pick",
+                "ticker": t,
+                "name": name_map.get(t, t),
+                "detail": f"Below average but 2 straight green days (+{recovery_strength:.2f}%)",
+                "confidence": min(55, max(25, int(recovery_strength * 15))),
+                "emoji": etf_emoji,
+            })
+            break
+
+    # --- Prediction 5: ETF to Watch ---
+    etf_momentum = {}
+    etf_counts = {}
+    for t in valid_tickers:
+        etf = etf_map.get(t, "")
+        if etf:
+            etf_momentum[etf] = etf_momentum.get(etf, 0) + momentum[t]
+            etf_counts[etf] = etf_counts.get(etf, 0) + 1
+    if etf_momentum:
+        etf_avg_mom = {e: etf_momentum[e] / etf_counts[e] for e in etf_momentum}
+        hot_etf = max(etf_avg_mom, key=etf_avg_mom.get)
+        etf_emoji = ETF_EMOJI.get(hot_etf, "")
+        predictions.append({
+            "icon": "\U0001f4c8",
+            "title": "Hot ETF",
+            "ticker": hot_etf,
+            "name": f"{etf_emoji} {hot_etf} Division",
+            "detail": f"Avg 5-day momentum: {etf_avg_mom[hot_etf]:+.2f}% across {etf_counts[hot_etf]} stocks",
+            "confidence": min(65, max(30, int(abs(etf_avg_mom[hot_etf]) * 10))),
+            "emoji": etf_emoji,
+        })
+
+    return predictions
+
+
 tab_dashboard, tab_admin = st.tabs(["Dashboard", "Admin"])
 
 with tab_dashboard:
@@ -1083,6 +1905,57 @@ with tab_dashboard:
                 f'</span></div>',
                 unsafe_allow_html=True,
             )
+        # --- Generate Trash Talk & Achievements ---
+        trash_talk_lines = generate_trash_talk(throne, superlatives, final_returns, NAME_MAP, ETF_MAP, returns, valid_tickers)
+        achievements = compute_achievements(returns, valid_tickers, NAME_MAP, dividends, throne, final_returns, start_prices, INVESTMENT)
+
+        # --- Confetti for new MVP ---
+        mvp_is_new = False
+        if throne["mvp_history"] and len(throne["mvp_history"]) >= 2:
+            latest = throne["mvp_history"][0]
+            if latest.get("prev_ticker"):
+                mvp_is_new = True
+        if mvp_is_new:
+            confetti_colors = ["#19a05f", "#d7a83a", "#1f77b4", "#e45756", "#9467bd", "#ff7f0e"]
+            confetti_html = ""
+            for i in range(40):
+                left = random.randint(0, 100)
+                delay = random.random() * 2
+                size = random.randint(6, 12)
+                color = confetti_colors[i % len(confetti_colors)]
+                shape = random.choice(["square", "circle"])
+                radius = "50%" if shape == "circle" else "2px"
+                confetti_html += (
+                    f'<div class="confetti-piece" style="left:{left}%;animation-delay:{delay:.1f}s;'
+                    f'width:{size}px;height:{size}px;background:{color};border-radius:{radius};"></div>'
+                )
+            st.markdown(confetti_html, unsafe_allow_html=True)
+
+        # --- Trash Talk Ticker ---
+        if trash_talk_lines:
+            items_html = " ".join(
+                f'<span class="ticker-item">{html_mod.escape(line)}</span>'
+                for line in trash_talk_lines
+            )
+            # Duplicate for seamless loop
+            st.markdown(
+                f'<div class="trash-talk-ticker">'
+                f'<div class="ticker-track">{items_html}{items_html}</div>'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
+
+        # --- Daily Trivia ---
+        trivia_ticker = best_ticker
+        trivia_fact = get_daily_trivia(trivia_ticker)
+        st.markdown(
+            f'<div class="trivia-card">'
+            f'<div class="trivia-label">\U0001f4a1 Did You Know? \u2014 {html_mod.escape(trivia_ticker)}</div>'
+            f'<div class="trivia-text">{html_mod.escape(trivia_fact)}</div>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+
         metric_cols = st.columns(4)
         metric_cols[0].markdown(
             f"""
@@ -1170,163 +2043,207 @@ with tab_dashboard:
             )
 
         # --- Superlatives Section ---
-        st.markdown("#### 🏆 Bragging Rights")
+        st.markdown("#### \U0001f3c6 Bragging Rights")
         sup = superlatives
 
-        sup_row1 = st.columns(3)
+        def _find_badge(name):
+            for b in achievements:
+                if b["name"] == name:
+                    return b
+            return None
 
-        # Comeback Kid
+        # Build badges as opposite pairs
+        badges_data = []  # (icon, name, holder, desc)
+
+        # Pair 1: Diamond Hands vs Bag Holder
+        diamond = _find_badge("Diamond Hands")
+        bottom = _find_badge("Bottom Feeder")
+        if diamond and diamond["unlocked"]:
+            badges_data.append(("\U0001f48e", "Diamond Hands", diamond["holder"], "Most days as MVP"))
+        if bottom and bottom["unlocked"]:
+            badges_data.append(("\U0001f9fb", "Bag Holder", bottom["holder"], "Most days as benchwarmer"))
+
+        # Pair 2: Moonshot vs Crash Landing
+        bd = sup.get("best_day")
+        wd = sup.get("worst_day")
+        if bd:
+            badges_data.append(("\U0001f315", "Moonshot", f'{bd["ticker"]} ({bd["change"]:+.2f}%)', "Biggest single-day gain"))
+        if wd:
+            badges_data.append(("\U0001f4a5", "Crash Landing", f'{wd["ticker"]} ({wd["change"]:+.2f}%)', "Biggest single-day loss"))
+
+        # Pair 3: Rollercoaster vs Steady Eddie
+        coaster = _find_badge("Rollercoaster")
+        steady = _find_badge("Steady Eddie")
+        if coaster:
+            badges_data.append(("\U0001f3a2", "Rollercoaster", coaster["holder"], "Most volatile stock"))
+        if steady:
+            badges_data.append(("\U0001f9d8", "Steady Eddie", steady["holder"], "Least volatile stock"))
+
+        # Pair 4: Comeback Kid vs Dead Weight
         cb = sup["comeback"]
         if cb["ticker"]:
-            sup_row1[0].markdown(
-                f"""<div class="metric-card" style="height:100%;">
-                  <div class="metric-label">🔄 Comeback Kid</div>
-                  <div class="metric-value positive">{html_mod.escape(cb['ticker'])}</div>
-                  <div class="metric-detail">{html_mod.escape(cb['name'])}</div>
-                  <div class="metric-detail">Low: <span class="negative">{cb['low']:+.2f}%</span> → Now: <span class="positive">{cb['final']:+.2f}%</span></div>
-                  <div class="metric-detail" style="font-size:0.75rem;opacity:0.7;">Recovery: +{cb['recovery']:.2f}pp</div>
-                </div>""",
-                unsafe_allow_html=True,
-            )
+            badges_data.append(("\U0001f9d7", "Comeback Kid", f'{cb["ticker"]} (+{cb["recovery"]:.1f}pp)', "Biggest recovery from a low"))
+        # Dead Weight: stock that went negative and stayed there (worst current return)
+        negative_tickers = [t for t in valid_tickers if final_returns[t] < 0]
+        if negative_tickers:
+            dead_weight = min(negative_tickers, key=lambda t: final_returns[t])
+            badges_data.append(("\U0001faa8", "Dead Weight", f'{dead_weight} ({final_returns[dead_weight]:+.2f}%)', "Went down and stayed down"))
 
-        # Best Single Day
-        bd = sup.get("best_day")
-        if bd:
-            bd_date = bd["date"].strftime("%b %d") if hasattr(bd["date"], "strftime") else str(bd["date"])
-            sup_row1[1].markdown(
-                f"""<div class="metric-card" style="height:100%;">
-                  <div class="metric-label">🚀 Best Single Day</div>
-                  <div class="metric-value positive">{html_mod.escape(bd['ticker'])}</div>
-                  <div class="metric-detail">{html_mod.escape(bd['name'])}</div>
-                  <div class="metric-detail"><span class="positive">{bd['change']:+.2f}%</span> on {bd_date}</div>
-                </div>""",
-                unsafe_allow_html=True,
-            )
+        # Pair 5: The Terminator vs Middle Child
+        term = _find_badge("The Terminator")
+        mc = sup["middle"]
+        if term:
+            badges_data.append(("\U0001f916", "The Terminator", term["holder"], "Took MVP throne most times"))
+        if mc["ticker"]:
+            badges_data.append(("\U0001fae5", "Middle Child", f'{mc["ticker"]} ({mc["return"]:+.2f}%)', "Closest to 0%"))
 
-        # Worst Single Day
-        wd = sup.get("worst_day")
-        if wd:
-            wd_date = wd["date"].strftime("%b %d") if hasattr(wd["date"], "strftime") else str(wd["date"])
-            sup_row1[2].markdown(
-                f"""<div class="metric-card" style="height:100%;">
-                  <div class="metric-label">💥 Worst Single Day</div>
-                  <div class="metric-value negative">{html_mod.escape(wd['ticker'])}</div>
-                  <div class="metric-detail">{html_mod.escape(wd['name'])}</div>
-                  <div class="metric-detail"><span class="negative">{wd['change']:+.2f}%</span> on {wd_date}</div>
-                </div>""",
-                unsafe_allow_html=True,
-            )
-
-        sup_row2 = st.columns(3)
-
-        # Longest Reign
-        lr = sup["longest_reign"]
-        if lr["ticker"]:
-            sup_row2[0].markdown(
-                f"""<div class="metric-card" style="height:100%;">
-                  <div class="metric-label">👑 Longest Reign</div>
-                  <div class="metric-value">{html_mod.escape(lr['ticker'])}</div>
-                  <div class="metric-detail">{html_mod.escape(lr['name'])}</div>
-                  <div class="metric-detail">{lr['days']} total days on the throne</div>
-                </div>""",
-                unsafe_allow_html=True,
-            )
-
-        # Rivalry
+        # Pair 6: Rivalry vs ETF War
         rv = sup["rivalry"]
-        if rv["ticker1"]:
-            sup_row2[1].markdown(
-                f"""<div class="metric-card" style="height:100%;">
-                  <div class="metric-label">⚔️ Rivalry</div>
-                  <div class="metric-value">{html_mod.escape(rv['ticker1'])} vs {html_mod.escape(rv['ticker2'])}</div>
-                  <div class="metric-detail">{html_mod.escape(rv['name1'])} vs {html_mod.escape(rv['name2'])}</div>
-                  <div class="metric-detail">Swapped {rv['swaps']}x on the throne</div>
-                </div>""",
-                unsafe_allow_html=True,
-            )
-
-        # ETF War
         ew = sup["etf_war"]
+        if rv["ticker1"]:
+            badges_data.append(("\u2694\ufe0f", "Rivalry", f'{rv["ticker1"]} vs {rv["ticker2"]} ({rv["swaps"]}x)', "Most throne swaps"))
         if ew["etf"]:
             etf_emoji = ETF_EMOJI.get(ew["etf"], "")
-            sup_row2[2].markdown(
-                f"""<div class="metric-card" style="height:100%;">
-                  <div class="metric-label">⚡ ETF War</div>
-                  <div class="metric-value">{etf_emoji} {html_mod.escape(ew['etf'])}</div>
-                  <div class="metric-detail">Longest daily win streak</div>
-                  <div class="metric-detail">🔥 {ew['streak']} consecutive days</div>
-                </div>""",
-                unsafe_allow_html=True,
-            )
+            badges_data.append(("\u26a1", "ETF War", f'{etf_emoji} {ew["etf"]} ({ew["streak"]}d)', "Longest daily win streak"))
 
-        sup_row3 = st.columns(3)
-
-        # Sleeper Pick
-        sp = sup["sleeper"]
-        if sp["ticker"]:
-            sup_row3[0].markdown(
-                f"""<div class="metric-card" style="height:100%;">
-                  <div class="metric-label">😴 Sleeper Pick</div>
-                  <div class="metric-value positive">{html_mod.escape(sp['ticker'])}</div>
-                  <div class="metric-detail">{html_mod.escape(sp['name'])}</div>
-                  <div class="metric-detail">Rank #{sp['start_rank']} → #{sp['end_rank']}</div>
-                  <div class="metric-detail" style="font-size:0.75rem;opacity:0.7;">Started bottom half, climbed highest</div>
-                </div>""",
-                unsafe_allow_html=True,
-            )
-
-        # Fallen Angel
+        # Pair 7: Dark Horse vs Fallen Angel
+        horse = _find_badge("Dark Horse")
         fa = sup["fallen"]
+        if horse and horse["unlocked"]:
+            badges_data.append(("\U0001f40e", "Dark Horse", horse["holder"], "Bottom half \u2192 climbed highest"))
         if fa["ticker"]:
-            sup_row3[1].markdown(
-                f"""<div class="metric-card" style="height:100%;">
-                  <div class="metric-label">😇 Fallen Angel</div>
-                  <div class="metric-value negative">{html_mod.escape(fa['ticker'])}</div>
-                  <div class="metric-detail">{html_mod.escape(fa['name'])}</div>
-                  <div class="metric-detail">Rank #{fa['start_rank']} → #{fa['end_rank']}</div>
-                  <div class="metric-detail" style="font-size:0.75rem;opacity:0.7;">Started top half, dropped the most</div>
-                </div>""",
-                unsafe_allow_html=True,
+            badges_data.append(("\U0001f607", "Fallen Angel", f'{fa["ticker"]} (#{fa["start_rank"]}\u2192#{fa["end_rank"]})', "Top half \u2192 dropped the most"))
+
+        # Pair 8: Dividend King vs All Talk
+        divking = _find_badge("Dividend King")
+        if divking and divking["unlocked"]:
+            badges_data.append(("\U0001f4b0", "Dividend King", divking["holder"], "Most dividend income"))
+        # All Talk: best return with $0 dividends
+        zero_div_tickers = [t for t in valid_tickers if dividends.get(t, 0.0) == 0]
+        if zero_div_tickers:
+            all_talk = max(zero_div_tickers, key=lambda t: final_returns[t])
+            badges_data.append(("\U0001f4ac", "All Talk", f'{all_talk} ({final_returns[all_talk]:+.2f}%, $0 divs)', "Best return, zero dividends"))
+
+        # Multi-Award bar: find stocks that appear in multiple badges
+        ticker_badges = {}
+        for icon, name, holder, desc in badges_data:
+            # Extract ticker from holder string (first word before space or parenthesis)
+            t = holder.split(" (")[0].split(" ")[0].split(" vs ")[0] if holder else ""
+            if t and t not in ("Most", "Biggest", "Took", "Bottom", "Top", "Closest", "Went", "Best", "Longest"):
+                ticker_badges.setdefault(t, []).append((icon, name))
+        multi_badge_tickers = {t: badges for t, badges in ticker_badges.items() if len(badges) > 1}
+
+        if multi_badge_tickers:
+            multi_html = '<div class="sup-multi-bar"><span class="multi-label">\U0001f3c6 Multi-Award:</span>'
+            for t, badge_list in sorted(multi_badge_tickers.items(), key=lambda x: -len(x[1])):
+                badge_icons = "".join(f'{i}' for i, _ in badge_list)
+                multi_html += f'<span class="sup-multi-stock"><b>{html_mod.escape(t)}</b> {badge_icons}</span>'
+            multi_html += '</div>'
+            st.markdown(multi_html, unsafe_allow_html=True)
+
+        # Render as a two-column paired table
+        pairs = []
+        for i in range(0, len(badges_data), 2):
+            left = badges_data[i]
+            right = badges_data[i + 1] if i + 1 < len(badges_data) else None
+            pairs.append((left, right))
+
+        def _badge_cell(icon, name, holder, desc):
+            return (
+                f'<td style="padding:0.7rem 1rem;vertical-align:middle;">'
+                f'<div style="display:flex;align-items:center;gap:0.7rem;">'
+                f'<span style="font-size:1.6rem;line-height:1;">{icon}</span>'
+                f'<div>'
+                f'<div style="font-weight:700;font-size:0.85rem;color:var(--text);">{html_mod.escape(name)}</div>'
+                f'<div style="font-size:0.78rem;color:var(--muted);">{html_mod.escape(holder)}</div>'
+                f'<div style="font-size:0.65rem;color:var(--muted);opacity:0.7;">{html_mod.escape(desc)}</div>'
+                f'</div></div></td>'
             )
 
-        # Middle Child
-        mc = sup["middle"]
-        if mc["ticker"]:
-            ret_class = "positive" if mc["return"] >= 0 else "negative"
-            sup_row3[2].markdown(
-                f"""<div class="metric-card" style="height:100%;">
-                  <div class="metric-label">🫥 Middle Child</div>
-                  <div class="metric-value">{html_mod.escape(mc['ticker'])}</div>
-                  <div class="metric-detail">{html_mod.escape(mc['name'])}</div>
-                  <div class="metric-detail">Return: <span class="{ret_class}">{mc['return']:+.2f}%</span></div>
-                  <div class="metric-detail" style="font-size:0.75rem;opacity:0.7;">Closest to 0%</div>
-                </div>""",
-                unsafe_allow_html=True,
-            )
+        table_html = (
+            '<table style="width:100%;border-collapse:separate;border-spacing:0;'
+            'border-radius:18px;overflow:hidden;background:var(--panel-strong);'
+            'border:1px solid var(--border);box-shadow:0 12px 24px rgba(82,58,32,0.08);">'
+        )
+        for left, right in pairs:
+            table_html += '<tr>'
+            table_html += _badge_cell(*left)
+            if right:
+                table_html += f'<td style="width:1px;padding:0;"><div style="width:1px;height:100%;background:var(--border);"></div></td>'
+                table_html += _badge_cell(*right)
+            else:
+                table_html += '<td style="width:1px;padding:0;"></td><td></td>'
+            table_html += '</tr>'
+            table_html += f'<tr><td colspan="3" style="padding:0;"><div style="height:1px;background:var(--border);"></div></td></tr>'
+        # Remove last divider
+        if pairs:
+            table_html = table_html[:table_html.rfind('<tr><td colspan')]
+        table_html += '</table>'
+        st.markdown(table_html, unsafe_allow_html=True)
 
-        # Power Rankings
-        pw = sup["power"]
-        if pw["climber"]:
-            st.markdown("#### 🔥 Hot or Not (Last 5 Trading Days)")
-            pw_cols = st.columns(2)
-            pw_cols[0].markdown(
-                f"""<div class="metric-card" style="height:100%;">
-                  <div class="metric-label">📈 Biggest Climber</div>
-                  <div class="metric-value positive">{html_mod.escape(pw['climber'])}</div>
-                  <div class="metric-detail">{html_mod.escape(pw['climber_name'])}</div>
-                  <div class="metric-detail"><span class="positive">{pw['climber_change']:+.2f}%</span> in 5 days</div>
-                </div>""",
-                unsafe_allow_html=True,
-            )
-            pw_cols[1].markdown(
-                f"""<div class="metric-card" style="height:100%;">
-                  <div class="metric-label">📉 Biggest Faller</div>
-                  <div class="metric-value negative">{html_mod.escape(pw['faller'])}</div>
-                  <div class="metric-detail">{html_mod.escape(pw['faller_name'])}</div>
-                  <div class="metric-detail"><span class="negative">{pw['faller_change']:+.2f}%</span> in 5 days</div>
-                </div>""",
-                unsafe_allow_html=True,
-            )
+        # --- Market Pulse ---
+        st.markdown("#### \U0001f4ca Market Pulse")
+        green_count = int((final_returns > 0).sum())
+        red_count = int((final_returns <= 0).sum())
+        total_stocks = len(final_returns)
+        green_pct = int(green_count / total_stocks * 100) if total_stocks else 0
+        avg_return = final_returns.mean()
+        mvp_changes_total = len([e for e in throne["mvp_history"] if e.get("prev_ticker")])
+        pw = superlatives.get("power", {})
+
+        # Mood
+        if green_pct >= 70:
+            mood_emoji, mood_text = "\U0001f929", "Rally Mode"
+        elif green_pct >= 55:
+            mood_emoji, mood_text = "\U0001f60e", "Feeling Good"
+        elif green_pct >= 45:
+            mood_emoji, mood_text = "\U0001f610", "Mixed Signals"
+        elif green_pct >= 30:
+            mood_emoji, mood_text = "\U0001f62c", "Getting Rough"
+        else:
+            mood_emoji, mood_text = "\U0001f4a9", "Total Carnage"
+
+        trading_days = len(returns) - 1 if len(returns) > 1 else 0
+
+        st.markdown(
+            f'<div class="recap-card" style="padding:1rem 1.3rem;">'
+            f'<div style="display:flex;align-items:center;gap:1rem;margin-bottom:0.7rem;">'
+            f'<span style="font-size:2.4rem;line-height:1;">{mood_emoji}</span>'
+            f'<div>'
+            f'<div style="font-size:1.2rem;font-weight:700;color:#f4f0e3;">{mood_text}</div>'
+            f'<div style="font-size:0.8rem;opacity:0.7;">{start_date.strftime("%b %d")} \u2013 {end_date.strftime("%b %d, %Y")} &middot; {trading_days} trading days &middot; Avg return: {avg_return:+.2f}%</div>'
+            f'</div>'
+            f'</div>'
+            f'<div style="display:flex;border-radius:8px;overflow:hidden;height:32px;">'
+            f'<div style="width:{green_pct}%;background:#19a05f;display:flex;align-items:center;justify-content:center;'
+            f'font-size:0.75rem;font-weight:700;color:#fff;gap:0.3rem;">\U0001f7e2 {green_count} stocks up ({green_pct}%)</div>'
+            f'<div style="width:{100-green_pct}%;background:#d14a34;display:flex;align-items:center;justify-content:center;'
+            f'font-size:0.75rem;font-weight:700;color:#fff;gap:0.3rem;">\U0001f534 {red_count} stocks down ({100-green_pct}%)</div>'
+            f'</div>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+
+        # --- System Predictions ---
+        st.markdown("#### \U0001f52e Next Week's Predictions")
+        preds = generate_predictions(returns, valid_tickers, NAME_MAP, ETF_MAP, final_returns, dividends, start_prices, INVESTMENT)
+        if preds:
+            pred_html = '<div class="pred-grid">'
+            for pred in preds:
+                conf = pred.get("confidence", 50)
+                pred_html += (
+                    f'<div class="pred-card">'
+                    f'<div class="pred-icon">{pred["icon"]}</div>'
+                    f'<div class="pred-title">{html_mod.escape(pred["title"])}</div>'
+                    f'<div class="pred-ticker">{pred.get("emoji", "")} {html_mod.escape(pred["ticker"])}</div>'
+                    f'<div class="pred-name">{html_mod.escape(pred["name"])}</div>'
+                    f'<div class="pred-detail">{html_mod.escape(pred["detail"])}</div>'
+                    f'<div class="pred-confidence">{conf}% confidence</div>'
+                    f'</div>'
+                )
+            pred_html += '</div>'
+            st.markdown(pred_html, unsafe_allow_html=True)
+            st.caption("\U0001f916 System-generated based on 5-day momentum, volatility, and trend analysis. Not financial advice!")
 
         st.markdown("---")
 
@@ -1588,6 +2505,48 @@ with tab_dashboard:
             .apply(leaderboard_row_style, axis=1)
         )
         st.markdown(f'<div style="overflow-x: auto;">{styled_df.to_html(escape=False)}</div>', unsafe_allow_html=True)
+
+        # --- Emoji Reactions ---
+        st.markdown("#### \U0001f60e React to Stocks")
+        st.caption("Drop an emoji on your favorite (or least favorite) stocks")
+        reactions_data = load_reactions()
+
+        sorted_tickers_for_reactions = final_returns.index.tolist()
+        # Show top 5 and bottom 5 for reactions
+        reaction_tickers = sorted_tickers_for_reactions[:5] + sorted_tickers_for_reactions[-5:]
+
+        # Render compact reaction cards in a 5-column grid
+        for row_start in range(0, len(reaction_tickers), 5):
+            row_tickers = reaction_tickers[row_start:row_start + 5]
+            cols = st.columns(len(row_tickers))
+            for col_idx, ticker in enumerate(row_tickers):
+                with cols[col_idx]:
+                    ticker_reactions = reactions_data.get(ticker, {})
+                    ret_val = final_returns[ticker]
+                    ret_class = "positive" if ret_val >= 0 else "negative"
+                    emoji_counts = " &nbsp; ".join(
+                        f'{emoji}<span class="count">{ticker_reactions.get(emoji, 0)}</span>'
+                        for emoji in REACTION_EMOJIS
+                    )
+                    st.markdown(
+                        f'<div style="background:rgba(255,255,255,0.8);border:1px solid var(--border);'
+                        f'border-radius:12px;padding:0.5rem 0.6rem;text-align:center;min-height:80px;">'
+                        f'<div style="font-weight:700;font-size:0.9rem;">{html_mod.escape(ticker)}</div>'
+                        f'<div class="{ret_class}" style="font-size:0.78rem;">{ret_val:+.2f}%</div>'
+                        f'<div class="reaction-bar" style="margin-top:0.3rem;justify-content:center;">{emoji_counts}</div>'
+                        f'</div>',
+                        unsafe_allow_html=True,
+                    )
+                    # Tiny buttons row
+                    mini_cols = st.columns(len(REACTION_EMOJIS))
+                    for e_idx, emoji in enumerate(REACTION_EMOJIS):
+                        with mini_cols[e_idx]:
+                            if st.button(emoji, key=f"react_{ticker}_{emoji}"):
+                                if ticker not in reactions_data:
+                                    reactions_data[ticker] = {}
+                                reactions_data[ticker][emoji] = reactions_data[ticker].get(emoji, 0) + 1
+                                save_reactions(reactions_data)
+                                st.rerun()
 
         # --- Subscribe ---
         st.markdown("---")
