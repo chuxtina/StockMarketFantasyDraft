@@ -2016,10 +2016,20 @@ def get_daily_trivia(ticker):
 
 # --- Emoji Reactions Storage ---
 REACTIONS_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "reactions.json")
-REACTION_EMOJIS = ["\U0001f602", "\U0001f480", "\U0001f525", "\U0001f4af"]  # 😂 💀 🔥 💯
+REACTION_EMOJIS = ["\U0001f602", "\U0001f480", "\U0001f525"]  # 😂 💀 🔥
+REACTIONS_SHEET_URL = "https://script.google.com/macros/s/AKfycbxc39wqHaw6kAEU74SF7sJGuGhG-un9vPDZflX8GcQMl-ZmgMPyY3n1BvI689QnGx2s/exec"
 
 
+@st.cache_data(ttl=30, show_spinner=False)
 def load_reactions():
+    """Load reaction counts from Google Sheets."""
+    try:
+        resp = requests.get(REACTIONS_SHEET_URL, timeout=5)
+        if resp.status_code == 200:
+            return resp.json()
+    except Exception:
+        pass
+    # Fallback to local file
     try:
         with open(REACTIONS_FILE) as f:
             return json.load(f)
@@ -3115,6 +3125,12 @@ with tab_dashboard:
                 btn.innerHTML = emoji;
             }}
 
+            // Save to Google Sheets via GET
+            var sheetUrl = '{REACTIONS_SHEET_URL}';
+            var delta = btn.classList.contains('active') ? 1 : -1;
+            fetch(sheetUrl + '?roast=' + encodeURIComponent(roastKey) + '&emoji=' + encodeURIComponent(emoji) + '&delta=' + delta)
+              .catch(function() {{}});
+
             btn.style.transform = 'scale(1.25)';
             setTimeout(function() {{ btn.style.transform = ''; }}, 150);
         }}
@@ -3123,17 +3139,6 @@ with tab_dashboard:
 
         roast_height = len(roasts) * 75 + 40
         components.html(roast_component_html, height=roast_height, scrolling=False)
-
-        # Sync localStorage reactions back to server via a hidden reader component
-        sync_html = """
-        <script>
-        var counts = localStorage.getItem('roast_server_counts');
-        if (counts) {
-            window.parent.postMessage({type: 'roast_reactions', data: counts}, '*');
-        }
-        </script>
-        """
-        components.html(sync_html, height=0)
 
         # Next roast update time
         now_et = datetime.datetime.now(ZoneInfo("America/New_York"))
