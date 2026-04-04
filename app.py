@@ -760,7 +760,7 @@ hr {
         gap: 0.3rem;
     }
     .throne-scroll {
-        max-height: 240px;
+        max-height: none;
     }
 }
 .etf-row {
@@ -3503,6 +3503,7 @@ with tab_dashboard:
         )
         _lb_html = (
             '<style>'
+            'body { margin:0; padding:0; }'
             '.lb-wrap::-webkit-scrollbar { height:6px; width:6px; }'
             '.lb-wrap::-webkit-scrollbar-track { background:rgba(18,51,36,0.04); border-radius:3px; }'
             '.lb-wrap::-webkit-scrollbar-thumb { background:rgba(18,51,36,0.15); border-radius:3px; }'
@@ -3510,6 +3511,8 @@ with tab_dashboard:
             '.lb-wrap { scrollbar-width:thin; scrollbar-color:rgba(18,51,36,0.15) rgba(18,51,36,0.04); }'
             'table.leaderboard { min-width:max-content; width:100%; border-collapse:separate; border-spacing:0; border-radius:18px; background:rgba(251,253,250,0.96); }'
             'table.leaderboard td, table.leaderboard th { padding:10px 8px; text-align:left; border-bottom:1px solid rgba(18,51,36,0.06); border-right:1px solid rgba(18,51,36,0.04); white-space:nowrap; font-family:"Space Grotesk",sans-serif; font-size:0.82rem; }'
+            'table.leaderboard th.blank, table.leaderboard td.blank { display:none; padding:0; height:0; border:none; }'
+            'table.leaderboard thead tr:has(th.blank) { display:none; }'
             'table.leaderboard th { white-space:normal; background:linear-gradient(90deg,#0d2f20,#13492f); color:#f4f0e3; text-transform:uppercase; letter-spacing:0.06em; font-family:"Space Grotesk",sans-serif; font-size:0.72rem; font-weight:700; min-width:60px; line-height:1.3; padding:10px 8px; position:sticky; top:0; z-index:1; }'
             'table.leaderboard tr:nth-child(even) td { background:rgba(16,95,58,0.04); }'
             'table.leaderboard tbody tr:hover td { background:rgba(14,95,58,0.08); }'
@@ -3519,15 +3522,21 @@ with tab_dashboard:
             '.signal-hold { background:rgba(18,51,36,0.08); color:#5d6f65; }'
             '.rsi-bar { display:inline-block; width:50px; height:8px; background:rgba(18,51,36,0.08); border-radius:4px; vertical-align:middle; margin-right:4px; }'
             '.rsi-bar-fill { height:100%; border-radius:4px; }'
+            '@media (max-width:768px) {'
+            '  table.leaderboard td, table.leaderboard th { padding:6px 5px; font-size:0.7rem; }'
+            '  table.leaderboard th { font-size:0.6rem; min-width:40px; }'
+            '}'
             '</style>'
             '<div class="lb-wrap" style="overflow:auto;-webkit-overflow-scrolling:touch;max-height:620px;border-radius:18px;border:1px solid rgba(18,51,36,0.12);">'
             + styled_df.to_html(escape=False)
             + '</div>'
         )
-        components.html(_lb_html, height=650, scrolling=False)
-        st.caption(
-            "**Price Return (%)** is the percentage change in share price over the period, excluding dividends. "
-            "**Total Return (%)** includes dividends."
+        components.html(_lb_html, height=628, scrolling=False)
+        st.markdown(
+            '<div style="font-size:0.7rem;color:var(--muted);line-height:1.4;margin-top:-0.3rem;">'
+            '<b>Price Return (%)</b> is the percentage change in share price over the period, excluding dividends. '
+            '<b>Total Return (%)</b> includes dividends.</div>',
+            unsafe_allow_html=True,
         )
 
         # --- Subscribe ---
