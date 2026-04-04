@@ -1451,12 +1451,54 @@ def compute_signals(tickers, start, end):
         else:
             signal = "HOLD"
 
+        # Compute daily signals to detect most recent change
+        prev_signal = None
+        change_date = None
+        if len(prices) >= 20:
+            sma10_series = prices.rolling(window=10).mean()
+            sma20_series = prices.rolling(window=20).mean()
+            daily_signals = []
+            for i in range(len(prices)):
+                if pd.isna(rsi.iloc[i]) or pd.isna(sma20_series.iloc[i]) or pd.isna(sma10_series.iloc[i]):
+                    daily_signals.append(None)
+                    continue
+                s = 0
+                r = float(rsi.iloc[i])
+                if r < 30:
+                    s += 1
+                elif r > 70:
+                    s -= 1
+                if sma10_series.iloc[i] > sma20_series.iloc[i]:
+                    s += 1
+                else:
+                    s -= 1
+                if prices.iloc[i] > sma20_series.iloc[i]:
+                    s += 1
+                else:
+                    s -= 1
+                if s >= 2:
+                    daily_signals.append("BUY")
+                elif s <= -2:
+                    daily_signals.append("SELL")
+                else:
+                    daily_signals.append("HOLD")
+            # Walk backwards to find last change
+            for j in range(len(daily_signals) - 1, 0, -1):
+                if daily_signals[j] is None or daily_signals[j - 1] is None:
+                    continue
+                if daily_signals[j] != daily_signals[j - 1]:
+                    prev_signal = daily_signals[j - 1]
+                    change_date = prices.index[j].strftime("%m/%d")
+                    break
+
         signals[ticker] = {
             "rsi": round(current_rsi, 1),
             "signal": signal,
             "score": score,
             "sma_cross": sma_cross,
             "price_vs_sma": price_vs_sma,
+            "prev_signal": prev_signal,
+            "change_date": change_date,
         }
     return signals
 
@@ -3562,9 +3604,20 @@ with tab_dashboard:
                 sma_cell = '<span style="color:var(--muted);">\u2014</span>'
 
             signal_val = sig.get("signal", "")
+            prev_signal = sig.get("prev_signal")
+            change_date = sig.get("change_date")
             if signal_val:
                 sig_class = f'signal-{signal_val.lower()}'
-                signal_cell = f'<span class="signal-badge {sig_class}">{signal_val}</span>'
+                if prev_signal and prev_signal != signal_val and change_date:
+                    signal_cell = (
+                        f'<span style="display:flex;flex-direction:column;align-items:center;gap:1px;line-height:1.2;">'
+                        f'<span class="signal-badge {sig_class}">{signal_val}</span>'
+                        f'<span style="font-size:0.58rem;color:#5d6f65;white-space:nowrap;">'
+                        f'{prev_signal} \u2192 {signal_val} {change_date}'
+                        f'</span></span>'
+                    )
+                else:
+                    signal_cell = f'<span class="signal-badge {sig_class}">{signal_val}</span>'
             else:
                 signal_cell = '<span style="color:var(--muted);">\u2014</span>'
 
