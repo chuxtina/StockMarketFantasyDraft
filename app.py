@@ -4099,7 +4099,7 @@ with tab_feud:
       q = q.toLowerCase().trim();
       if (!q && !showAll) { mvpDropdown.style.display = 'none'; return; }
       var f = q ? stocks.filter(function(s) {
-        return s.ticker.toLowerCase().startsWith(q) || s.name.toLowerCase().startsWith(q);
+        return s.ticker.toLowerCase().startsWith(q);
       }).slice(0, 8) : stocks;
       if (!f.length) {
         mvpDropdown.innerHTML = '<div style="padding:0.5rem 0.9rem;color:#5d6f65;font-size:0.85rem;">No matches</div>';
