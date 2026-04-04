@@ -865,6 +865,16 @@ hr {
     border-radius: 0 6px 6px 0;
 }
 
+/* Make component iframes transparent so extra space is invisible */
+iframe {
+    background: transparent !important;
+    color-scheme: normal;
+}
+.stHtml iframe,
+[data-testid="stHtml"] iframe {
+    background: transparent !important;
+}
+
 </style>
 """, unsafe_allow_html=True)
 
@@ -3008,7 +3018,16 @@ with tab_dashboard:
         # Load server-side reaction counts
         all_reactions = load_reactions()
 
-        # Build roast HTML with reaction buttons
+        # Compute next roast drop date
+        now_et = datetime.datetime.now(ZoneInfo("America/New_York"))
+        next_drop = now_et.replace(hour=16, minute=0, second=0, microsecond=0)
+        if now_et >= next_drop:
+            next_drop += datetime.timedelta(days=1)
+        while next_drop.weekday() >= 5 or next_drop.date() in _us_market_holidays(next_drop.year):
+            next_drop += datetime.timedelta(days=1)
+        next_drop_str = next_drop.strftime('%a %b %d')
+
+        # Build roast HTML as chat bubbles
         roast_items_html = ""
         for idx, roast in enumerate(roasts):
             roast_key = f"roast_{idx}"
@@ -3022,20 +3041,46 @@ with tab_dashboard:
                     f'onclick="toggleReact(this)">{emoji}{count_str}</span>'
                 )
             roast_items_html += (
-                f'<div style="padding:0.6rem 0;border-bottom:1px solid rgba(18,51,36,0.08);">'
-                f'<div style="font-size:0.88rem;line-height:1.55;">{roast}</div>'
+                f'<div class="chat-row">'
+                f'<div class="chat-avatar">\U0001f916</div>'
+                f'<div class="chat-right">'
+                f'<div class="chat-bubble">'
+                f'<div class="chat-text">{roast}</div>'
                 f'<div class="roast-reactions">{btns}</div>'
                 f'</div>'
+                f'</div></div>'
             )
 
         roast_component_html = f"""
-        <div style="background:rgba(251,253,250,0.96);border:1px solid rgba(18,51,36,0.12);border-radius:20px;
-            padding:1rem 1.2rem;box-shadow:0 18px 44px rgba(16,42,32,0.12);font-family:'Space Grotesk',sans-serif;">
-            {roast_items_html}
-        </div>
-        <style>
+        <html><head><style>
+        html, body {{ margin:0; padding:0; background:transparent !important; overflow:hidden; }}
+        .chat-container {{
+            display: flex; flex-direction: column; gap: 0.6rem;
+            font-family:'Space Grotesk',sans-serif;
+        }}
+        .chat-row {{
+            display: flex; align-items: flex-start; gap: 0.6rem;
+        }}
+        .chat-avatar {{
+            width: 36px; height: 36px; border-radius: 50%;
+            background: linear-gradient(135deg, #0e5f3a, #19a05f);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1rem; flex-shrink: 0;
+            box-shadow: 0 2px 8px rgba(14,95,58,0.25);
+        }}
+        .chat-right {{ max-width: calc(100% - 48px); }}
+        .chat-bubble {{
+            background: rgba(251,253,250,0.96);
+            border: 1px solid rgba(18,51,36,0.12);
+            border-radius: 0 18px 18px 18px;
+            padding: 0.7rem 1rem;
+            box-shadow: 0 4px 12px rgba(16,42,32,0.06);
+        }}
+        .chat-text {{
+            font-size: 0.85rem; line-height: 1.5;
+        }}
         .roast-reactions {{
-            display: flex; gap: 0.3rem; margin-top: 0.35rem; flex-wrap: wrap;
+            display: flex; gap: 0.3rem; margin-top: 0.4rem; flex-wrap: wrap;
         }}
         .roast-react-btn {{
             display: inline-flex; align-items: center; gap: 0.2rem;
@@ -3054,9 +3099,18 @@ with tab_dashboard:
             font-weight: 700; color: #102018; font-size: 0.75rem;
         }}
         @media (max-width: 768px) {{
+            .chat-avatar {{ width: 30px; height: 30px; font-size: 0.85rem; }}
+            .chat-right {{ max-width: calc(100% - 42px); }}
             .roast-react-btn {{ padding: 0.25rem 0.55rem; font-size: 0.85rem; }}
         }}
-        </style>
+        </style></head>
+        <body>
+        <div class="chat-container">
+            {roast_items_html}
+            <div style="font-size:0.72rem;color:#5d6f65;margin-top:0.3rem;padding-left:42px;">
+                \U0001f4a5 Roasts refresh daily \u00b7 Fresh burns incoming \u00b7 Next drop: {next_drop_str} after market close
+            </div>
+        </div>
         <script>
         var userReacts = JSON.parse(localStorage.getItem('roast_reacts') || '{{}}'  );
         var serverCounts = JSON.parse(localStorage.getItem('roast_server_counts') || '{{}}');
@@ -3065,11 +3119,9 @@ with tab_dashboard:
             var key = btn.dataset.roast + '_' + btn.dataset.emoji;
             if (userReacts[key]) {{
                 btn.classList.add('active');
-                // Ensure count is visible if user previously reacted
                 var countEl = btn.querySelector('.rcount');
                 if (!countEl) {{
-                    var currentCount = 1;
-                    btn.innerHTML = btn.dataset.emoji + '<span class="rcount">' + currentCount + '</span>';
+                    btn.innerHTML = btn.dataset.emoji + '<span class="rcount">1</span>';
                 }}
             }}
         }});
@@ -3093,7 +3145,6 @@ with tab_dashboard:
 
             localStorage.setItem('roast_reacts', JSON.stringify(userReacts));
 
-            // Track server-side counts
             if (!serverCounts[roastKey]) serverCounts[roastKey] = {{}};
             serverCounts[roastKey][emoji] = currentCount;
             localStorage.setItem('roast_server_counts', JSON.stringify(serverCounts));
@@ -3108,7 +3159,6 @@ with tab_dashboard:
                 btn.innerHTML = emoji;
             }}
 
-            // Save to Google Sheets via GET
             var sheetUrl = '{REACTIONS_SHEET_URL}';
             var delta = btn.classList.contains('active') ? 1 : -1;
             fetch(sheetUrl + '?roast=' + encodeURIComponent(roastKey) + '&emoji=' + encodeURIComponent(emoji) + '&delta=' + delta)
@@ -3118,27 +3168,33 @@ with tab_dashboard:
             setTimeout(function() {{ btn.style.transform = ''; }}, 150);
         }}
 
+        // Resize iframe and all Streamlit parent wrappers to exact content height
+        function fitHeight() {{
+            var h = document.querySelector('.chat-container').scrollHeight;
+            var frame = window.frameElement;
+            if (frame) {{
+                frame.style.height = h + 'px';
+                // Walk up and resize all Streamlit wrapper divs up to 5 levels
+                var el = frame.parentElement;
+                for (var i = 0; i < 5 && el; i++) {{
+                    el.style.height = h + 'px';
+                    el = el.parentElement;
+                }}
+            }}
+        }}
+        fitHeight();
+        window.addEventListener('load', fitHeight);
+        setTimeout(fitHeight, 50);
+        setTimeout(fitHeight, 200);
+        setTimeout(fitHeight, 600);
+        window.addEventListener('resize', fitHeight);
+
         </script>
+        </body></html>
         """
 
-        components.html(roast_component_html, height=len(roasts) * 75 + 20, scrolling=False)
+        components.html(roast_component_html, height=len(roasts) * 87, scrolling=False)
 
-        # Next roast update time
-        now_et = datetime.datetime.now(ZoneInfo("America/New_York"))
-        def _next_market_close(dt):
-            """Find the next market close (4 PM ET on a trading day)."""
-            candidate = dt.replace(hour=16, minute=0, second=0, microsecond=0)
-            if dt >= candidate:
-                candidate += datetime.timedelta(days=1)
-            while candidate.weekday() >= 5 or candidate.date() in _us_market_holidays(candidate.year):
-                candidate += datetime.timedelta(days=1)
-            return candidate
-
-        next_close = _next_market_close(now_et)
-        st.caption(
-            f"\U0001f4a5 Roasts refresh daily \u00b7 "
-            f"Fresh burns incoming \u00b7 Next drop: {next_close.strftime('%a %b %d')} after market close"
-        )
 
         # --- Weekly Report ---
         st.markdown(
