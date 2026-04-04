@@ -3119,7 +3119,7 @@ with tab_dashboard:
         </script>
         """
 
-        st.html(roast_component_html)
+        components.html(roast_component_html, height=len(roasts) * 85 + 40, scrolling=False)
 
         # Next roast update time
         now_et = datetime.datetime.now(ZoneInfo("America/New_York"))
