@@ -1253,6 +1253,25 @@ TICKERS = [p["ticker"] for p in PLAYERS]
 NAME_MAP = {p["ticker"]: p["name"] for p in PLAYERS}
 ETF_MAP = {p["ticker"]: p.get("etf", "") for p in PLAYERS}
 
+SECTOR_MAP = {
+    "AAPL": "Tech", "AB": "Finance", "ALK": "Transport", "AMD": "Tech", "AMZN": "Tech",
+    "ANET": "Tech", "APLD": "Tech", "ARM": "Tech", "ASML": "Tech", "ASTS": "Transport",
+    "AVGO": "Tech", "BRK-B": "Finance", "CIFR": "Tech", "COIN": "Finance", "COST": "Consumer",
+    "CRWD": "Tech", "DASH": "Consumer", "DIS": "Consumer", "DUOL": "Tech", "ENLT": "Energy",
+    "FIG": "Tech", "GD": "Defense", "GLD": "Energy", "GOOG": "Tech", "HD": "Consumer",
+    "HNST": "Consumer", "IBM": "Tech", "INTC": "Tech", "ION": "Energy", "IONQ": "Tech",
+    "IREN": "Tech", "JNJ": "Healthcare", "LLY": "Healthcare", "LMT": "Defense",
+    "LRCX": "Tech", "MAR": "Consumer", "MCD": "Consumer", "MELI": "Consumer",
+    "META": "Tech", "MRNA": "Healthcare", "MSFT": "Tech", "MSTR": "Finance",
+    "MU": "Tech", "NFLX": "Media", "NOC": "Defense", "NTDOY": "Media", "NVDA": "Tech",
+    "NVO": "Healthcare", "ORCL": "Tech", "PANW": "Tech", "PG": "Consumer", "PLTR": "Tech",
+    "PPLT": "Energy", "RBLX": "Tech", "RIVN": "Transport", "RTX": "Defense",
+    "SLV": "Energy", "SNDK": "Tech", "STX": "Tech", "SVNDY": "Consumer", "TER": "Tech",
+    "TGT": "Consumer", "TPL": "Energy", "TSM": "Tech", "TYGO": "Energy",
+    "UNH": "Healthcare", "WDAY": "Media", "WDC": "Tech", "WM": "Consumer",
+    "WMT": "Consumer", "XOM": "Energy",
+}
+
 # --- Sidebar ---
 st.sidebar.title("Trading Windows")
 
@@ -3450,6 +3469,7 @@ with tab_dashboard:
             rows.append({
                 "Rank": f'<span style="display:inline-flex;align-items:center;gap:4px;white-space:nowrap;">{arrow} {rank}</span>',
                 "ETF": ETF_MAP.get(ticker, ""),
+                "Sector": SECTOR_MAP.get(ticker, ""),
                 "Stock": stock_cell,
                 "Total Return (%)": total_ret_html,
                 "Price Return (%)": price_ret_html,
@@ -3536,6 +3556,88 @@ with tab_dashboard:
             '<div style="font-size:0.7rem;color:var(--muted);line-height:1.4;margin-top:-0.3rem;">'
             '<b>Price Return (%)</b> is the percentage change in share price over the period, excluding dividends. '
             '<b>Total Return (%)</b> includes dividends.</div>',
+            unsafe_allow_html=True,
+        )
+
+        # --- Sector Reference Table ---
+        from collections import defaultdict
+        _sector_stocks = defaultdict(list)
+        for t in sorted(SECTOR_MAP.keys()):
+            _sector_stocks[SECTOR_MAP[t]].append(t)
+        # Sort sectors by average return (best to worst)
+        _sector_avgs = {}
+        for sec, tickers in _sector_stocks.items():
+            rets = [final_returns[t] for t in tickers if t in final_returns.index]
+            _sector_avgs[sec] = sum(rets) / len(rets) if rets else 0
+        _sector_order = sorted(_sector_avgs.keys(), key=lambda s: -_sector_avgs[s])
+
+        _total_stock_count = 0
+        _sector_rows = ""
+        for sec in _sector_order:
+            tickers = _sector_stocks.get(sec, [])
+            if tickers:
+                # Find best and worst stock in this sector
+                sector_rets = {t: final_returns[t] for t in tickers if t in final_returns.index}
+                if sector_rets:
+                    best_t = max(sector_rets, key=sector_rets.get)
+                    worst_t = min(sector_rets, key=sector_rets.get)
+                    best_ret = sector_rets[best_t]
+                    worst_ret = sector_rets[worst_t]
+                    best_color = "#19a05f" if best_ret >= 0 else "#d14a34"
+                    worst_color = "#19a05f" if worst_ret >= 0 else "#d14a34"
+                    best_html = f'<b>{html_mod.escape(best_t)}</b> <span style="color:{best_color};font-weight:700;">{best_ret:+.2f}%</span>'
+                    worst_html = f'<b>{html_mod.escape(worst_t)}</b> <span style="color:{worst_color};font-weight:700;">{worst_ret:+.2f}%</span>'
+                else:
+                    best_html = "—"
+                    worst_html = "—"
+                _total_stock_count += len(tickers)
+                # Avg return for sector
+                _avg_ret = _sector_avgs.get(sec, 0)
+                _avg_color = "#19a05f" if _avg_ret >= 0 else "#d14a34"
+                _avg_html = f'<span style="color:{_avg_color};font-weight:700;">{_avg_ret:+.2f}%</span>'
+
+                # Count ETFs in this sector
+                _etf_counts = defaultdict(int)
+                for t in tickers:
+                    e = ETF_MAP.get(t, "")
+                    if e:
+                        _etf_counts[e] += 1
+                _etf_emoji_map = {"UNCL": "\U0001f468\u200d\U0001f9b3", "ANTY": "\U0001f469\U0001f3fb", "KIDZ": "\U0001f476\U0001f3fb"}
+                if _etf_counts:
+                    _etf_parts = []
+                    for e in sorted(_etf_counts, key=_etf_counts.get, reverse=True):
+                        _em = _etf_emoji_map.get(e, "")
+                        _etf_parts.append(f'{_em} {_etf_counts[e]}')
+                    _top_etf_html = "<br>".join(_etf_parts)
+                else:
+                    _top_etf_html = "\u2014"
+
+                _td = 'style="padding:6px 10px;border-bottom:1px solid rgba(18,51,36,0.06);font-size:0.78rem;"'
+                _sector_rows += (
+                    f'<tr>'
+                    f'<td style="font-weight:700;white-space:nowrap;padding:6px 10px;border-bottom:1px solid rgba(18,51,36,0.06);">{html_mod.escape(sec)}</td>'
+                    f'<td {_td} style="text-align:center;">{len(tickers)}</td>'
+                    f'<td {_td}>{_avg_html}</td>'
+                    f'<td {_td} style="color:var(--muted);white-space:normal;min-width:200px;">{", ".join(tickers)}</td>'
+                    f'<td {_td}>{best_html}</td>'
+                    f'<td {_td}>{worst_html}</td>'
+                    f'<td {_td} style="white-space:nowrap;">{_top_etf_html}</td>'
+                    f'</tr>'
+                )
+        st.markdown(
+            f'<div style="margin-top:0.8rem;overflow-x:auto;">'
+            f'<table style="width:100%;border-collapse:separate;border-spacing:0;border-radius:14px;'
+            f'overflow:hidden;background:var(--panel-strong);border:1px solid var(--border);font-family:Space Grotesk,sans-serif;font-size:0.82rem;">'
+            f'<tr>'
+            f'{"".join(f"""<th style="text-align:left;padding:8px 10px;background:linear-gradient(90deg,#0d2f20,#13492f);color:#f4f0e3;font-size:0.7rem;text-transform:uppercase;letter-spacing:0.06em;">{c}</th>""" for c in ["Sector","#","Avg Return","Stocks","Best","Worst","ETF Breakdown"])}'
+            f'</tr>'
+            f'{_sector_rows}'
+            f'<tr style="background:rgba(18,51,36,0.04);font-weight:700;">'
+            f'<td style="padding:6px 10px;">Total</td>'
+            f'<td style="padding:6px 10px;text-align:center;">{_total_stock_count}</td>'
+            f'<td colspan="5" style="padding:6px 10px;"></td>'
+            f'</tr>'
+            f'</table></div>',
             unsafe_allow_html=True,
         )
 
