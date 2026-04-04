@@ -3793,24 +3793,25 @@ with tab_feud:
     _vote_data = {}
     _hoh_vote_data = {}
     _earn_vote_data = {}
-    try:
-        resp = requests.get(REACTIONS_SHEET_URL + "?action=get_mvp_votes", timeout=5)
-        if resp.status_code == 200:
-            _vote_data = resp.json()
-    except Exception:
-        pass
-    try:
-        resp = requests.get(REACTIONS_SHEET_URL + "?action=get_hoh_votes", timeout=5)
-        if resp.status_code == 200:
-            _hoh_vote_data = resp.json()
-    except Exception:
-        pass
-    try:
-        resp = requests.get(REACTIONS_SHEET_URL + "?action=get_earn_votes", timeout=5)
-        if resp.status_code == 200:
-            _earn_vote_data = resp.json()
-    except Exception:
-        pass
+    with st.spinner("Loading challenges..."):
+        try:
+            resp = requests.get(REACTIONS_SHEET_URL + "?action=get_mvp_votes", timeout=5)
+            if resp.status_code == 200:
+                _vote_data = resp.json()
+        except Exception:
+            pass
+        try:
+            resp = requests.get(REACTIONS_SHEET_URL + "?action=get_hoh_votes", timeout=5)
+            if resp.status_code == 200:
+                _hoh_vote_data = resp.json()
+        except Exception:
+            pass
+        try:
+            resp = requests.get(REACTIONS_SHEET_URL + "?action=get_earn_votes", timeout=5)
+            if resp.status_code == 200:
+                _earn_vote_data = resp.json()
+        except Exception:
+            pass
 
     _mvp_votes = _vote_data.get("votes", {})
     _mvp_total = _vote_data.get("total", 0)
