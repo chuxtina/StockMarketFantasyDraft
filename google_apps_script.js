@@ -6,7 +6,7 @@
 //   Who has access: Anyone
 //
 // This script uses TWO sheets in the same spreadsheet:
-//   1) "Reactions"  – existing emoji reaction counts
+//   1) "Roast"      – existing emoji reaction counts
 //   2) "Votes"      – challenge votes (MVP, HOH, Earnings)
 //
 // After pasting this, click Deploy > Manage deployments >
@@ -27,32 +27,45 @@ function getOrCreateSheet(name) {
 // ---------- Reactions (existing) ----------
 
 function getReactions() {
-  var sheet = getOrCreateSheet("Reactions");
+  var sheet = getOrCreateSheet("Roast");
   var data = sheet.getDataRange().getValues();
+  // Row 0 is header: [roast_key, 😂, 💀, 🔥]
+  if (data.length < 2) return {};
+  var emojis = data[0].slice(1); // ["😂", "💀", "🔥"]
   var result = {};
-  for (var i = 0; i < data.length; i++) {
-    var key = data[i][0];   // e.g. "roast_0"
-    var emoji = data[i][1]; // e.g. "😂"
-    var count = data[i][2]; // e.g. 5
-    if (!result[key]) result[key] = {};
-    result[key][emoji] = count;
+  for (var i = 1; i < data.length; i++) {
+    var key = data[i][0];
+    if (!key) continue;
+    result[key] = {};
+    for (var j = 0; j < emojis.length; j++) {
+      result[key][emojis[j]] = data[i][j + 1] || 0;
+    }
   }
   return result;
 }
 
 function updateReaction(roast, emoji, delta) {
-  var sheet = getOrCreateSheet("Reactions");
+  var sheet = getOrCreateSheet("Roast");
   var data = sheet.getDataRange().getValues();
-  for (var i = 0; i < data.length; i++) {
-    if (data[i][0] === roast && data[i][1] === emoji) {
-      var newCount = Math.max(0, (data[i][2] || 0) + delta);
-      sheet.getRange(i + 1, 3).setValue(newCount);
+  // Row 0 is header: [roast_key, 😂, 💀, 🔥]
+  var emojis = data[0].slice(1);
+  var colIndex = emojis.indexOf(emoji);
+  if (colIndex === -1) return; // emoji not in header
+
+  for (var i = 1; i < data.length; i++) {
+    if (data[i][0] === roast) {
+      var newCount = Math.max(0, (data[i][colIndex + 1] || 0) + delta);
+      sheet.getRange(i + 1, colIndex + 2).setValue(newCount);
       return;
     }
   }
   // Not found — create new row
   if (delta > 0) {
-    sheet.appendRow([roast, emoji, delta]);
+    var newRow = [roast];
+    for (var k = 0; k < emojis.length; k++) {
+      newRow.push(emojis[k] === emoji ? delta : 0);
+    }
+    sheet.appendRow(newRow);
   }
 }
 
