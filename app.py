@@ -3873,7 +3873,7 @@ with tab_feud:
             'color:#102018;outline:none;box-sizing:border-box;">'
             '</div>'
             '<div id="mvpDropdown" style="position:absolute;top:100%;left:0;right:0;background:white;'
-            'border:1px solid rgba(18,51,36,0.12);border-radius:12px;margin-top:4px;max-height:220px;'
+            'border:1px solid rgba(18,51,36,0.12);border-radius:12px;margin-top:4px;max-height:320px;'
             'overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,0.1);z-index:9999;display:none;"></div></div>'
             '<div id="mvpPick" style="display:none;margin-bottom:0.8rem;">'
             '<span style="display:inline-flex;align-items:center;gap:0.5rem;padding:0.4rem 0.8rem;'
@@ -4075,11 +4075,16 @@ with tab_feud:
     console.log('Feud loaded, stocks count:', stocks.length);
     var mvpInput = document.getElementById('mvpInput');
     var mvpDropdown = document.getElementById('mvpDropdown');
+    var mvpTapped = false;
     if (mvpInput) {
-      mvpInput.addEventListener('focus', function() { renderMvpDD(this.value); });
-      mvpInput.addEventListener('click', function(e) { e.stopPropagation(); renderMvpDD(this.value); });
-      mvpInput.addEventListener('input', function() { renderMvpDD(this.value); });
-      mvpInput.addEventListener('touchstart', function(e) { e.stopPropagation(); renderMvpDD(this.value); });
+      mvpInput.addEventListener('pointerdown', function() { mvpTapped = true; });
+      mvpInput.addEventListener('mousedown', function() { mvpTapped = true; });
+      mvpInput.addEventListener('focus', function() {
+        if (mvpTapped) { renderMvpDD(this.value, true); }
+        mvpTapped = false;
+      });
+      mvpInput.addEventListener('input', function() { renderMvpDD(this.value, true); });
+      mvpInput.addEventListener('keyup', function() { renderMvpDD(this.value, true); });
       if (mvpDropdown) {
         mvpDropdown.addEventListener('click', function(e) { e.stopPropagation(); });
         mvpDropdown.addEventListener('touchstart', function(e) { e.stopPropagation(); });
@@ -4089,12 +4094,12 @@ with tab_feud:
       });
     }
 
-    function renderMvpDD(q) {
+    function renderMvpDD(q, showAll) {
       q = q.toLowerCase().trim();
+      if (!q && !showAll) { mvpDropdown.style.display = 'none'; return; }
       var f = q ? stocks.filter(function(s) {
         return s.ticker.toLowerCase().startsWith(q) || s.name.toLowerCase().startsWith(q);
-      }) : stocks;
-      f = f.slice(0, 8);
+      }).slice(0, 8) : stocks;
       if (!f.length) {
         mvpDropdown.innerHTML = '<div style="padding:0.5rem 0.9rem;color:#5d6f65;font-size:0.85rem;">No matches</div>';
       } else {
