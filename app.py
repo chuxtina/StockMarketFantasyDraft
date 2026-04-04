@@ -164,6 +164,7 @@ if "admin_authenticated" not in st.session_state:
     st.session_state.admin_authenticated = False
 
 st.markdown("""
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded" rel="stylesheet" />
@@ -188,6 +189,39 @@ html, body {
 @media (max-width: 768px) {
     [data-testid="stSidebar"][aria-expanded="false"] {
         display: none !important;
+    }
+    .block-container {
+        padding-left: 1rem !important;
+        padding-right: 1rem !important;
+        max-width: 100vw !important;
+        overflow-x: hidden !important;
+    }
+    [data-testid="stAppViewContainer"] {
+        max-width: 100vw !important;
+        overflow-x: hidden !important;
+    }
+    [data-testid="stAppViewContainer"] > section > div {
+        max-width: 100vw !important;
+    }
+    [data-testid="column"] {
+        width: 100% !important;
+        flex: 1 1 100% !important;
+    }
+    .hero-card {
+        padding: 1rem !important;
+    }
+    .hero-title {
+        font-size: 1.3rem !important;
+    }
+    .section-card {
+        padding: 0.8rem !important;
+        font-size: 0.85rem !important;
+    }
+    [data-testid="stHorizontalBlock"] {
+        flex-wrap: wrap !important;
+    }
+    iframe {
+        max-width: 100% !important;
     }
 }
 /* Mobile landscape: short viewport height + wide screen */
@@ -3830,16 +3864,18 @@ with tab_feud:
     # Pre-build conditional sections (can't use ternary with unicode in f-strings)
     if _voting_open:
         _mvp_input_html = (
-            '<div style="position:relative;max-width:320px;margin-bottom:0.8rem;" id="mvp-search-wrap">'
+            '<div style="max-width:100%;margin-bottom:0.8rem;z-index:100;position:relative;" id="mvp-search-wrap">'
+            '<div style="position:relative;">'
             '<span style="position:absolute;left:0.7rem;top:50%;transform:translateY(-50%);font-size:0.9rem;color:#5d6f65;pointer-events:none;">'
             '\U0001f50d</span>'
             '<input id="mvpInput" type="text" placeholder="Search a stock to vote..." autocomplete="off" '
             'style="width:100%;padding:0.6rem 0.9rem 0.6rem 2.2rem;border:2px solid rgba(18,51,36,0.12);'
             'border-radius:12px;font-family:inherit;font-size:0.9rem;font-weight:600;background:white;'
-            'color:#102018;outline:none;">'
+            'color:#102018;outline:none;box-sizing:border-box;">'
+            '</div>'
             '<div id="mvpDropdown" style="position:absolute;top:100%;left:0;right:0;background:white;'
             'border:1px solid rgba(18,51,36,0.12);border-radius:12px;margin-top:4px;max-height:220px;'
-            'overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,0.1);z-index:10;display:none;"></div></div>'
+            'overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,0.1);z-index:9999;display:none;"></div></div>'
             '<div id="mvpPick" style="display:none;margin-bottom:0.8rem;">'
             '<span style="display:inline-flex;align-items:center;gap:0.5rem;padding:0.4rem 0.8rem;'
             'background:rgba(14,95,58,0.08);border:1px solid #0e5f3a;border-radius:12px;font-weight:700;'
@@ -3911,85 +3947,132 @@ with tab_feud:
         _earnings_cards_html = f'<div style="font-size:0.85rem;color:#5d6f65;text-align:center;padding:1rem;">{_sleep_emoji} No earnings scheduled next week. Enjoy the quiet!</div>'
 
     _feud_html = f"""
+    <style>
+      .challenge-card {{
+        background: rgba(251,253,250,0.96);
+        border: 1px solid rgba(18,51,36,0.10);
+        border-radius: 18px;
+        padding: 1.2rem 1.4rem;
+        margin-bottom: 0.8rem;
+        box-shadow: 0 4px 16px rgba(16,42,32,0.06);
+        position: relative;
+        overflow: visible;
+      }}
+      .challenge-num {{
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 22px; height: 22px;
+        background: #0e5f3a;
+        color: white;
+        font-size: 0.65rem;
+        font-weight: 700;
+        border-radius: 50%;
+        margin-right: 0.4rem;
+        vertical-align: middle;
+      }}
+      .challenge-label {{
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #5d6f65;
+        margin-bottom: 0.4rem;
+        display: flex;
+        align-items: center;
+      }}
+      .challenge-title {{
+        font-size: 1.1rem;
+        font-weight: 700;
+        margin-bottom: 0.15rem;
+      }}
+      .challenge-desc {{
+        font-size: 0.78rem;
+        color: #5d6f65;
+        margin-bottom: 0.7rem;
+      }}
+      .votes-header {{
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        color: #5d6f65;
+        margin-top: 0.5rem;
+        margin-bottom: 0.3rem;
+        padding-top: 0.5rem;
+        border-top: 1px solid rgba(18,51,36,0.06);
+      }}
+      .week-header {{
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 0.4rem;
+        margin-bottom: 0.8rem;
+        padding-bottom: 0.6rem;
+        border-bottom: 1px solid rgba(18,51,36,0.08);
+      }}
+    </style>
     <div style="font-family:'Space Grotesk',sans-serif;color:#102018;">
 
-      <!-- Week header with date + voting deadline -->
-      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:0.4rem;margin-bottom:1rem;">
-        <span style="display:inline-block;background:rgba(14,95,58,0.08);color:#0e5f3a;font-size:0.75rem;
-            font-weight:700;padding:0.25rem 0.7rem;border-radius:999px;">
+      <!-- Week header -->
+      <div class="week-header">
+        <span style="display:inline-block;background:rgba(14,95,58,0.1);color:#0e5f3a;font-size:0.72rem;
+            font-weight:700;padding:0.2rem 0.65rem;border-radius:999px;">
           {_week_label}</span>
-        <span style="font-size:0.72rem;color:#5d6f65;">
-          {_clock_emoji} Voting closes Monday 9:00 AM ET &middot; Winner determined by Friday 4:00 PM ET close</span>
+        <span style="font-size:0.7rem;color:#5d6f65;">
+          {_clock_emoji} Voting closes Mon 9 AM ET &middot; Winner at Fri 4 PM ET</span>
       </div>
 
       <!-- Challenge 1: MVP -->
-      <div style="background:rgba(251,253,250,0.96);border:1px solid rgba(18,51,36,0.12);
-          border-radius:20px;padding:1.2rem 1.4rem;box-shadow:0 12px 24px rgba(82,58,32,0.08);margin-bottom:1.2rem;">
-        <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#5d6f65;margin-bottom:0.3rem;">
-          Weekly Challenge #1</div>
-        <div style="font-size:1.05rem;font-weight:700;margin-bottom:0.2rem;">
-          {_trophy_emoji} Who will be MVP next week?</div>
-        <div style="font-size:0.78rem;color:#5d6f65;margin-bottom:0.6rem;">
-          The stock with the highest total return Mon–Fri wins.</div>
-
+      <div class="challenge-card" style="z-index:30;position:relative;">
+        <div class="challenge-label"><span class="challenge-num">1</span> Weekly Challenge</div>
+        <div class="challenge-title">{_trophy_emoji} Who will be MVP next week?</div>
+        <div class="challenge-desc">The stock with the highest total return Mon&ndash;Fri wins.</div>
         {_mvp_input_html}
-
-        <div id="mvpVoteHeader" style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#5d6f65;margin-top:0.3rem;margin-bottom:0.3rem;">
-          Community Votes ({_mvp_total} total)</div>
+        <div id="mvpVoteHeader" class="votes-header">Community Votes ({_mvp_total} total)</div>
         <div id="mvpVoteBars">{_mvp_bars if _mvp_bars else _no_votes_html}</div>
       </div>
 
       <!-- Challenge 2: HOH -->
-      <div style="background:rgba(251,253,250,0.96);border:1px solid rgba(18,51,36,0.12);
-          border-radius:20px;padding:1.2rem 1.4rem;box-shadow:0 12px 24px rgba(82,58,32,0.08);margin-bottom:1.2rem;">
-        <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#5d6f65;margin-bottom:0.3rem;">
-          Weekly Challenge #2</div>
-        <div style="font-size:1.05rem;font-weight:700;margin-bottom:0.2rem;">
-          {_house_emoji} Who will be Head of Household?</div>
-        <div style="font-size:0.78rem;color:#5d6f65;margin-bottom:0.6rem;">
-          The ETF with the highest average return Mon–Fri wins.</div>
-
+      <div class="challenge-card" style="z-index:20;position:relative;">
+        <div class="challenge-label"><span class="challenge-num">2</span> Weekly Challenge</div>
+        <div class="challenge-title">{_house_emoji} Who will be Head of Household?</div>
+        <div class="challenge-desc">The ETF with the highest average return Mon&ndash;Fri wins.</div>
         {_hoh_input_html}
-
-        <div id="hohVoteHeader" style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#5d6f65;margin-top:0.3rem;margin-bottom:0.3rem;">
-          Community Votes ({_hoh_total} total)</div>
+        <div id="hohVoteHeader" class="votes-header">Community Votes ({_hoh_total} total)</div>
         <div id="hohVoteBars">{_hoh_bars if _hoh_bars else '<div style="font-size:0.8rem;color:#5d6f65;">No votes yet &mdash; be the first!</div>'}</div>
       </div>
 
       <!-- Challenge 3: Earnings -->
-      <div style="background:rgba(251,253,250,0.96);border:1px solid rgba(18,51,36,0.12);
-          border-radius:20px;padding:1.2rem 1.4rem;box-shadow:0 12px 24px rgba(82,58,32,0.08);">
-        <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#5d6f65;margin-bottom:0.3rem;">
-          Weekly Challenge #3</div>
-        <div style="font-size:1.05rem;font-weight:700;margin-bottom:0.2rem;">
-          {_chart_emoji} Earnings Roulette</div>
-        <div style="font-size:0.78rem;color:#5d6f65;margin-bottom:0.8rem;">
-          Will the stock go UP or DOWN after earnings? Vote before earnings day at market close.</div>
+      <div class="challenge-card" style="margin-bottom:0;z-index:10;position:relative;">
+        <div class="challenge-label"><span class="challenge-num">3</span> Weekly Challenge</div>
+        <div class="challenge-title">{_chart_emoji} Earnings Roulette</div>
+        <div class="challenge-desc">Will the stock go UP or DOWN after earnings? Vote before earnings day at market close.</div>
         {_earnings_cards_html}
       </div>
     </div>
 
     """
 
-    # Inject data as a separate script block using f-string
-    _feud_data_js = f"""
-    <script>
-    var stocks = {_stock_list_js};
-    var sheetUrl = '{REACTIONS_SHEET_URL}';
-    var serverEarnVotes = {_earn_votes_js};
-    </script>
-    """
-
-    # JS logic as regular string (not f-string) to avoid curly brace escaping
+    # Single script block — use placeholders to inject data safely
     _feud_js = """
     <script>
+    var stocks = __STOCKS_DATA__;
+    var sheetUrl = '__SHEET_URL__';
+    var serverEarnVotes = __EARN_VOTES__;
     console.log('Feud loaded, stocks count:', stocks.length);
     var mvpInput = document.getElementById('mvpInput');
     var mvpDropdown = document.getElementById('mvpDropdown');
     if (mvpInput) {
       mvpInput.addEventListener('focus', function() { renderMvpDD(this.value); });
-      mvpInput.addEventListener('click', function() { renderMvpDD(this.value); });
+      mvpInput.addEventListener('click', function(e) { e.stopPropagation(); renderMvpDD(this.value); });
       mvpInput.addEventListener('input', function() { renderMvpDD(this.value); });
+      mvpInput.addEventListener('touchstart', function(e) { e.stopPropagation(); renderMvpDD(this.value); });
+      if (mvpDropdown) {
+        mvpDropdown.addEventListener('click', function(e) { e.stopPropagation(); });
+        mvpDropdown.addEventListener('touchstart', function(e) { e.stopPropagation(); });
+      }
       document.addEventListener('click', function(e) {
         if (!e.target.closest('#mvp-search-wrap')) mvpDropdown.style.display = 'none';
       });
@@ -4217,18 +4300,29 @@ with tab_feud:
     });
 
     function resizeFrame() {
-      var h = document.body.scrollHeight + 10;
-      window.frameElement.style.height = h + 'px';
+      try {
+        var h = document.body.scrollHeight + 20;
+        if (window.frameElement) {
+          window.frameElement.style.setProperty('height', h + 'px', 'important');
+        }
+        // Also try the parent container
+        try {
+          var container = window.frameElement.parentElement;
+          if (container) container.style.setProperty('height', h + 'px', 'important');
+        } catch(e2) {}
+      } catch(e) {}
     }
     window.addEventListener('load', resizeFrame);
     window.addEventListener('resize', resizeFrame);
     setTimeout(resizeFrame, 50);
     setTimeout(resizeFrame, 300);
+    setTimeout(resizeFrame, 1000);
     </script>
     """
-    _feud_html += _feud_data_js + _feud_js
+    _feud_js = _feud_js.replace('__STOCKS_DATA__', _stock_list_js).replace('__SHEET_URL__', REACTIONS_SHEET_URL).replace('__EARN_VOTES__', _earn_votes_js)
+    _feud_html += _feud_js
 
-    _feud_base_height = 480 + len(_next_week_earnings) * 65 + (120 if _next_week_earnings else 60)
+    _feud_base_height = 630 + len(_next_week_earnings) * 60
     components.html(_feud_html, height=_feud_base_height, scrolling=False)
 
     # --- System Predictions (moved from Dashboard) ---
