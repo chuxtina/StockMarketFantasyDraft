@@ -103,6 +103,28 @@ function deleteVote(type, voter) {
   }
 }
 
+function getVoterPicks(voter) {
+  var sheet = getOrCreateSheet("Votes");
+  var data = sheet.getDataRange().getValues();
+  var picks = {};
+  var earnPicks = {};
+  for (var i = 0; i < data.length; i++) {
+    var type = data[i][0];
+    var voterCol = data[i][1];
+    var pick = data[i][2];
+    if (voterCol === voter) {
+      picks[type] = pick;
+    }
+    // Earnings votes use "earn_{voterId}_{stock}" as voter
+    if (type === "earn" && voterCol.indexOf("earn_" + voter + "_") === 0) {
+      var stock = voterCol.replace("earn_" + voter + "_", "");
+      earnPicks[stock] = pick;
+    }
+  }
+  picks.earn = earnPicks;
+  return picks;
+}
+
 function getVotes(type) {
   var sheet = getOrCreateSheet("Votes");
   var data = sheet.getDataRange().getValues();
@@ -166,6 +188,12 @@ function doGet(e) {
   if (p.action === "get_mvp_votes") {
     var mvp = getVotes("mvp");
     return ContentService.createTextOutput(JSON.stringify(mvp))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+
+  if (p.action === "get_my_votes") {
+    var myVotes = getVoterPicks(p.voter);
+    return ContentService.createTextOutput(JSON.stringify(myVotes))
       .setMimeType(ContentService.MimeType.JSON);
   }
 

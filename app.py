@@ -4174,16 +4174,65 @@ with tab_feud:
       if (mvpInput) mvpInput.focus();
     }
 
-    var savedMvp = localStorage.getItem('feud_mvp_pick');
-    if (savedMvp && document.getElementById('mvpPick')) {
-      var s = stocks.find(function(x) { return x.ticker === savedMvp; });
-      if (s) {
-        document.getElementById('mvp-search-wrap').style.display = 'none';
-        document.getElementById('mvpPick').style.display = 'block';
-        document.getElementById('mvpPickTicker').textContent = s.ticker;
-        document.getElementById('mvpPickName').textContent = s.name;
-      }
-    }
+    // Restore votes from server (works across devices)
+    fetch(sheetUrl + '?action=get_my_votes&voter=' + encodeURIComponent(getVoterId()))
+      .then(function(r) { return r.json(); })
+      .then(function(picks) {
+        // Restore MVP pick
+        if (picks.mvp && document.getElementById('mvpPick')) {
+          var s = stocks.find(function(x) { return x.ticker === picks.mvp; });
+          if (s) {
+            document.getElementById('mvp-search-wrap').style.display = 'none';
+            document.getElementById('mvpPick').style.display = 'block';
+            document.getElementById('mvpPickTicker').textContent = s.ticker;
+            document.getElementById('mvpPickName').textContent = s.name;
+            localStorage.setItem('feud_mvp_pick', s.ticker);
+          }
+        }
+        // Restore HOH pick
+        if (picks.hoh) {
+          localStorage.setItem('feud_hoh_pick', picks.hoh);
+          document.querySelectorAll('.hohBtn').forEach(function(b) {
+            if (b.textContent.trim().includes(picks.hoh)) {
+              b.style.borderColor = '#0e5f3a';
+              b.style.background = 'rgba(14,95,58,0.1)';
+              b.style.color = '#0e5f3a';
+            }
+          });
+        }
+        // Restore earnings picks
+        if (picks.earn && typeof picks.earn === 'object') {
+          Object.keys(picks.earn).forEach(function(stock) {
+            var val = picks.earn[stock]; // e.g. "AAPL_up"
+            var dir = val.split('_').pop(); // "up" or "down"
+            localStorage.setItem('feud_earn_' + stock, dir);
+            document.querySelectorAll('.earnVoteBtn').forEach(function(btn) {
+              if (btn.dataset.stock === stock && btn.dataset.dir === dir) {
+                if (dir === 'up') {
+                  btn.style.background = 'rgba(25,160,95,0.12)';
+                  btn.style.borderColor = '#19a05f';
+                } else {
+                  btn.style.background = 'rgba(209,74,52,0.12)';
+                  btn.style.borderColor = '#d14a34';
+                }
+              }
+            });
+          });
+        }
+      })
+      .catch(function(){
+        // Fallback to localStorage
+        var savedMvp = localStorage.getItem('feud_mvp_pick');
+        if (savedMvp && document.getElementById('mvpPick')) {
+          var s = stocks.find(function(x) { return x.ticker === savedMvp; });
+          if (s) {
+            document.getElementById('mvp-search-wrap').style.display = 'none';
+            document.getElementById('mvpPick').style.display = 'block';
+            document.getElementById('mvpPickTicker').textContent = s.ticker;
+            document.getElementById('mvpPickName').textContent = s.name;
+          }
+        }
+      });
 
     function selectHoh(btn, etf) {
       var currentPick = localStorage.getItem('feud_hoh_pick');
