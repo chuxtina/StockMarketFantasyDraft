@@ -3027,7 +3027,14 @@ with tab_dashboard:
             next_drop += datetime.timedelta(days=1)
         next_drop_str = next_drop.strftime('%a %b %d')
 
-        # Build roast HTML as chat bubbles
+        # Build roast HTML as chat bubbles — multiple bots firing shots
+        BOT_PERSONAS = [
+            ("\U0001f916", "linear-gradient(135deg, #0e5f3a, #19a05f)", "GreenMachine"),   # green robot
+            ("\U0001f608", "linear-gradient(135deg, #6b21a8, #a855f7)", "DiabloAI"),   # purple devil
+            ("\U0001f47e", "linear-gradient(135deg, #b91c1c, #ef4444)", "ChadGPT"),    # red alien
+            ("\U0001f9e0", "linear-gradient(135deg, #0369a1, #38bdf8)", "BrainRot"),   # blue brain
+            ("\U0001f480", "linear-gradient(135deg, #78350f, #d97706)", "DeadCat"),    # amber skull
+        ]
         roast_items_html = ""
         for idx, roast in enumerate(roasts):
             roast_key = f"roast_{idx}"
@@ -3040,10 +3047,13 @@ with tab_dashboard:
                     f'<span class="roast-react-btn" data-roast="{roast_key}" data-emoji="{emoji}" '
                     f'onclick="toggleReact(this)">{emoji}{count_str}</span>'
                 )
+            bot_emoji, bot_gradient, bot_name = BOT_PERSONAS[idx % len(BOT_PERSONAS)]
+            side = "right" if idx % 2 == 1 else "left"
             roast_items_html += (
-                f'<div class="chat-row">'
-                f'<div class="chat-avatar">\U0001f916</div>'
-                f'<div class="chat-right">'
+                f'<div class="chat-row chat-{side}">'
+                f'<div class="chat-avatar" style="background:{bot_gradient};">{bot_emoji}</div>'
+                f'<div class="chat-content">'
+                f'<div class="chat-name">{bot_name}</div>'
                 f'<div class="chat-bubble">'
                 f'<div class="chat-text">{roast}</div>'
                 f'<div class="roast-reactions">{btns}</div>'
@@ -3061,20 +3071,36 @@ with tab_dashboard:
         .chat-row {{
             display: flex; align-items: flex-start; gap: 0.6rem;
         }}
+        .chat-row.chat-right {{
+            flex-direction: row-reverse;
+        }}
         .chat-avatar {{
             width: 36px; height: 36px; border-radius: 50%;
-            background: linear-gradient(135deg, #0e5f3a, #19a05f);
             display: flex; align-items: center; justify-content: center;
             font-size: 1rem; flex-shrink: 0;
-            box-shadow: 0 2px 8px rgba(14,95,58,0.25);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.18);
         }}
-        .chat-right {{ max-width: calc(100% - 48px); }}
+        .chat-name {{
+            font-size: 0.68rem; font-weight: 700; letter-spacing: 0.03em;
+            color: #5d6f65; margin-bottom: 0.15rem;
+            text-transform: uppercase;
+        }}
+        .chat-row.chat-right .chat-name {{
+            text-align: right;
+        }}
+        .chat-content {{ max-width: calc(100% - 48px); }}
         .chat-bubble {{
             background: rgba(251,253,250,0.96);
             border: 1px solid rgba(18,51,36,0.12);
             border-radius: 0 18px 18px 18px;
             padding: 0.7rem 1rem;
             box-shadow: 0 4px 12px rgba(16,42,32,0.06);
+        }}
+        .chat-row.chat-right .chat-bubble {{
+            border-radius: 18px 0 18px 18px;
+        }}
+        .chat-row.chat-right .roast-reactions {{
+            justify-content: flex-end;
         }}
         .chat-text {{
             font-size: 0.85rem; line-height: 1.5;
@@ -3100,14 +3126,14 @@ with tab_dashboard:
         }}
         @media (max-width: 768px) {{
             .chat-avatar {{ width: 30px; height: 30px; font-size: 0.85rem; }}
-            .chat-right {{ max-width: calc(100% - 42px); }}
+            .chat-content {{ max-width: calc(100% - 42px); }}
             .roast-react-btn {{ padding: 0.25rem 0.55rem; font-size: 0.85rem; }}
         }}
         </style></head>
         <body>
         <div class="chat-container">
             {roast_items_html}
-            <div style="font-size:0.72rem;color:#5d6f65;margin-top:0.3rem;padding-left:42px;">
+            <div style="font-size:0.72rem;color:#5d6f65;margin-top:0.3rem;padding-left:0;text-align:left;">
                 \U0001f4a5 Roasts refresh daily \u00b7 Fresh burns incoming \u00b7 Next drop: {next_drop_str} after market close
             </div>
         </div>
@@ -3193,7 +3219,7 @@ with tab_dashboard:
         </body></html>
         """
 
-        components.html(roast_component_html, height=len(roasts) * 87, scrolling=False)
+        components.html(roast_component_html, height=len(roasts) * 100, scrolling=False)
 
 
         # --- Weekly Report ---
