@@ -3726,6 +3726,28 @@ with tab_feud:
     # Build stock list for JS
     _stock_list_js = json.dumps([{"ticker": p["ticker"], "name": p["name"], "etf": p.get("etf", "")} for p in PLAYERS])
 
+    # Fetch earnings for next week's challenge
+    _feud_earnings = fetch_earnings(tuple(TICKERS))
+    _next_week_earnings = []
+    for t, edata in _feud_earnings.items():
+        edate_str = edata.get("next_date", "")
+        if edate_str:
+            try:
+                # Parse "Apr 30" style date
+                edate = datetime.datetime.strptime(f"{edate_str} {_now_et.year}", "%b %d %Y").date()
+                # Check if earnings fall in the next week (Mon-Fri)
+                if _next_monday <= edate <= _next_friday:
+                    _next_week_earnings.append({
+                        "ticker": t,
+                        "name": NAME_MAP.get(t, t),
+                        "etf": ETF_MAP.get(t, ""),
+                        "date": edate_str,
+                        "eps_est": edata.get("eps_est"),
+                    })
+            except (ValueError, TypeError):
+                pass
+    _next_week_earnings.sort(key=lambda x: x["date"])
+
     # --- Challenge 1: MVP Vote ---
     # --- Challenge 2: HOH Vote ---
     # Both rendered as a single components.html block for interactivity
@@ -3806,6 +3828,48 @@ with tab_feud:
 
     _no_votes_html = '<div style="font-size:0.8rem;color:#5d6f65;">No votes yet \u2014 be the first!</div>'
 
+    # Build earnings challenge cards
+    _cal_emoji = "\U0001f4c5"
+    _up_emoji = "\U0001f4c8"
+    _down_emoji = "\U0001f4c9"
+    _sleep_emoji = "\U0001f634"
+    _trophy_emoji = "\U0001f3c6"
+    _house_emoji = "\U0001f3e0"
+    _clock_emoji = "\U0001f552"
+    _chart_emoji = "\U0001f4c8"
+    if _next_week_earnings:
+        _etf_emoji_map_e = {"UNCL": "\U0001f468\u200d\U0001f9b3", "ANTY": "\U0001f469\U0001f3fb", "KIDZ": "\U0001f476\U0001f3fb"}
+        _earnings_cards_html = '<div style="display:flex;flex-direction:column;gap:0.6rem;">'
+        for _ei, _es in enumerate(_next_week_earnings):
+            _e_emoji = _etf_emoji_map_e.get(_es["etf"], "")
+            _eps_str = f'Est. EPS: ${_es["eps_est"]:.2f}' if _es["eps_est"] is not None else ""
+            _eps_part = f' \u00b7 {_eps_str}' if _eps_str else ""
+            _earnings_cards_html += (
+                f'<div style="display:flex;align-items:center;justify-content:space-between;'
+                f'background:rgba(18,51,36,0.03);border:1px solid rgba(18,51,36,0.08);border-radius:14px;padding:0.6rem 0.8rem;">'
+                f'<div>'
+                f'<div style="font-weight:700;font-size:0.9rem;">{_e_emoji} {html_mod.escape(_es["ticker"])} '
+                f'<span style="font-weight:400;color:#5d6f65;font-size:0.78rem;">{html_mod.escape(_es["name"])}</span></div>'
+                f'<div style="font-size:0.7rem;color:#5d6f65;">'
+                f'{_cal_emoji} Earnings: {html_mod.escape(_es["date"])}{_eps_part}</div>'
+                f'</div>'
+                f'<div style="display:flex;gap:0.4rem;">'
+                f'<div class="earnVoteBtn" data-stock="{html_mod.escape(_es["ticker"])}" data-dir="up" '
+                f'onclick="voteEarnings(this)" '
+                f'style="padding:0.4rem 0.8rem;border:2px solid rgba(25,160,95,0.3);border-radius:10px;'
+                f'cursor:pointer;font-weight:700;font-size:0.82rem;color:#19a05f;background:white;transition:all 0.15s;">'
+                f'{_up_emoji} Up</div>'
+                f'<div class="earnVoteBtn" data-stock="{html_mod.escape(_es["ticker"])}" data-dir="down" '
+                f'onclick="voteEarnings(this)" '
+                f'style="padding:0.4rem 0.8rem;border:2px solid rgba(209,74,52,0.3);border-radius:10px;'
+                f'cursor:pointer;font-weight:700;font-size:0.82rem;color:#d14a34;background:white;transition:all 0.15s;">'
+                f'{_down_emoji} Down</div>'
+                f'</div></div>'
+            )
+        _earnings_cards_html += '</div>'
+    else:
+        _earnings_cards_html = f'<div style="font-size:0.85rem;color:#5d6f65;text-align:center;padding:1rem;">{_sleep_emoji} No earnings scheduled next week. Enjoy the quiet!</div>'
+
     _feud_html = f"""
     <div style="font-family:'Space Grotesk',sans-serif;color:#102018;">
 
@@ -3815,7 +3879,7 @@ with tab_feud:
         <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#5d6f65;margin-bottom:0.3rem;">
           Weekly Challenge #1</div>
         <div style="font-size:1.05rem;font-weight:700;margin-bottom:0.2rem;">
-          \U0001f3c6 Who will be MVP next week?
+          {_trophy_emoji} Who will be MVP next week?
           <span style="display:inline-block;background:rgba(14,95,58,0.08);color:#0e5f3a;font-size:0.68rem;
               font-weight:700;padding:0.15rem 0.5rem;border-radius:999px;margin-left:0.4rem;vertical-align:middle;">
             {_week_label}</span>
@@ -3836,7 +3900,7 @@ with tab_feud:
         <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#5d6f65;margin-bottom:0.3rem;">
           Weekly Challenge #2</div>
         <div style="font-size:1.05rem;font-weight:700;margin-bottom:0.2rem;">
-          \U0001f3e0 Who will be Head of Household?
+          {_house_emoji} Who will be Head of Household?
           <span style="display:inline-block;background:rgba(14,95,58,0.08);color:#0e5f3a;font-size:0.68rem;
               font-weight:700;padding:0.15rem 0.5rem;border-radius:999px;margin-left:0.4rem;vertical-align:middle;">
             {_week_label}</span>
@@ -3852,7 +3916,23 @@ with tab_feud:
       </div>
 
       <div style="margin-top:0.6rem;font-size:0.72rem;color:#5d6f65;">
-        \U0001f552 Voting closes Monday 9:00 AM ET &middot; Winner determined by Friday 4:00 PM ET close
+        {_clock_emoji} Voting closes Monday 9:00 AM ET &middot; Winner determined by Friday 4:00 PM ET close
+      </div>
+
+      <!-- Challenge 3: Earnings -->
+      <div style="background:rgba(251,253,250,0.96);border:1px solid rgba(18,51,36,0.12);
+          border-radius:20px;padding:1.2rem 1.4rem;box-shadow:0 12px 24px rgba(82,58,32,0.08);margin-top:1rem;">
+        <div style="font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:#5d6f65;margin-bottom:0.3rem;">
+          Weekly Challenge #3</div>
+        <div style="font-size:1.05rem;font-weight:700;margin-bottom:0.2rem;">
+          {_chart_emoji} Earnings Roulette
+          <span style="display:inline-block;background:rgba(14,95,58,0.08);color:#0e5f3a;font-size:0.68rem;
+              font-weight:700;padding:0.15rem 0.5rem;border-radius:999px;margin-left:0.4rem;vertical-align:middle;">
+            {_week_label}</span>
+        </div>
+        <div style="font-size:0.78rem;color:#5d6f65;margin-bottom:0.8rem;">
+          Will the stock go UP or DOWN after earnings? Vote before earnings day at market close.</div>
+        {_earnings_cards_html}
       </div>
     </div>
 
@@ -3950,6 +4030,45 @@ with tab_feud:
       });
     }
 
+    // --- Earnings Vote ---
+    function voteEarnings(btn) {
+      var stock = btn.dataset.stock;
+      var dir = btn.dataset.dir;
+      // Deselect siblings
+      var parent = btn.parentElement;
+      parent.querySelectorAll('.earnVoteBtn').forEach(function(b) {
+        b.style.background = 'white';
+        b.style.borderColor = b.dataset.dir === 'up' ? 'rgba(25,160,95,0.3)' : 'rgba(209,74,52,0.3)';
+      });
+      // Select this one
+      if (dir === 'up') {
+        btn.style.background = 'rgba(25,160,95,0.12)';
+        btn.style.borderColor = '#19a05f';
+      } else {
+        btn.style.background = 'rgba(209,74,52,0.12)';
+        btn.style.borderColor = '#d14a34';
+      }
+      localStorage.setItem('feud_earn_' + stock, dir);
+      // Save to Google Sheets
+      var voterId = localStorage.getItem('feud_voter_id');
+      if (!voterId) { voterId = 'anon_' + Math.random().toString(36).substr(2, 9); localStorage.setItem('feud_voter_id', voterId); }
+      fetch(sheetUrl + '?action=vote&voter=' + encodeURIComponent('earn_' + voterId + '_' + stock) + '&pick=' + encodeURIComponent(stock + '_' + dir)).catch(function(){});
+    }
+
+    // Restore earnings votes
+    document.querySelectorAll('.earnVoteBtn').forEach(function(btn) {
+      var saved = localStorage.getItem('feud_earn_' + btn.dataset.stock);
+      if (saved === btn.dataset.dir) {
+        if (saved === 'up') {
+          btn.style.background = 'rgba(25,160,95,0.12)';
+          btn.style.borderColor = '#19a05f';
+        } else {
+          btn.style.background = 'rgba(209,74,52,0.12)';
+          btn.style.borderColor = '#d14a34';
+        }
+      }
+    });
+
     function resizeFrame() {
       var h = document.body.scrollHeight + 10;
       window.frameElement.style.height = h + 'px';
@@ -3962,7 +4081,8 @@ with tab_feud:
     """
     _feud_html += _feud_js
 
-    components.html(_feud_html, height=700, scrolling=False)
+    _feud_base_height = 700 + len(_next_week_earnings) * 70 + (150 if _next_week_earnings else 80)
+    components.html(_feud_html, height=_feud_base_height, scrolling=False)
 
     # --- System Predictions (moved from Dashboard) ---
     st.markdown(
