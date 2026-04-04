@@ -3564,10 +3564,19 @@ with tab_dashboard:
         _sector_stocks = defaultdict(list)
         for t in sorted(SECTOR_MAP.keys()):
             _sector_stocks[SECTOR_MAP[t]].append(t)
-        # Sort sectors by average return (best to worst)
+        # Compute total return (including dividends) for each stock
+        _total_ret_map = {}
+        for t in valid_tickers:
+            sp = start_prices[t]
+            shares = INVESTMENT / sp
+            div_inc = shares * dividends.get(t, 0.0)
+            mv = shares * end_prices[t]
+            _total_ret_map[t] = ((mv + div_inc) / INVESTMENT - 1) * 100
+
+        # Sort sectors by average total return (best to worst)
         _sector_avgs = {}
         for sec, tickers in _sector_stocks.items():
-            rets = [final_returns[t] for t in tickers if t in final_returns.index]
+            rets = [_total_ret_map[t] for t in tickers if t in _total_ret_map]
             _sector_avgs[sec] = sum(rets) / len(rets) if rets else 0
         _sector_order = sorted(_sector_avgs.keys(), key=lambda s: -_sector_avgs[s])
 
@@ -3576,8 +3585,8 @@ with tab_dashboard:
         for sec in _sector_order:
             tickers = _sector_stocks.get(sec, [])
             if tickers:
-                # Find best and worst stock in this sector
-                sector_rets = {t: final_returns[t] for t in tickers if t in final_returns.index}
+                # Find best and worst stock in this sector (by total return)
+                sector_rets = {t: _total_ret_map[t] for t in tickers if t in _total_ret_map}
                 if sector_rets:
                     best_t = max(sector_rets, key=sector_rets.get)
                     worst_t = min(sector_rets, key=sector_rets.get)
