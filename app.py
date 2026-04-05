@@ -2902,36 +2902,57 @@ with tab_dashboard:
             right = badges_data[i + 1] if i + 1 < len(badges_data) else None
             pairs.append((left, right))
 
+        _BADGE_TONES = {
+            "Diamond Hands": "green", "Moonshot": "green", "Dark Horse": "green",
+            "Comeback Kid": "green", "Steady Eddie": "green", "The Terminator": "green",
+            "Dividend King": "green",
+            "Bag Holder": "red", "Crash Landing": "red", "Dead Weight": "red",
+            "Fallen Angel": "red", "All Talk": "red",
+            "Rollercoaster": "amber", "Middle Child": "amber", "Rivalry": "amber",
+            "ETF War": "amber",
+        }
+        _TONE_STYLES = {
+            "green": ("rgba(25,160,95,0.12)", "rgba(25,160,95,0.05)", "rgba(25,160,95,0.10)"),
+            "red":   ("rgba(209,74,52,0.12)", "rgba(209,74,52,0.05)", "rgba(209,74,52,0.10)"),
+            "amber": ("rgba(215,168,58,0.15)", "rgba(215,168,58,0.06)", "rgba(215,168,58,0.12)"),
+        }
+
         def _badge_cell(icon, name, holder, desc):
+            tone = _BADGE_TONES.get(name, "green")
+            bg_from, bg_to, shadow_color = _TONE_STYLES[tone]
             return (
-                f'<td style="padding:0.8rem 1.1rem;vertical-align:middle;">'
-                f'<div style="display:flex;align-items:center;gap:0.8rem;">'
-                f'<span style="font-size:1.8rem;line-height:1;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.1));">{icon}</span>'
+                f'<td style="padding:0.85rem 1.2rem;vertical-align:middle;transition:background 0.15s;" '
+                f'onmouseover="this.style.background=\'rgba(14,95,58,0.06)\'" '
+                f'onmouseout="this.style.background=\'transparent\'">'
+                f'<div style="display:flex;align-items:center;gap:0.9rem;">'
+                f'<div style="width:42px;height:42px;border-radius:12px;'
+                f'background:linear-gradient(135deg,{bg_from},{bg_to});'
+                f'display:flex;align-items:center;justify-content:center;flex-shrink:0;'
+                f'box-shadow:0 2px 6px {shadow_color};">'
+                f'<span style="font-size:1.5rem;line-height:1;">{icon}</span></div>'
                 f'<div>'
-                f'<div style="font-weight:700;font-size:0.85rem;color:var(--text);">{html_mod.escape(name)}</div>'
-                f'<div style="font-size:0.78rem;color:var(--muted);">{html_mod.escape(holder)}</div>'
-                f'<div style="font-size:0.65rem;color:var(--muted);opacity:0.7;">{html_mod.escape(desc)}</div>'
+                f'<div style="font-weight:800;font-size:0.82rem;color:#102018;letter-spacing:0.02em;">{html_mod.escape(name)}</div>'
+                f'<div style="font-size:0.78rem;color:#2d4a3a;margin-top:0.1rem;">{html_mod.escape(holder)}</div>'
+                f'<div style="font-size:0.62rem;color:#5d6f65;opacity:0.8;margin-top:0.1rem;">{html_mod.escape(desc)}</div>'
                 f'</div></div></td>'
             )
 
         table_html = (
             '<table style="width:100%;border-collapse:separate;border-spacing:0;'
-            'border-radius:18px;overflow:hidden;background:var(--panel-strong);'
-            'border:1px solid var(--border);box-shadow:0 12px 24px rgba(82,58,32,0.08);">'
+            'border-radius:18px;overflow:hidden;'
+            'background:linear-gradient(180deg,rgba(251,253,250,0.98) 0%,rgba(237,245,238,0.95) 100%);'
+            'border:1px solid rgba(18,51,36,0.12);box-shadow:0 8px 32px rgba(14,95,58,0.06);">'
         )
-        for left, right in pairs:
+        for pi, (left, right) in enumerate(pairs):
+            is_last = pi == len(pairs) - 1
             table_html += '<tr>'
             table_html += _badge_cell(*left)
             if right:
-                table_html += f'<td style="width:1px;padding:0;"><div style="width:1px;height:100%;background:var(--border);"></div></td>'
+                table_html += f'<td style="width:1px;padding:0;"><div style="width:1px;height:100%;background:rgba(18,51,36,0.08);"></div></td>'
                 table_html += _badge_cell(*right)
-            else:
-                table_html += '<td style="width:1px;padding:0;"></td><td></td>'
             table_html += '</tr>'
-            table_html += f'<tr><td colspan="3" style="padding:0;"><div style="height:1px;background:var(--border);"></div></td></tr>'
-        # Remove last divider
-        if pairs:
-            table_html = table_html[:table_html.rfind('<tr><td colspan')]
+            if not is_last:
+                table_html += f'<tr><td colspan="3" style="padding:0;"><div style="height:1px;background:rgba(18,51,36,0.06);"></div></td></tr>'
         table_html += '</table>'
         st.markdown(f'<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">{table_html}</div>', unsafe_allow_html=True)
 
