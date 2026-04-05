@@ -3655,7 +3655,7 @@ with tab_dashboard:
                 f'<span style="font-size:1.2rem;">{icon}</span>'
                 f'<div style="flex:1;">'
                 f'<div style="font-weight:800;font-size:0.9rem;">{html_mod.escape(current_ticker)} <span style="font-weight:400;color:var(--muted);font-size:0.8rem;">{html_mod.escape(current_name)}</span></div>'
-                f'<div style="font-size:0.7rem;color:var(--muted);">Reigning {_reign_start} – {_today_label} · {streak} day streak</div></div>'
+                f'<div style="font-size:0.7rem;color:var(--muted);line-height:1.5;">Reigning<br>{_reign_start} – {_today_label}<br>{streak} day streak</div></div>'
                 f'<div style="text-align:right;"><div style="font-weight:800;color:{_ret_color};font-size:1.1rem;">{current_ret:+.2f}%</div>'
                 f'<div style="font-size:0.65rem;color:var(--muted);">Current</div></div></div>'
             )
@@ -3835,39 +3835,44 @@ with tab_dashboard:
             last_earn_date = earn.get("last_earnings_date", "")
             last_eps_reported = earn.get("last_eps_reported")
             last_eps_estimate = earn.get("last_eps_estimate")
-            # Build Est. EPS cell: main value is upcoming estimate, sub-text is last actual vs estimate
+            # Build Est. EPS cell: est eps, then previous est vs actual, date, beat/miss, bar, %
             if eps_est is not None:
                 eps_col_cell = f'${eps_est:.2f}'
             else:
                 eps_col_cell = '<span style="color:var(--muted);">\u2014</span>'
-            # Add last earnings details below
+            # Add last earnings details below on separate lines
             if last_eps_reported is not None and last_eps_estimate is not None:
                 if last_eps_estimate != 0:
                     _surprise_pct = ((last_eps_reported - last_eps_estimate) / abs(last_eps_estimate)) * 100
                 else:
                     _surprise_pct = 100.0 if last_eps_reported > 0 else (-100.0 if last_eps_reported < 0 else 0)
                 _bar_width = min(abs(_surprise_pct), 100)
-                _date_part = f' {last_earn_date}' if last_earn_date else ''
-                # "actual vs est $X.XX" line
-                eps_col_cell += f'<br><span style="color:var(--muted);font-size:0.66rem;">${last_eps_reported:.2f} vs ${last_eps_estimate:.2f}{_date_part}</span>'
+                # Line 2: previous est vs actual
+                eps_col_cell += f'<br><span style="color:var(--muted);font-size:0.66rem;">${last_eps_reported:.2f} vs ${last_eps_estimate:.2f}</span>'
+                # Line 3: date
+                if last_earn_date:
+                    eps_col_cell += f'<br><span style="color:var(--muted);font-size:0.66rem;">{last_earn_date}</span>'
+                # Line 4: beat/miss badge
                 if last_eps_reported > last_eps_estimate:
                     eps_col_cell += (
-                        ' <span style="display:inline-block;padding:0.05rem 0.4rem;border-radius:999px;font-size:0.6rem;font-weight:700;background:rgba(25,160,95,0.15);color:#19a05f;">BEAT</span>'
+                        '<br><span style="display:inline-block;padding:0.05rem 0.4rem;border-radius:999px;font-size:0.6rem;font-weight:700;background:rgba(25,160,95,0.15);color:#19a05f;">BEAT</span>'
+                        # Line 5: bar
                         f'<div style="height:3px;background:rgba(18,51,36,0.08);border-radius:2px;margin-top:2px;overflow:hidden;">'
                         f'<div style="width:{_bar_width}%;height:100%;background:#19a05f;border-radius:2px;"></div></div>'
+                        # Line 6: percentage
                         f'<span style="font-size:0.58rem;color:#19a05f;font-weight:600;">+{abs(_surprise_pct):.1f}%</span>'
                     )
                 elif last_eps_reported < last_eps_estimate:
                     eps_col_cell += (
-                        ' <span style="display:inline-block;padding:0.05rem 0.4rem;border-radius:999px;font-size:0.6rem;font-weight:700;background:rgba(209,74,52,0.12);color:#d14a34;">MISS</span>'
+                        '<br><span style="display:inline-block;padding:0.05rem 0.4rem;border-radius:999px;font-size:0.6rem;font-weight:700;background:rgba(209,74,52,0.12);color:#d14a34;">MISS</span>'
                         f'<div style="height:3px;background:rgba(18,51,36,0.08);border-radius:2px;margin-top:2px;overflow:hidden;">'
                         f'<div style="width:{_bar_width}%;height:100%;background:#d14a34;border-radius:2px;"></div></div>'
                         f'<span style="font-size:0.58rem;color:#d14a34;font-weight:600;">-{abs(_surprise_pct):.1f}%</span>'
                     )
                 else:
-                    eps_col_cell += ' <span style="display:inline-block;padding:0.05rem 0.4rem;border-radius:999px;font-size:0.6rem;font-weight:700;background:rgba(18,51,36,0.08);color:#5d6f65;">MET</span>'
+                    eps_col_cell += '<br><span style="display:inline-block;padding:0.05rem 0.4rem;border-radius:999px;font-size:0.6rem;font-weight:700;background:rgba(18,51,36,0.08);color:#5d6f65;">MET</span>'
 
-            stock_cell = f'<b>{html_mod.escape(display_ticker)}</b> <span style="color:var(--muted);font-size:0.78rem;">{html_mod.escape(NAME_MAP[ticker])}</span>'
+            stock_cell = f'<b>{html_mod.escape(display_ticker)}</b><br><span style="color:var(--muted);font-size:0.75rem;">{html_mod.escape(NAME_MAP[ticker])}</span>'
             price_ret_html = format_signed_percent(price_returns[ticker])
             price_ret_html = price_ret_html.replace('style="color:', 'style="font-weight:700;color:')
             total_ret_html = format_signed_percent(total_return)
@@ -3895,7 +3900,7 @@ with tab_dashboard:
                 "SMA Cross": sma_cell,
                 "vs 20d SMA": pv_sma_cell,
                 "Signal": signal_cell,
-                f"Price ({start_date_label} – {end_date_label})": f'${share_price:.2f} → ${end_prices[ticker]:.2f}',
+                f"Price ({start_date_label} – {end_date_label})": f'${share_price:.2f}<br>→<br>${end_prices[ticker]:.2f}',
                 "Stake": f"${INVESTMENT:.2f}",
                 "Units": f"{shares:.4f}",
                 "Profit/(Loss)": format_signed_currency(profit),
