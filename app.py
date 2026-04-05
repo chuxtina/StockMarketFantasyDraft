@@ -2701,6 +2701,28 @@ with tab_dashboard:
         meh_ret = meh.get("return", 0)
         meh_rank = meh.get("rank", 0)
 
+        # --- Portfolio Overview (hero card) ---
+        _port_total_invested = INVESTMENT * len(valid_tickers)
+        _port_mkt_val = sum(INVESTMENT / start_prices[t] * end_prices[t] for t in valid_tickers)
+        _port_divs = sum(INVESTMENT / start_prices[t] * dividends.get(t, 0.0) for t in valid_tickers)
+        _port_value = _port_mkt_val + _port_divs
+        _port_pl = _port_value - _port_total_invested
+        _port_ret = (_port_value / _port_total_invested - 1) * 100 if _port_total_invested else 0
+        _port_pl_color = "#19a05f" if _port_pl >= 0 else "#d14a34"
+        st.markdown(
+            f'<div style="background:linear-gradient(135deg,{"#15803d,#166534" if _port_pl >= 0 else "#b91c1c,#991b1b"});border-radius:16px;padding:1.2rem 1.5rem;color:#fff;margin:0.5rem 0 1rem;position:relative;overflow:hidden;">'
+            f'<div style="position:absolute;right:-40px;top:-40px;width:180px;height:180px;border-radius:999px;background:rgba(255,255,255,0.05);"></div>'
+            f'<div style="font-size:0.68rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;opacity:0.8;">Portfolio Value</div>'
+            f'<div style="font-size:2rem;font-weight:900;letter-spacing:-0.03em;margin:0.2rem 0 0.5rem;">${_port_value:,.2f}</div>'
+            f'<div style="display:flex;gap:1.5rem;font-size:0.78rem;opacity:0.85;">'
+            f'<div><div style="font-size:0.6rem;opacity:0.7;text-transform:uppercase;letter-spacing:0.04em;">P/L</div>{"(" if _port_pl < 0 else ""}${abs(_port_pl):,.2f}{")" if _port_pl < 0 else ""}</div>'
+            f'<div><div style="font-size:0.6rem;opacity:0.7;text-transform:uppercase;letter-spacing:0.04em;">P/L %</div>{"(" if _port_ret < 0 else ""}{abs(_port_ret):.2f}%{")" if _port_ret < 0 else ""}</div>'
+            f'<div><div style="font-size:0.6rem;opacity:0.7;text-transform:uppercase;letter-spacing:0.04em;">Dividends</div>${_port_divs:,.2f}</div>'
+            f'<div><div style="font-size:0.6rem;opacity:0.7;text-transform:uppercase;letter-spacing:0.04em;">Invested</div>${_port_total_invested:,.2f} · {len(valid_tickers)} stocks × ${INVESTMENT:.0f}</div>'
+            f'</div></div>',
+            unsafe_allow_html=True,
+        )
+
         st.markdown(
             '<div style="display:flex;align-items:center;gap:0.5rem;margin:0.8rem 0 0.6rem;">'
             '<span style="font-size:1.1rem;font-weight:800;letter-spacing:0.04em;text-transform:uppercase;'
@@ -2819,7 +2841,7 @@ with tab_dashboard:
 
         st.markdown(
             f'<div style="margin:0.8rem 0 0.5rem;font-size:1.1rem;font-weight:800;letter-spacing:0.04em;text-transform:uppercase;color:var(--accent);display:flex;align-items:center;gap:0.5rem;">'
-            f'<span style="font-size:1.3rem;">⚔️</span> ETF Breakdown</div>'
+            f'<span style="font-size:1.3rem;">⚔️</span> ETF Head-to-Head</div>'
             f'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem;margin-bottom:0.8rem;">'
             f'{_etf_cards_top}</div>',
             unsafe_allow_html=True,
@@ -3774,47 +3796,6 @@ with tab_dashboard:
         # --- Portfolio Summary Cards ---
         start_date_label = returns.index[0].strftime("%m/%d/%Y")
         end_date_label = returns.index[-1].strftime("%m/%d/%Y")
-
-        st.markdown(
-            '<div style="display:flex;align-items:center;gap:0.5rem;margin:0.5rem 0 0.3rem;">'
-            '<span style="font-size:1.3rem;">💰</span>'
-            '<span style="font-size:1.1rem;font-weight:800;letter-spacing:0.04em;text-transform:uppercase;'
-            'color:var(--accent);">Portfolio Overview</span></div>',
-            unsafe_allow_html=True,
-        )
-
-        _port_total_invested = INVESTMENT * len(valid_tickers)
-        _port_mkt_val = sum(INVESTMENT / start_prices[t] * end_prices[t] for t in valid_tickers)
-        _port_divs = sum(INVESTMENT / start_prices[t] * dividends.get(t, 0.0) for t in valid_tickers)
-        _port_value = _port_mkt_val + _port_divs
-        _port_pl = _port_value - _port_total_invested
-        _port_ret = (_port_value / _port_total_invested - 1) * 100 if _port_total_invested else 0
-        _port_pl_color = "#19a05f" if _port_pl >= 0 else "#d14a34"
-        _port_ret_sign = "+" if _port_ret >= 0 else ""
-        _port_pl_sign = "+" if _port_pl >= 0 else ""
-
-        _card_s = ('background:var(--panel-strong);border:1px solid var(--border);border-radius:16px;'
-                   'padding:1rem 1.2rem;box-shadow:0 4px 12px rgba(82,58,32,0.06);')
-        _lbl_s = 'font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:0.3rem;'
-        _val_s = 'font-size:1.5rem;font-weight:800;letter-spacing:-0.02em;'
-
-        st.markdown(
-            f'<div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin:0.8rem 0 1.2rem;">'
-            f'<div style="{_card_s}">'
-            f'<div style="{_lbl_s}">Portfolio Value</div>'
-            f'<div style="{_val_s}color:{_port_pl_color};">${_port_value:,.2f}</div>'
-            f'<div style="font-size:0.75rem;font-weight:600;color:{_port_pl_color};margin-top:0.2rem;">P/L: {"(" if _port_pl < 0 else ""}${abs(_port_pl):,.2f}{")" if _port_pl < 0 else ""}</div>'
-            f'<div style="font-size:0.75rem;font-weight:600;color:{_port_pl_color};margin-top:0.1rem;">P/L %: {"(" if _port_ret < 0 else ""}{abs(_port_ret):.2f}%{")" if _port_ret < 0 else ""}</div>'
-            f'<div style="font-size:0.75rem;color:#19a05f;margin-top:0.1rem;">Total Dividends Received: ${_port_divs:,.2f}</div>'
-            f'</div>'
-            f'<div style="{_card_s}">'
-            f'<div style="{_lbl_s}">Total Invested</div>'
-            f'<div style="{_val_s}">${_port_total_invested:,.2f}</div>'
-            f'<div style="font-size:0.75rem;color:var(--muted);margin-top:0.2rem;">{len(valid_tickers)} stocks × ${INVESTMENT:.2f}</div>'
-            f'</div>'
-            f'</div>',
-            unsafe_allow_html=True,
-        )
 
         # --- Leaderboard ---
         st.markdown(
