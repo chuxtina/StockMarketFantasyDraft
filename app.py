@@ -2524,10 +2524,14 @@ with tab_dashboard:
         top10_tickers = final_returns.head(10).index.tolist()
         bottom10_tickers = final_returns.tail(10).index.tolist()
 
-        # Compute rank changes vs yesterday for arrows (still price-based since we lack intraday dividend data)
+        # Compute rank changes vs yesterday for arrows (total return based)
         if len(returns) >= 2:
-            prev_returns = returns[valid_tickers].iloc[-2].sort_values(ascending=False)
-            prev_ranks = {ticker: rank for rank, ticker in enumerate(prev_returns.index, start=1)}
+            prev_price = returns[valid_tickers].iloc[-2]
+            prev_total = pd.Series({
+                t: prev_price[t] + (dividends.get(t, 0.0) / start_prices[t]) * 100
+                for t in valid_tickers
+            }).sort_values(ascending=False)
+            prev_ranks = {ticker: rank for rank, ticker in enumerate(prev_total.index, start=1)}
         else:
             prev_ranks = {}
 
@@ -2766,11 +2770,16 @@ with tab_dashboard:
         # Pair 1: Diamond Hands vs Bag Holder (with date ranges)
         diamond = _find_badge("Diamond Hands")
         bottom = _find_badge("Bottom Feeder")
+        # Build total-return daily data for MVP/bench date lookups
+        _daily_tr = returns[valid_tickers].copy()
+        for _t in valid_tickers:
+            _div_ret = (dividends.get(_t, 0.0) / start_prices[_t]) * 100 if start_prices[_t] else 0
+            _daily_tr[_t] = _daily_tr[_t] + _div_ret
         if diamond and diamond["unlocked"]:
             # Find first and last date this stock was MVP
             dh_ticker = diamond["holder"].split(" (")[0]
             if len(returns) > 1:
-                daily_mvp = returns[valid_tickers].iloc[1:].idxmax(axis=1)
+                daily_mvp = _daily_tr.iloc[1:].idxmax(axis=1)
                 dh_dates = daily_mvp[daily_mvp == dh_ticker].index
                 if len(dh_dates) > 0:
                     dh_first = dh_dates[0].strftime("%b %d")
@@ -2783,7 +2792,7 @@ with tab_dashboard:
         if bottom and bottom["unlocked"]:
             bh_ticker = bottom["holder"].split(" (")[0]
             if len(returns) > 1:
-                daily_bench = returns[valid_tickers].iloc[1:].idxmin(axis=1)
+                daily_bench = _daily_tr.iloc[1:].idxmin(axis=1)
                 bh_dates = daily_bench[daily_bench == bh_ticker].index
                 if len(bh_dates) > 0:
                     bh_first = bh_dates[0].strftime("%b %d")
@@ -2820,7 +2829,7 @@ with tab_dashboard:
         negative_tickers = [t for t in valid_tickers if final_returns[t] < 0]
         if negative_tickers:
             dead_weight = min(negative_tickers, key=lambda t: final_returns[t])
-            dw_low = float(returns[dead_weight].min())
+            dw_low = float(_daily_tr[dead_weight].min())
             badges_data.append(("\U0001faa8", "Dead Weight", f'{dead_weight} ({dw_low:+.2f}% \u2192 {final_returns[dead_weight]:+.2f}%)', "Went down and stayed down"))
 
         # Pair 5: Dark Horse vs Fallen Angel
@@ -2985,7 +2994,7 @@ with tab_dashboard:
             f'<div style="font-size:0.78rem;opacity:0.65;margin-bottom:0.05rem;">'
             f'{start_date.strftime("%b %d")} \u2013 {end_date.strftime("%b %d, %Y")}</div>'
             f'<div style="font-size:0.78rem;opacity:0.65;margin-bottom:0.8rem;">'
-            f'{trading_days} trading days &middot; Avg return: {avg_return:+.2f}%</div>'
+            f'{trading_days} trading days &middot; Avg total return: {avg_return:+.2f}%</div>'
             f'<div style="display:flex;border-radius:10px;overflow:hidden;height:34px;">'
             f'<div style="width:{green_pct}%;background:#19a05f;display:flex;align-items:center;justify-content:center;'
             f'font-size:clamp(0.6rem,2vw,0.75rem);font-weight:700;color:#fff;padding:0 0.4rem;">'
@@ -3885,7 +3894,7 @@ with tab_dashboard:
             f'<table style="width:100%;border-collapse:separate;border-spacing:0;border-radius:14px;'
             f'overflow:hidden;background:var(--panel-strong);border:1px solid var(--border);font-family:Space Grotesk,sans-serif;font-size:0.82rem;">'
             f'<tr>'
-            f'<th {_th}>Sector</th><th {_th}>#</th><th {_th}>Avg Return ({start_date.strftime("%m/%d")} - {end_date.strftime("%m/%d")})</th>'
+            f'<th {_th}>Sector</th><th {_th}>#</th><th {_th}>Avg Total Return ({start_date.strftime("%m/%d")} - {end_date.strftime("%m/%d")})</th>'
             f'<th {_th}>Stocks</th><th {_th}>Best</th><th {_th}>Worst</th>'
             f'<th {_th}>ETF Breakdown</th>'
             f'</tr>'
@@ -4573,7 +4582,11 @@ with tab_feud:
         _vt = st.session_state["_valid_tickers"]
         _sp = st.session_state["_start_prices"]
         _div = st.session_state["_dividends"]
-        _fr = _r[_vt].iloc[-1].sort_values(ascending=False)
+        _ep = st.session_state["_end_prices"]
+        _fr = pd.Series({
+            t: ((INVESTMENT / _sp[t] * _ep[t] + INVESTMENT / _sp[t] * _div.get(t, 0.0)) / INVESTMENT - 1) * 100
+            for t in _vt
+        }).sort_values(ascending=False)
         preds = generate_predictions(_r, _vt, NAME_MAP, ETF_MAP, _fr, _div, _sp, INVESTMENT)
         pred_history = load_pred_history()
 
