@@ -3770,40 +3770,37 @@ with tab_dashboard:
             last_earn_date = earn.get("last_earnings_date", "")
             last_eps_reported = earn.get("last_eps_reported")
             last_eps_estimate = earn.get("last_eps_estimate")
-            # Use reported EPS from earnings_dates if available, otherwise fall back to trailingEps
-            eps_display = last_eps_reported if last_eps_reported is not None else eps_actual
-            if eps_display is not None:
-                eps_actual_cell = f'${eps_display:.2f}'
-                # Show "vs est $X.XX" line
-                if last_eps_estimate is not None:
-                    eps_actual_cell += f'<br><span style="color:var(--muted);font-size:0.68rem;">vs est ${last_eps_estimate:.2f}</span>'
-                if last_earn_date:
-                    eps_actual_cell += f' <span style="color:var(--muted);font-size:0.68rem;">{last_earn_date}</span>'
-                # Beat/miss badge + surprise bar
-                if last_eps_reported is not None and last_eps_estimate is not None:
-                    if last_eps_estimate != 0:
-                        _surprise_pct = ((last_eps_reported - last_eps_estimate) / abs(last_eps_estimate)) * 100
-                    else:
-                        _surprise_pct = 100.0 if last_eps_reported > 0 else (-100.0 if last_eps_reported < 0 else 0)
-                    _bar_width = min(abs(_surprise_pct), 100)
-                    if last_eps_reported > last_eps_estimate:
-                        eps_actual_cell += (
-                            ' <span style="display:inline-block;padding:0.05rem 0.4rem;border-radius:999px;font-size:0.62rem;font-weight:700;background:rgba(25,160,95,0.15);color:#19a05f;">BEAT</span>'
-                            f'<div style="height:4px;background:rgba(18,51,36,0.08);border-radius:2px;margin-top:3px;overflow:hidden;">'
-                            f'<div style="width:{_bar_width}%;height:100%;background:#19a05f;border-radius:2px;"></div></div>'
-                            f'<span style="font-size:0.6rem;color:#19a05f;font-weight:600;">+{abs(_surprise_pct):.1f}%</span>'
-                        )
-                    elif last_eps_reported < last_eps_estimate:
-                        eps_actual_cell += (
-                            ' <span style="display:inline-block;padding:0.05rem 0.4rem;border-radius:999px;font-size:0.62rem;font-weight:700;background:rgba(209,74,52,0.12);color:#d14a34;">MISS</span>'
-                            f'<div style="height:4px;background:rgba(18,51,36,0.08);border-radius:2px;margin-top:3px;overflow:hidden;">'
-                            f'<div style="width:{_bar_width}%;height:100%;background:#d14a34;border-radius:2px;"></div></div>'
-                            f'<span style="font-size:0.6rem;color:#d14a34;font-weight:600;">-{abs(_surprise_pct):.1f}%</span>'
-                        )
-                    else:
-                        eps_actual_cell += ' <span style="display:inline-block;padding:0.05rem 0.4rem;border-radius:999px;font-size:0.62rem;font-weight:700;background:rgba(18,51,36,0.08);color:#5d6f65;">MET</span>'
+            # Build Est. EPS cell: main value is upcoming estimate, sub-text is last actual vs estimate
+            if eps_est is not None:
+                eps_col_cell = f'${eps_est:.2f}'
             else:
-                eps_actual_cell = '<span style="color:var(--muted);">\u2014</span>'
+                eps_col_cell = '<span style="color:var(--muted);">\u2014</span>'
+            # Add last earnings details below
+            if last_eps_reported is not None and last_eps_estimate is not None:
+                if last_eps_estimate != 0:
+                    _surprise_pct = ((last_eps_reported - last_eps_estimate) / abs(last_eps_estimate)) * 100
+                else:
+                    _surprise_pct = 100.0 if last_eps_reported > 0 else (-100.0 if last_eps_reported < 0 else 0)
+                _bar_width = min(abs(_surprise_pct), 100)
+                _date_part = f' {last_earn_date}' if last_earn_date else ''
+                # "actual vs est $X.XX" line
+                eps_col_cell += f'<br><span style="color:var(--muted);font-size:0.66rem;">${last_eps_reported:.2f} vs ${last_eps_estimate:.2f}{_date_part}</span>'
+                if last_eps_reported > last_eps_estimate:
+                    eps_col_cell += (
+                        ' <span style="display:inline-block;padding:0.05rem 0.4rem;border-radius:999px;font-size:0.6rem;font-weight:700;background:rgba(25,160,95,0.15);color:#19a05f;">BEAT</span>'
+                        f'<div style="height:3px;background:rgba(18,51,36,0.08);border-radius:2px;margin-top:2px;overflow:hidden;">'
+                        f'<div style="width:{_bar_width}%;height:100%;background:#19a05f;border-radius:2px;"></div></div>'
+                        f'<span style="font-size:0.58rem;color:#19a05f;font-weight:600;">+{abs(_surprise_pct):.1f}%</span>'
+                    )
+                elif last_eps_reported < last_eps_estimate:
+                    eps_col_cell += (
+                        ' <span style="display:inline-block;padding:0.05rem 0.4rem;border-radius:999px;font-size:0.6rem;font-weight:700;background:rgba(209,74,52,0.12);color:#d14a34;">MISS</span>'
+                        f'<div style="height:3px;background:rgba(18,51,36,0.08);border-radius:2px;margin-top:2px;overflow:hidden;">'
+                        f'<div style="width:{_bar_width}%;height:100%;background:#d14a34;border-radius:2px;"></div></div>'
+                        f'<span style="font-size:0.58rem;color:#d14a34;font-weight:600;">-{abs(_surprise_pct):.1f}%</span>'
+                    )
+                else:
+                    eps_col_cell += ' <span style="display:inline-block;padding:0.05rem 0.4rem;border-radius:999px;font-size:0.6rem;font-weight:700;background:rgba(18,51,36,0.08);color:#5d6f65;">MET</span>'
 
             stock_cell = f'<b>{html_mod.escape(display_ticker)}</b> <span style="color:var(--muted);font-size:0.78rem;">{html_mod.escape(NAME_MAP[ticker])}</span>'
             price_ret_html = format_signed_percent(price_returns[ticker])
@@ -3840,8 +3837,8 @@ with tab_dashboard:
                 "Mkt Value": f'<span style="color:{"#19a05f" if market_value >= INVESTMENT else "#d14a34"};">${market_value:.2f}</span>',
                 "Dividends": f'<span style="color:#19a05f;">${div_income:.2f}</span>' if div_income > 0 else f'${div_income:.2f}',
                 "Total Value": f'<span style="color:{"#19a05f" if final_value >= INVESTMENT else "#d14a34"};">${final_value:.2f}</span>',
-                "Next Earnings": earn_cell + (f'<br><span style="color:var(--muted);font-size:0.68rem;">Est. {eps_est_cell}</span>' if eps_est is not None else ''),
-                "Last EPS": eps_actual_cell,
+                "Next Earnings": earn_cell,
+                "Est. EPS": eps_col_cell,
             })
 
         # Compute totals for summary row
@@ -3873,7 +3870,7 @@ with tab_dashboard:
             "Dividends": f'<b><span style="color:#19a05f;">${_total_divs:.2f}</span></b>' if _total_divs > 0 else f'<b>${_total_divs:.2f}</b>',
             "Total Value": f'<b><span style="color:{"#19a05f" if (_total_mkt_val + _total_divs) >= _total_stake else "#d14a34"};">${_total_mkt_val + _total_divs:.2f}</span></b>',
             "Next Earnings": "",
-            "Last EPS": "",
+            "Est. EPS": "",
         })
 
         df = pd.DataFrame(rows)
