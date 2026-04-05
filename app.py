@@ -1533,25 +1533,46 @@ def fetch_news_batch(tickers_tuple):
 def fetch_earnings(tickers_tuple):
     """Fetch next earnings date and EPS estimates for tickers via yfinance using threads."""
     from concurrent.futures import ThreadPoolExecutor
+    import datetime as _dt
 
     def _fetch_one(ticker):
         try:
             t = yf.Ticker(ticker)
             cal = t.calendar
             if cal is not None and isinstance(cal, dict):
-                earnings_dates = cal.get("Earnings Date", [])
-                next_date = earnings_dates[0].strftime("%b %d") if earnings_dates else ""
+                earnings_dates_list = cal.get("Earnings Date", [])
+                next_date = earnings_dates_list[0].strftime("%b %d") if earnings_dates_list else ""
                 eps_est = cal.get("Earnings Average")
                 info = t.info
                 eps_actual = info.get("trailingEps")
+                # Get most recent quarterly earnings for beat/miss
+                last_earnings_date = ""
+                last_eps_reported = None
+                last_eps_estimate = None
+                try:
+                    eh = t.earnings_history
+                    if eh is not None and len(eh) > 0:
+                        latest = eh.iloc[-1]
+                        last_earnings_date = eh.index[-1].strftime("%b %y")
+                        v = latest.get("epsActual")
+                        if v is not None and str(v) != "nan":
+                            last_eps_reported = round(float(v), 2)
+                        v = latest.get("epsEstimate")
+                        if v is not None and str(v) != "nan":
+                            last_eps_estimate = round(float(v), 2)
+                except Exception:
+                    pass
                 return ticker, {
                     "next_date": next_date,
                     "eps_est": round(eps_est, 2) if eps_est else None,
                     "eps_actual": round(eps_actual, 2) if eps_actual else None,
+                    "last_earnings_date": last_earnings_date,
+                    "last_eps_reported": last_eps_reported,
+                    "last_eps_estimate": last_eps_estimate,
                 }
         except Exception:
             pass
-        return ticker, {"next_date": "", "eps_est": None, "eps_actual": None}
+        return ticker, {"next_date": "", "eps_est": None, "eps_actual": None, "last_earnings_date": "", "last_eps_reported": None, "last_eps_estimate": None}
 
     with ThreadPoolExecutor(max_workers=10) as pool:
         results = pool.map(_fetch_one, tickers_tuple)
@@ -3676,7 +3697,25 @@ with tab_dashboard:
             eps_actual = earn.get("eps_actual")
             earn_cell = earn_date if earn_date else '<span style="color:var(--muted);">\u2014</span>'
             eps_est_cell = f'${eps_est:.2f}' if eps_est is not None else '<span style="color:var(--muted);">\u2014</span>'
-            eps_actual_cell = f'${eps_actual:.2f}' if eps_actual is not None else '<span style="color:var(--muted);">\u2014</span>'
+            last_earn_date = earn.get("last_earnings_date", "")
+            last_eps_reported = earn.get("last_eps_reported")
+            last_eps_estimate = earn.get("last_eps_estimate")
+            # Use reported EPS from earnings_dates if available, otherwise fall back to trailingEps
+            eps_display = last_eps_reported if last_eps_reported is not None else eps_actual
+            if eps_display is not None:
+                eps_actual_cell = f'${eps_display:.2f}'
+                if last_earn_date:
+                    eps_actual_cell += f'<br><span style="color:var(--muted);font-size:0.68rem;">{last_earn_date}</span>'
+                # Beat/miss badge
+                if last_eps_reported is not None and last_eps_estimate is not None:
+                    if last_eps_reported > last_eps_estimate:
+                        eps_actual_cell += ' <span style="display:inline-block;padding:0.05rem 0.4rem;border-radius:999px;font-size:0.62rem;font-weight:700;background:rgba(25,160,95,0.15);color:#19a05f;">BEAT</span>'
+                    elif last_eps_reported < last_eps_estimate:
+                        eps_actual_cell += ' <span style="display:inline-block;padding:0.05rem 0.4rem;border-radius:999px;font-size:0.62rem;font-weight:700;background:rgba(209,74,52,0.12);color:#d14a34;">MISS</span>'
+                    else:
+                        eps_actual_cell += ' <span style="display:inline-block;padding:0.05rem 0.4rem;border-radius:999px;font-size:0.62rem;font-weight:700;background:rgba(18,51,36,0.08);color:#5d6f65;">MET</span>'
+            else:
+                eps_actual_cell = '<span style="color:var(--muted);">\u2014</span>'
 
             stock_cell = f'<b>{html_mod.escape(display_ticker)}</b> <span style="color:var(--muted);font-size:0.78rem;">{html_mod.escape(NAME_MAP[ticker])}</span>'
             price_ret_html = format_signed_percent(price_returns[ticker])
@@ -3702,16 +3741,14 @@ with tab_dashboard:
                 "SMA Cross": sma_cell,
                 "vs 20d SMA": pv_sma_cell,
                 "Signal": signal_cell,
-                f"Start ({start_date_label})": f"${share_price:.2f}",
-                f"End ({end_date_label})": f"${end_prices[ticker]:.2f}",
+                f"Price ({start_date_label} – {end_date_label})": f'${share_price:.2f} → ${end_prices[ticker]:.2f}',
                 "Stake": f"${INVESTMENT:.2f}",
                 "Units": f"{shares:.4f}",
                 "Profit/(Loss)": format_signed_currency(profit),
                 "Mkt Value": f'<span style="color:{"#19a05f" if market_value >= INVESTMENT else "#d14a34"};">${market_value:.2f}</span>',
                 "Dividends": f'<span style="color:#19a05f;">${div_income:.2f}</span>' if div_income > 0 else f'${div_income:.2f}',
                 "Total Value": f'<span style="color:{"#19a05f" if final_value >= INVESTMENT else "#d14a34"};">${final_value:.2f}</span>',
-                "Next Earnings": earn_cell,
-                "Est. EPS": eps_est_cell,
+                "Next Earnings": earn_cell + (f'<br><span style="color:var(--muted);font-size:0.68rem;">Est. {eps_est_cell}</span>' if eps_est is not None else ''),
                 "Last EPS": eps_actual_cell,
             })
 
@@ -3736,8 +3773,7 @@ with tab_dashboard:
             "SMA Cross": "",
             "vs 20d SMA": "",
             "Signal": "",
-            f"Start ({start_date_label})": "",
-            f"End ({end_date_label})": "",
+            f"Price ({start_date_label} – {end_date_label})": "",
             "Stake": f'<b>${_total_stake:.2f}</b>',
             "Units": "",
             "Profit/(Loss)": f'<b>{format_signed_currency(_total_profit)}</b>',
@@ -3745,7 +3781,6 @@ with tab_dashboard:
             "Dividends": f'<b><span style="color:#19a05f;">${_total_divs:.2f}</span></b>' if _total_divs > 0 else f'<b>${_total_divs:.2f}</b>',
             "Total Value": f'<b><span style="color:{"#19a05f" if (_total_mkt_val + _total_divs) >= _total_stake else "#d14a34"};">${_total_mkt_val + _total_divs:.2f}</span></b>',
             "Next Earnings": "",
-            "Est. EPS": "",
             "Last EPS": "",
         })
 
@@ -3806,7 +3841,10 @@ with tab_dashboard:
             'table.leaderboard td, table.leaderboard th { padding:10px 8px; text-align:left; border-bottom:1px solid rgba(18,51,36,0.06); border-right:1px solid rgba(18,51,36,0.04); white-space:nowrap; font-family:"Space Grotesk",sans-serif; font-size:0.82rem; }'
             'table.leaderboard th.blank, table.leaderboard td.blank { display:none; padding:0; height:0; border:none; }'
             'table.leaderboard thead tr:has(th.blank) { display:none; }'
-            'table.leaderboard th { white-space:normal; background:linear-gradient(90deg,#0d2f20,#13492f); color:#f4f0e3; text-transform:uppercase; letter-spacing:0.06em; font-family:"Space Grotesk",sans-serif; font-size:0.72rem; font-weight:700; min-width:45px; max-width:100px; line-height:1.3; padding:10px 8px; position:sticky; top:0; z-index:1; }'
+            'table.leaderboard th { white-space:normal; background:linear-gradient(90deg,#0d2f20,#13492f); color:#f4f0e3; text-transform:uppercase; letter-spacing:0.06em; font-family:"Space Grotesk",sans-serif; font-size:0.72rem; font-weight:700; min-width:45px; max-width:100px; line-height:1.3; padding:10px 8px; position:sticky; top:0; z-index:1; cursor:pointer; user-select:none; }'
+            'table.leaderboard th:hover { background:linear-gradient(90deg,#0a2518,#0f3a25); }'
+            'table.leaderboard th .sort-arrow { font-size:0.6rem; margin-left:3px; opacity:0.4; }'
+            'table.leaderboard th.sort-active .sort-arrow { opacity:1; }'
             'table.leaderboard tr:nth-child(even) td { background:rgba(16,95,58,0.04); }'
             'table.leaderboard tbody tr:hover td { background:rgba(14,95,58,0.08); }'
             '.signal-badge { display:inline-block; padding:0.1rem 0.5rem; border-radius:999px; font-size:0.68rem; font-weight:700; letter-spacing:0.03em; }'
@@ -3829,6 +3867,54 @@ with tab_dashboard:
             'var s=document.createElement("style");'
             's.textContent=".lb-wrap::-webkit-scrollbar{height:10px;width:10px;-webkit-appearance:none;display:block}.lb-wrap::-webkit-scrollbar-track{background:rgba(18,51,36,0.03);border-radius:5px}.lb-wrap::-webkit-scrollbar-thumb{background:rgba(18,51,36,0.12);border-radius:5px;min-height:40px;min-width:40px}.lb-wrap::-webkit-scrollbar-corner{background:transparent}";'
             'document.head.appendChild(s);}'
+            ''
+            '/* Column sorting */'
+            'var table=document.querySelector("table.leaderboard");'
+            'if(table){'
+            '  var headers=table.querySelectorAll("thead th");'
+            '  headers.forEach(function(th,i){'
+            '    th.innerHTML=th.innerHTML+\'<span class="sort-arrow">▲▼</span>\';'
+            '    th.addEventListener("click",function(){sortTable(i,th);});'
+            '  });'
+            '}'
+            'var sortCol=-1,sortAsc=true;'
+            'function parseVal(cell){'
+            '  var txt=cell.textContent.trim();'
+            '  if(!txt)return null;'
+            '  /* strip rank arrows/triangles */'
+            '  txt=txt.replace(/^[▲▼►◆●■\u25B2\u25BC\u25BA]/,"").trim();'
+            '  /* currency/percent */'
+            '  var cleaned=txt.replace(/[$,%()]/g,"").trim();'
+            '  /* handle parenthesized negatives like ($0.11) */'
+            '  if(txt.indexOf("(")>-1 && txt.indexOf(")")>-1){cleaned="-"+cleaned.replace(/[()]/g,"");}'
+            '  var num=parseFloat(cleaned);'
+            '  if(!isNaN(num))return num;'
+            '  return txt.toLowerCase();'
+            '}'
+            'function sortTable(colIdx,th){'
+            '  var tbody=table.querySelector("tbody");'
+            '  var rows=Array.from(tbody.querySelectorAll("tr"));'
+            '  /* Keep last row (Total) pinned */'
+            '  var totalRow=rows.pop();'
+            '  if(sortCol===colIdx){sortAsc=!sortAsc;}else{sortCol=colIdx;sortAsc=true;}'
+            '  rows.sort(function(a,b){'
+            '    var va=parseVal(a.cells[colIdx]),vb=parseVal(b.cells[colIdx]);'
+            '    if(va===null&&vb===null)return 0;'
+            '    if(va===null)return 1;if(vb===null)return -1;'
+            '    if(typeof va==="number"&&typeof vb==="number")return sortAsc?va-vb:vb-va;'
+            '    var sa=String(va),sb=String(vb);'
+            '    return sortAsc?sa.localeCompare(sb):sb.localeCompare(sa);'
+            '  });'
+            '  rows.forEach(function(r){tbody.appendChild(r);});'
+            '  tbody.appendChild(totalRow);'
+            '  /* Update header arrows */'
+            '  table.querySelectorAll("thead th").forEach(function(h){h.classList.remove("sort-active");});'
+            '  th.classList.add("sort-active");'
+            '  th.querySelector(".sort-arrow").textContent=sortAsc?"▲":"▼";'
+            '  table.querySelectorAll("thead th").forEach(function(h){'
+            '    if(h!==th){var ar=h.querySelector(".sort-arrow");if(ar)ar.textContent="▲▼";}'
+            '  });'
+            '}'
             '</script>'
         )
         components.html(_lb_html, height=628, scrolling=False)
@@ -3836,6 +3922,62 @@ with tab_dashboard:
             '<div style="font-size:0.7rem;color:var(--muted);line-height:1.4;margin-top:-0.3rem;">'
             '<b>Price Return (%)</b> is the percentage change in share price over the period, excluding dividends. '
             '<b>Total Return (%)</b> includes dividends.</div>',
+            unsafe_allow_html=True,
+        )
+
+        # --- Next Week Events ---
+        import datetime as _dt_mod
+        _today = _dt_mod.date.today()
+        # Find next Monday
+        _days_until_mon = (7 - _today.weekday()) % 7
+        if _days_until_mon == 0:
+            _days_until_mon = 7
+        _next_monday = _today + _dt_mod.timedelta(days=_days_until_mon)
+        _next_friday = _next_monday + _dt_mod.timedelta(days=4)
+        _week_label = f"{_next_monday.strftime('%b %d')} – {_next_friday.strftime('%b %d')}"
+
+        # Collect earnings happening next week
+        _next_week_earnings = []
+        for t in valid_tickers:
+            earn = earnings_data.get(t, {})
+            earn_date_str = earn.get("next_date", "")
+            if not earn_date_str:
+                continue
+            try:
+                # Parse "Apr 30" style date, assume current year
+                _ed = _dt_mod.datetime.strptime(earn_date_str, "%b %d").date().replace(year=_today.year)
+                if _next_monday <= _ed <= _next_friday:
+                    eps_est = earn.get("eps_est")
+                    _next_week_earnings.append((t, _ed, eps_est))
+            except Exception:
+                pass
+        _next_week_earnings.sort(key=lambda x: x[1])
+
+        # Build the events HTML
+        _events_items = []
+        for t, ed, eps_est in _next_week_earnings:
+            _day_label = ed.strftime("%a %b %d")
+            _eps_note = f' · Est. ${eps_est:.2f}' if eps_est is not None else ''
+            _events_items.append(
+                f'<div style="display:flex;align-items:center;gap:0.6rem;padding:0.5rem 0;border-bottom:1px solid rgba(18,51,36,0.06);">'
+                f'<span style="font-size:1rem;">📊</span>'
+                f'<span style="font-weight:700;font-size:0.85rem;">{t}</span>'
+                f'<span style="color:var(--muted);font-size:0.78rem;">Earnings {_day_label}{_eps_note}</span>'
+                f'</div>'
+            )
+
+        if _events_items:
+            _events_html = ''.join(_events_items)
+        else:
+            _events_html = '<div style="color:var(--muted);font-size:0.82rem;padding:0.6rem 0;">No earnings scheduled next week for roster stocks.</div>'
+
+        st.markdown(
+            f'<div style="margin:1.2rem 0 0.8rem;">'
+            f'<div style="font-size:1.1rem;font-weight:800;letter-spacing:0.04em;text-transform:uppercase;color:var(--accent);margin-bottom:0.6rem;display:flex;align-items:center;gap:0.5rem;">'
+            f'<span style="font-size:1.3rem;">📅</span> Next Week · {_week_label}</div>'
+            f'<div style="background:rgba(251,253,250,0.96);border:1px solid rgba(18,51,36,0.12);border-radius:18px;padding:0.8rem 1.2rem;box-shadow:0 4px 12px rgba(82,58,32,0.06);">'
+            f'{_events_html}'
+            f'</div></div>',
             unsafe_allow_html=True,
         )
 
