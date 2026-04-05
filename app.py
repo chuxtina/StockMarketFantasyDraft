@@ -3796,11 +3796,12 @@ with tab_dashboard:
         _lb_html = (
             '<style>'
             'body { margin:0; padding:0; }'
-            '.lb-wrap::-webkit-scrollbar { height:6px; width:6px; }'
-            '.lb-wrap::-webkit-scrollbar-track { background:rgba(18,51,36,0.04); border-radius:3px; }'
-            '.lb-wrap::-webkit-scrollbar-thumb { background:rgba(18,51,36,0.15); border-radius:3px; }'
-            '.lb-wrap::-webkit-scrollbar-thumb:hover { background:rgba(18,51,36,0.3); }'
-            '.lb-wrap { scrollbar-width:thin; scrollbar-color:rgba(18,51,36,0.15) rgba(18,51,36,0.04); }'
+            '.lb-wrap { overflow:scroll !important; }'
+            '.lb-wrap::-webkit-scrollbar { height:10px; width:10px; -webkit-appearance:none; display:block; }'
+            '.lb-wrap::-webkit-scrollbar-track { background:rgba(18,51,36,0.03); border-radius:5px; }'
+            '.lb-wrap::-webkit-scrollbar-thumb { background:rgba(18,51,36,0.12); border-radius:5px; min-height:40px; min-width:40px; }'
+            '.lb-wrap::-webkit-scrollbar-thumb:hover { background:rgba(18,51,36,0.22); }'
+            '.lb-wrap::-webkit-scrollbar-corner { background:transparent; }'
             'table.leaderboard { min-width:max-content; width:100%; border-collapse:separate; border-spacing:0; border-radius:18px; background:rgba(251,253,250,0.96); }'
             'table.leaderboard td, table.leaderboard th { padding:10px 8px; text-align:left; border-bottom:1px solid rgba(18,51,36,0.06); border-right:1px solid rgba(18,51,36,0.04); white-space:nowrap; font-family:"Space Grotesk",sans-serif; font-size:0.82rem; }'
             'table.leaderboard th.blank, table.leaderboard td.blank { display:none; padding:0; height:0; border:none; }'
@@ -3819,9 +3820,16 @@ with tab_dashboard:
             '  table.leaderboard th { font-size:0.6rem; min-width:40px; }'
             '}'
             '</style>'
-            '<div class="lb-wrap" style="overflow:auto;-webkit-overflow-scrolling:touch;max-height:620px;border-radius:18px;border:1px solid rgba(18,51,36,0.12);">'
+            '<div class="lb-wrap" style="overflow:scroll;-webkit-overflow-scrolling:touch;max-height:620px;border-radius:18px;border:1px solid rgba(18,51,36,0.12);">'
             + styled_df.to_html(escape=False)
             + '</div>'
+            '<script>'
+            'var w=document.querySelector(".lb-wrap");'
+            'if(w){w.style.overflow="scroll";'
+            'var s=document.createElement("style");'
+            's.textContent=".lb-wrap::-webkit-scrollbar{height:10px;width:10px;-webkit-appearance:none;display:block}.lb-wrap::-webkit-scrollbar-track{background:rgba(18,51,36,0.03);border-radius:5px}.lb-wrap::-webkit-scrollbar-thumb{background:rgba(18,51,36,0.12);border-radius:5px;min-height:40px;min-width:40px}.lb-wrap::-webkit-scrollbar-corner{background:transparent}";'
+            'document.head.appendChild(s);}'
+            '</script>'
         )
         components.html(_lb_html, height=628, scrolling=False)
         st.markdown(
