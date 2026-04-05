@@ -2681,6 +2681,11 @@ with tab_dashboard:
             )
 
         # --- Signals & News ---
+        meh = superlatives.get("middle", {})
+        meh_ticker = meh.get("ticker", "")
+        meh_ret = meh.get("return", 0)
+        meh_rank = meh.get("rank", 0)
+
         st.markdown(
             '<div style="display:flex;align-items:center;gap:0.5rem;margin:0.8rem 0 0.6rem;">'
             '<span style="font-size:1.1rem;font-weight:800;letter-spacing:0.04em;text-transform:uppercase;'
@@ -2688,46 +2693,57 @@ with tab_dashboard:
             unsafe_allow_html=True,
         )
 
-        meh = superlatives.get("middle", {})
-        meh_ticker = meh.get("ticker", "")
-        meh_ret = meh.get("return", 0)
-        meh_rank = meh.get("rank", 0)
+        # Helper to build stock card (green/cream theme)
+        _ETF_EMOJI_CARD = {"UNCL": "👨‍🦳", "ANTY": "👩🏻", "KIDZ": "👶🏻"}
+        def _stock_card(ticker, ret, rank_label, streak_text, streak_icon, border_color, etf_map=ETF_MAP):
+            _etf = etf_map.get(ticker, "")
+            _etf_em = _ETF_EMOJI_CARD.get(_etf, "")
+            _sp = start_prices[ticker]
+            _ep = end_prices[ticker]
+            _shares = INVESTMENT / _sp
+            _div = _shares * dividends.get(ticker, 0.0)
+            _mv = _shares * _ep
+            _fv = _mv + _div
+            _pl = _fv - INVESTMENT
+            _ret_color = "#19a05f" if ret >= 0 else "#d14a34"
+            _pl_color = "#19a05f" if _pl >= 0 else "#d14a34"
+            return (
+                f'<div style="background:var(--panel-strong);border:1px solid var(--border);border-left:3px solid {border_color};'
+                f'border-radius:14px;padding:1rem 1.1rem;box-shadow:0 4px 12px rgba(82,58,32,0.06);">'
+                f'<div style="display:flex;justify-content:space-between;align-items:flex-start;">'
+                f'<div>'
+                f'<div style="display:flex;align-items:center;gap:0.4rem;margin-bottom:0.25rem;">'
+                f'<span style="font-size:0.9rem;">{rank_label}</span>'
+                f'<span style="font-size:1.05rem;font-weight:800;">{html_mod.escape(ticker)}</span>'
+                f'<span style="font-size:0.85rem;">{_etf_em}</span>'
+                f'</div>'
+                f'<div style="font-size:0.75rem;color:var(--muted);">{html_mod.escape(NAME_MAP.get(ticker, ""))} · {SECTOR_MAP.get(ticker, "")}</div>'
+                f'</div>'
+                f'<div style="text-align:right;">'
+                f'<div style="font-size:1.3rem;font-weight:800;color:{_ret_color};">{ret:+.2f}%</div>'
+                f'<div style="font-size:0.68rem;color:var(--muted);">Total Return</div>'
+                f'</div></div>'
+                f'<div style="display:flex;gap:1.2rem;margin-top:0.7rem;font-size:0.76rem;">'
+                f'<div><span style="color:var(--muted);">Price</span><br><span style="font-weight:600;">${_sp:.2f} → ${_ep:.2f}</span></div>'
+                f'<div><span style="color:var(--muted);">P/L</span><br><span style="font-weight:600;color:{_pl_color};">{"+" if _pl >= 0 else ""}${_pl:.2f}</span></div>'
+                f'<div><span style="color:var(--muted);">Value</span><br><span style="font-weight:600;">${_fv:.2f}</span></div>'
+                f'</div>'
+                f'<div style="margin-top:0.5rem;font-size:0.7rem;">'
+                f'<span style="color:{_ret_color};">{streak_icon} {streak_text}</span>'
+                f'</div></div>'
+            )
 
         metric_cols = st.columns(3)
         metric_cols[0].markdown(
-            f"""
-            <div class="metric-card mvp">
-              <div class="metric-label">🔥</div>
-              <div class="metric-value positive">{ETF_EMOJI.get(ETF_MAP.get(best_ticker, ''), '')} {html_mod.escape(best_ticker)}</div>
-              <div class="metric-detail">{html_mod.escape(NAME_MAP[best_ticker])} <span class="positive">{final_returns[best_ticker]:+.2f}%</span></div>
-              <div class="metric-detail">👑 {throne['mvp_streak']} day streak</div>
-              <div class="metric-detail" style="font-size:0.75rem;opacity:0.7;">Highest total return</div>
-            </div>
-            """,
+            _stock_card(best_ticker, final_returns[best_ticker], "🔥", f"{throne['mvp_streak']}-day streak", "🔥", "#19a05f"),
             unsafe_allow_html=True,
         )
         metric_cols[1].markdown(
-            f"""
-            <div class="metric-card bench">
-              <div class="metric-label">💩</div>
-              <div class="metric-value negative">{ETF_EMOJI.get(ETF_MAP.get(worst_ticker, ''), '')} {html_mod.escape(worst_ticker)}</div>
-              <div class="metric-detail">{html_mod.escape(NAME_MAP[worst_ticker])} <span class="negative">({abs(final_returns[worst_ticker]):.2f}%)</span></div>
-              <div class="metric-detail">📉 {throne['bench_streak']} day streak</div>
-              <div class="metric-detail" style="font-size:0.75rem;opacity:0.7;">Lowest total return</div>
-            </div>
-            """,
+            _stock_card(worst_ticker, final_returns[worst_ticker], "💩", f"{throne['bench_streak']}-day streak", "📉", "#d14a34"),
             unsafe_allow_html=True,
         )
         metric_cols[2].markdown(
-            f"""
-            <div class="metric-card meh">
-              <div class="metric-label">😐</div>
-              <div class="metric-value" style="color:var(--muted);">{ETF_EMOJI.get(ETF_MAP.get(meh_ticker, ''), '')} {html_mod.escape(meh_ticker)}</div>
-              <div class="metric-detail">{html_mod.escape(NAME_MAP.get(meh_ticker, ''))} <span style="color:var(--muted);">{meh_ret:+.2f}%</span></div>
-              <div class="metric-detail">📊 Rank #{meh_rank} of {len(valid_tickers)}</div>
-              <div class="metric-detail" style="font-size:0.75rem;opacity:0.7;">Closest to 0% return</div>
-            </div>
-            """,
+            _stock_card(meh_ticker, meh_ret, "😐", "Closest to 0% return", "⚖️", "#a1a1aa"),
             unsafe_allow_html=True,
         )
 
@@ -2809,6 +2825,9 @@ with tab_dashboard:
                 if b["name"] == name:
                     return b
             return None
+
+        # Fetch earnings data early for Beat Street badges
+        earnings_data = fetch_earnings(tuple(valid_tickers))
 
         # Build badges as opposite pairs
         badges_data = []  # (icon, name, holder, desc)
@@ -2913,6 +2932,28 @@ with tab_dashboard:
             all_talk = max(zero_div_tickers, key=lambda t: final_returns[t])
             badges_data.append(("\U0001f4ac", "All Talk", f'{all_talk} ({final_returns[all_talk]:+.2f}%, $0 divs)', "Best return, zero dividends"))
 
+        # Pair 9: Beat Street vs Street Loser (EPS surprise)
+        _bs_best_b = None
+        _bs_worst_b = None
+        _bs_best_surp_b = -999
+        _bs_worst_surp_b = 999
+        for t in valid_tickers:
+            _earn = earnings_data.get(t, {})
+            _rep = _earn.get("last_eps_reported")
+            _est_e = _earn.get("last_eps_estimate")
+            if _rep is not None and _est_e is not None and _est_e != 0:
+                _surp = ((_rep - _est_e) / abs(_est_e)) * 100
+                if _surp > _bs_best_surp_b:
+                    _bs_best_surp_b = _surp
+                    _bs_best_b = (t, _rep, _est_e, _surp)
+                if _surp < _bs_worst_surp_b:
+                    _bs_worst_surp_b = _surp
+                    _bs_worst_b = (t, _rep, _est_e, _surp)
+        if _bs_best_b and _bs_best_surp_b > 0:
+            badges_data.append(("📊", "Beat Street", f'{_bs_best_b[0]} (${_bs_best_b[1]:.2f} vs est ${_bs_best_b[2]:.2f}, +{_bs_best_surp_b:.1f}%)', "Biggest EPS beat"))
+        if _bs_worst_b and _bs_worst_surp_b < 0:
+            badges_data.append(("📉", "Street Loser", f'{_bs_worst_b[0]} (${_bs_worst_b[1]:.2f} vs est ${_bs_worst_b[2]:.2f}, {_bs_worst_surp_b:.1f}%)', "Biggest EPS miss"))
+
         # Multi-Award bar: find stocks that appear in multiple badges
         ticker_badges = {}
         for icon, name, holder, desc in badges_data:
@@ -2951,9 +2992,9 @@ with tab_dashboard:
         _BADGE_TONES = {
             "Diamond Hands": "green", "Moonshot": "green", "Dark Horse": "green",
             "Comeback Kid": "green", "Steady Eddie": "green", "The Terminator": "green",
-            "Dividend King": "green",
+            "Dividend King": "green", "Beat Street": "green",
             "Bag Holder": "red", "Crash Landing": "red", "Dead Weight": "red",
-            "Fallen Angel": "red", "All Talk": "red",
+            "Fallen Angel": "red", "All Talk": "red", "Street Loser": "red",
             "Rollercoaster": "amber", "Middle Child": "amber", "Rivalry": "amber",
             "ETF War": "amber",
         }
@@ -3075,8 +3116,7 @@ with tab_dashboard:
             unsafe_allow_html=True,
         )
 
-        # Store signals and earnings for the combined leaderboard
-        earnings_data = fetch_earnings(tuple(valid_tickers)) if stock_signals else {}
+        # earnings_data already fetched above for bragging rights
 
         # --- Shots Fired ---
         st.markdown(
@@ -3595,45 +3635,58 @@ with tab_dashboard:
 
         st.plotly_chart(fig_bottom, use_container_width=True, config=chart_config)
 
-        # --- Throne History (below charts) ---
-        def _render_throne_entries(history):
-            entries = []
+        # --- Throne History (dark timeline style) ---
+        def _render_throne(history, icon, title, subtitle, accent_color, current_ticker, current_name, current_ret, streak):
+            _ret_color = "#19a05f" if current_ret >= 0 else "#d14a34"
+            _header = (
+                f'<div style="background:var(--panel-strong);border:1px solid var(--border);border-radius:14px;padding:1rem 1.2rem;margin-bottom:1rem;box-shadow:0 4px 12px rgba(82,58,32,0.06);">'
+                f'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.8rem;">'
+                f'<div style="font-weight:800;font-size:0.95rem;">{icon} {title}</div>'
+                f'<div style="font-size:0.72rem;color:var(--muted);">{subtitle}</div></div>'
+                # Current holder
+                f'<div style="display:flex;align-items:center;gap:0.8rem;padding:0.7rem 0.9rem;background:rgba({accent_color},0.06);border-radius:10px;margin-bottom:0.5rem;">'
+                f'<span style="font-size:1.2rem;">{icon}</span>'
+                f'<div style="flex:1;">'
+                f'<div style="font-weight:800;font-size:0.9rem;">{html_mod.escape(current_ticker)} <span style="font-weight:400;color:var(--muted);font-size:0.8rem;">{html_mod.escape(current_name)}</span></div>'
+                f'<div style="font-size:0.7rem;color:var(--muted);">Reigning · {streak} day streak</div></div>'
+                f'<div style="text-align:right;"><div style="font-weight:800;color:{_ret_color};font-size:1.1rem;">{current_ret:+.2f}%</div>'
+                f'<div style="font-size:0.65rem;color:var(--muted);">Current</div></div></div>'
+            )
+            # Past holders
+            _past = ''
+            seen = set()
             for entry in history:
-                date_str = entry["date"].strftime("%b %d")
-                ticker_esc = html_mod.escape(entry["ticker"])
-                name_esc = html_mod.escape(entry["name"])
-                ret = entry["return_pct"]
-                ret_str = f"{ret:+.2f}%"
-                ret_cls = "positive" if ret >= 0 else "negative"
-                displaced = ""
-                if entry["prev_ticker"]:
-                    displaced = f' · displaced {html_mod.escape(entry["prev_ticker"])}'
-                entries.append(
-                    f'<div class="throne-entry">'
-                    f'<span class="throne-date">{date_str}</span>'
-                    f'<span class="throne-ticker">{ticker_esc}</span>'
-                    f'<span class="throne-detail">{name_esc} · <span class="{ret_cls}">{ret_str}</span>{displaced}</span>'
-                    f'</div>'
+                t = entry["ticker"]
+                if t == current_ticker or t in seen:
+                    continue
+                seen.add(t)
+                _r = entry["return_pct"]
+                _rc = "#19a05f" if _r >= 0 else "#d14a34"
+                _d = entry["date"].strftime("%b %d")
+                _past += (
+                    f'<div style="display:flex;align-items:center;gap:0.8rem;padding:0.4rem 0.9rem;border-left:2px solid var(--border);margin-left:1.2rem;">'
+                    f'<div style="flex:1;font-size:0.82rem;"><b>{html_mod.escape(t)}</b> <span style="color:var(--muted);font-size:0.78rem;">{html_mod.escape(entry["name"])}</span></div>'
+                    f'<div style="font-size:0.75rem;color:var(--muted);">{_d}</div>'
+                    f'<div style="font-weight:600;color:{_rc};font-size:0.82rem;">{_r:+.2f}%</div></div>'
                 )
-            return "".join(entries)
+            return _header + _past + '</div>'
+
+        _mvp_t = throne['mvp_history'][-1]['ticker'] if throne['mvp_history'] else best_ticker
+        _mvp_n = NAME_MAP.get(_mvp_t, '')
+        _mvp_r = final_returns.get(_mvp_t, 0)
+        _bench_t = throne['bench_history'][-1]['ticker'] if throne['bench_history'] else worst_ticker
+        _bench_n = NAME_MAP.get(_bench_t, '')
+        _bench_r = final_returns.get(_bench_t, 0)
 
         throne_cols = st.columns(2)
         throne_cols[0].markdown(
-            f"""
-            <div class="metric-card mvp">
-              <div class="section-heading">👑 MVP Throne</div>
-              <div class="throne-scroll">{_render_throne_entries(throne['mvp_history'])}</div>
-            </div>
-            """,
+            _render_throne(throne['mvp_history'], '👑', 'MVP Throne', 'Weekly top performers',
+                               '34,197,94', _mvp_t, _mvp_n, _mvp_r, throne['mvp_streak']),
             unsafe_allow_html=True,
         )
         throne_cols[1].markdown(
-            f"""
-            <div class="metric-card bench">
-              <div class="section-heading">🪑 Benchwarmer Throne</div>
-              <div class="throne-scroll">{_render_throne_entries(throne['bench_history'])}</div>
-            </div>
-            """,
+            _render_throne(throne['bench_history'], '💩', 'Benchwarmer Throne', 'Weekly bottom performers',
+                               '239,68,68', _bench_t, _bench_n, _bench_r, throne['bench_streak']),
             unsafe_allow_html=True,
         )
 
@@ -4389,32 +4442,27 @@ with tab_feud:
     _clock_emoji = "\U0001f552"
     _chart_emoji = "\U0001f4c8"
     if _next_week_earnings:
-        _etf_emoji_map_e = {"UNCL": "\U0001f468\u200d\U0001f9b3", "ANTY": "\U0001f469\U0001f3fb", "KIDZ": "\U0001f476\U0001f3fb"}
-        _earnings_cards_html = '<div style="display:flex;flex-direction:column;gap:0.6rem;">'
+        _earnings_cards_html = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:0.7rem;">'
         for _ei, _es in enumerate(_next_week_earnings):
-            _e_emoji = _etf_emoji_map_e.get(_es["etf"], "")
             _eps_str = f'Est. EPS: ${_es["eps_est"]:.2f}' if _es["eps_est"] is not None else ""
-            _eps_part = f' \u00b7 {_eps_str}' if _eps_str else ""
             _earnings_cards_html += (
-                f'<div style="display:flex;align-items:center;justify-content:space-between;'
-                f'background:rgba(18,51,36,0.03);border:1px solid rgba(18,51,36,0.08);border-radius:14px;padding:0.6rem 0.8rem;">'
-                f'<div>'
-                f'<div style="font-weight:700;font-size:0.9rem;">{_e_emoji} {html_mod.escape(_es["ticker"])} '
-                f'<span style="font-weight:400;color:#5d6f65;font-size:0.78rem;">{html_mod.escape(_es["name"])}</span></div>'
-                f'<div style="font-size:0.7rem;color:#5d6f65;">'
-                f'{_cal_emoji} Earnings: {html_mod.escape(_es["date"])}{_eps_part}</div>'
-                f'</div>'
-                f'<div style="display:flex;gap:0.4rem;align-items:center;">'
+                f'<div style="background:rgba(18,51,36,0.03);border:1px solid rgba(18,51,36,0.08);border-radius:12px;padding:0.8rem 1rem;">'
+                f'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.4rem;">'
+                f'<div><span style="font-weight:700;font-size:0.9rem;">{html_mod.escape(_es["ticker"])}</span> '
+                f'<span style="color:#5d6f65;font-size:0.78rem;">{html_mod.escape(_es["name"])}</span></div>'
+                f'<span style="font-size:0.72rem;color:#5d6f65;">{html_mod.escape(_es["date"])}</span></div>'
+                f'<div style="font-size:0.75rem;color:#5d6f65;margin-bottom:0.6rem;">{_eps_str}</div>'
+                f'<div style="display:flex;gap:0.4rem;">'
                 f'<div class="earnVoteBtn" data-stock="{html_mod.escape(_es["ticker"])}" data-dir="up" '
                 f'onclick="voteEarnings(this)" '
-                f'style="padding:0.4rem 0.8rem;border:2px solid rgba(25,160,95,0.3);border-radius:10px;'
-                f'cursor:pointer;font-weight:700;font-size:0.82rem;color:#19a05f;background:white;transition:all 0.15s;">'
-                f'{_up_emoji} Up <span class="earnCount" style="display:none;margin-left:0.2rem;font-size:0.7rem;opacity:0.8;"></span></div>'
+                f'style="flex:1;padding:0.35rem 0.5rem;border:1px solid rgba(25,160,95,0.3);border-radius:8px;'
+                f'cursor:pointer;font-weight:700;font-size:0.78rem;color:#19a05f;background:rgba(25,160,95,0.06);text-align:center;transition:all 0.15s;">'
+                f'{_up_emoji} Beat <span class="earnCount" style="display:none;margin-left:0.2rem;font-size:0.68rem;opacity:0.8;"></span></div>'
                 f'<div class="earnVoteBtn" data-stock="{html_mod.escape(_es["ticker"])}" data-dir="down" '
                 f'onclick="voteEarnings(this)" '
-                f'style="padding:0.4rem 0.8rem;border:2px solid rgba(209,74,52,0.3);border-radius:10px;'
-                f'cursor:pointer;font-weight:700;font-size:0.82rem;color:#d14a34;background:white;transition:all 0.15s;">'
-                f'{_down_emoji} Down <span class="earnCount" style="display:none;margin-left:0.2rem;font-size:0.7rem;opacity:0.8;"></span></div>'
+                f'style="flex:1;padding:0.35rem 0.5rem;border:1px solid rgba(209,74,52,0.3);border-radius:8px;'
+                f'cursor:pointer;font-weight:700;font-size:0.78rem;color:#d14a34;background:rgba(209,74,52,0.06);text-align:center;transition:all 0.15s;">'
+                f'{_down_emoji} Miss <span class="earnCount" style="display:none;margin-left:0.2rem;font-size:0.68rem;opacity:0.8;"></span></div>'
                 f'</div></div>'
             )
         _earnings_cards_html += '</div>'
