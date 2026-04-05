@@ -3025,7 +3025,7 @@ with tab_dashboard:
             _combined_html += '</div>'
         _combined_html += (
             f'<div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;">'
-            f'<span class="multi-label">🧮 Awards by ETF:</span>'
+            f'<span class="multi-label">🎗️ Awards by ETF:</span>'
             f'{"".join(_etf_bar_parts)}'
             f'</div></div>'
         )
@@ -3659,6 +3659,14 @@ with tab_dashboard:
             margin=dict(t=50, r=10, b=40, l=10),
         )
 
+        # --- Bump Charts ---
+        st.markdown(
+            '<div style="display:flex;align-items:center;gap:0.5rem;margin:1.2rem 0 0.5rem;">'
+            '<span style="font-size:1.3rem;">🚇</span>'
+            '<span style="font-size:1.1rem;font-weight:800;letter-spacing:0.04em;text-transform:uppercase;'
+            'color:var(--accent);">Stock Subway</span></div>',
+            unsafe_allow_html=True,
+        )
         # --- Bump Chart: Top 10 In the Money ---
         top10_returns = returns[top10_tickers]
         top10_ranks = top10_returns.rank(axis=1, ascending=False)
@@ -3731,8 +3739,7 @@ with tab_dashboard:
                 _date_range = f'{_start_d} – {_end_d}' if _start_d != _end_d else _start_d
                 _past += (
                     f'<div style="display:flex;align-items:center;gap:0.8rem;padding:0.4rem 0.9rem;border-left:2px solid var(--border);margin-left:1.2rem;">'
-                    f'<div style="flex:1;font-size:0.82rem;">{_etf_colored(t)} <span style="color:var(--muted);font-size:0.78rem;">{html_mod.escape(entry["name"])}</span>'
-                    f' <span style="font-size:0.68rem;color:var(--muted);">dethroned by {_etf_colored(_dethroner)}</span></div>'
+                    f'<div style="flex:1;font-size:0.82rem;">{_etf_colored(t)} <span style="color:var(--muted);font-size:0.78rem;">{html_mod.escape(entry["name"])}</span></div>'
                     f'<div style="font-size:0.75rem;color:var(--muted);white-space:nowrap;">{_date_range}</div>'
                     f'<div style="font-weight:600;color:{_rc};font-size:0.82rem;">{_r:+.2f}%</div></div>'
                 )
@@ -3745,6 +3752,13 @@ with tab_dashboard:
         _bench_n = NAME_MAP.get(_bench_t, '')
         _bench_r = final_returns.get(_bench_t, 0)
 
+        st.markdown(
+            '<div style="display:flex;align-items:center;gap:0.5rem;margin:1.2rem 0 0.5rem;">'
+            '<span style="font-size:1.3rem;">🏰</span>'
+            '<span style="font-size:1.1rem;font-weight:800;letter-spacing:0.04em;text-transform:uppercase;'
+            'color:var(--accent);">Throne Room</span></div>',
+            unsafe_allow_html=True,
+        )
         throne_cols = st.columns(2)
         throne_cols[0].markdown(
             _render_throne(throne['mvp_history'], '👑', 'MVP Throne',
@@ -3790,7 +3804,7 @@ with tab_dashboard:
             f'<div style="{_lbl_s}">Portfolio Value</div>'
             f'<div style="{_val_s}color:{_port_pl_color};">${_port_value:,.2f}</div>'
             f'<div style="font-size:0.75rem;font-weight:600;color:{_port_pl_color};margin-top:0.2rem;">P/L: {"(" if _port_pl < 0 else ""}${abs(_port_pl):,.2f}{")" if _port_pl < 0 else ""}</div>'
-            f'<div style="font-size:0.75rem;font-weight:600;color:{_port_pl_color};margin-top:0.1rem;">P/L %: {_port_ret_sign}{_port_ret:.2f}%</div>'
+            f'<div style="font-size:0.75rem;font-weight:600;color:{_port_pl_color};margin-top:0.1rem;">P/L %: {"(" if _port_ret < 0 else ""}{abs(_port_ret):.2f}%{")" if _port_ret < 0 else ""}</div>'
             f'<div style="font-size:0.75rem;color:#19a05f;margin-top:0.1rem;">Total Dividends Received: ${_port_divs:,.2f}</div>'
             f'</div>'
             f'<div style="{_card_s}">'
@@ -4168,7 +4182,7 @@ with tab_dashboard:
         _events_items = []
         for t, ed, eps_est in _next_week_earnings:
             _day_label = ed.strftime("%a %b %d")
-            _eps_note = f' · Est. ${eps_est:.2f}' if eps_est is not None else ''
+            _eps_note = f' · Est. ${eps_est:.2f}' if eps_est is not None else ' · Est: N/A'
             _events_items.append(
                 f'<div style="flex:1 1 auto;display:flex;align-items:center;gap:0.7rem;padding:0.6rem 1rem;'
                 f'background:rgba(14,95,58,0.04);border:1px solid var(--border);border-radius:12px;min-width:200px;">'
@@ -4495,7 +4509,7 @@ with tab_feud:
     if _next_week_earnings:
         _earnings_cards_html = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:0.7rem;">'
         for _ei, _es in enumerate(_next_week_earnings):
-            _eps_str = f'Est. EPS: ${_es["eps_est"]:.2f}' if _es["eps_est"] is not None else ""
+            _eps_str = f'Est. EPS: ${_es["eps_est"]:.2f}' if _es["eps_est"] is not None else "Est. EPS: N/A"
             _earnings_cards_html += (
                 f'<div style="background:rgba(18,51,36,0.03);border:1px solid rgba(18,51,36,0.08);border-radius:12px;padding:0.8rem 1rem;">'
                 f'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.4rem;">'
