@@ -193,11 +193,11 @@ html, body {
         padding-left: 1rem !important;
         padding-right: 1rem !important;
         max-width: 100vw !important;
-        overflow-x: hidden !important;
+        overflow-x: clip !important;
     }
     [data-testid="stAppViewContainer"] {
         max-width: 100vw !important;
-        overflow-x: hidden !important;
+        overflow-x: clip !important;
     }
     [data-testid="stAppViewContainer"] > section > div {
         max-width: 100vw !important;
@@ -4241,8 +4241,8 @@ with tab_dashboard:
                 )
         _th = 'style="text-align:left;padding:10px 8px;background:linear-gradient(90deg,#0d2f20,#13492f);color:#f4f0e3;font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;font-family:Space Grotesk,sans-serif;white-space:normal;line-height:1.3;"'
         st.markdown(
-            f'<div style="margin-top:0.8rem;overflow-x:auto;-webkit-overflow-scrolling:touch;">'
-            f'<div style="background:var(--panel-strong);border:1px solid var(--border);border-radius:14px;overflow:hidden;">'
+            f'<div class="sector-tbl" style="margin-top:0.8rem;max-width:100%;overflow:hidden;border-radius:14px;border:1px solid var(--border);background:var(--panel-strong);">'
+            f'<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">'
             f'<table style="width:100%;min-width:900px;border-collapse:separate;border-spacing:0;font-family:Space Grotesk,sans-serif;font-size:0.82rem;">'
             f'<tr>'
             f'<th {_th}>Sector</th><th {_th}>#</th><th {_th}>Avg Total Return ({start_date.strftime("%m/%d")} - {end_date.strftime("%m/%d")})</th>'
