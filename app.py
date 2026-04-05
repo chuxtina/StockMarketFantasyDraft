@@ -3657,26 +3657,28 @@ with tab_dashboard:
                 f'<div style="text-align:right;"><div style="font-weight:800;color:{_ret_color};font-size:1.1rem;">{current_ret:+.2f}%</div>'
                 f'<div style="font-size:0.65rem;color:var(--muted);">Current</div></div></div>'
             )
-            # Past holders with dethronement info
+            # Past holders with dethronement info and duration
+            # history is newest-first; compute end dates for each reign
             _past = ''
-            prev_holder = current_ticker
-            seen = set()
-            for entry in history:
+            for i, entry in enumerate(history):
                 t = entry["ticker"]
-                if t == current_ticker or t in seen:
+                # Skip the current holder (index 0) — already shown above
+                if i == 0:
                     continue
-                seen.add(t)
                 _r = entry["return_pct"]
                 _rc = "#19a05f" if _r >= 0 else "#d14a34"
-                _d = entry["date"].strftime("%b %d")
-                _displaced = f' <span style="font-size:0.68rem;color:var(--muted);">dethroned by {html_mod.escape(prev_holder)}</span>' if prev_holder != t else ''
+                _start_d = entry["date"].strftime("%b %d")
+                # The reign ended when the previous entry (newer) started
+                _end_d = history[i - 1]["date"].strftime("%b %d")
+                _dethroner = history[i - 1]["ticker"]
+                _date_range = f'{_start_d} – {_end_d}' if _start_d != _end_d else _start_d
                 _past += (
                     f'<div style="display:flex;align-items:center;gap:0.8rem;padding:0.4rem 0.9rem;border-left:2px solid var(--border);margin-left:1.2rem;">'
-                    f'<div style="flex:1;font-size:0.82rem;"><b>{html_mod.escape(t)}</b> <span style="color:var(--muted);font-size:0.78rem;">{html_mod.escape(entry["name"])}</span>{_displaced}</div>'
-                    f'<div style="font-size:0.75rem;color:var(--muted);">{_d}</div>'
+                    f'<div style="flex:1;font-size:0.82rem;"><b>{html_mod.escape(t)}</b> <span style="color:var(--muted);font-size:0.78rem;">{html_mod.escape(entry["name"])}</span>'
+                    f' <span style="font-size:0.68rem;color:var(--muted);">dethroned by {html_mod.escape(_dethroner)}</span></div>'
+                    f'<div style="font-size:0.75rem;color:var(--muted);white-space:nowrap;">{_date_range}</div>'
                     f'<div style="font-weight:600;color:{_rc};font-size:0.82rem;">{_r:+.2f}%</div></div>'
                 )
-                prev_holder = t
             return _header + _past + '</div>'
 
         _mvp_t = throne['mvp_history'][0]['ticker'] if throne['mvp_history'] else best_ticker
