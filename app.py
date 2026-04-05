@@ -3645,6 +3645,8 @@ with tab_dashboard:
         # --- Throne History (dark timeline style) ---
         def _render_throne(history, icon, title, accent_color, current_ticker, current_name, current_ret, streak):
             _ret_color = "#19a05f" if current_ret >= 0 else "#d14a34"
+            _reign_start = history[0]["date"].strftime("%b %d") if history else ""
+            _today_label = "Present"
             _header = (
                 f'<div style="background:var(--panel-strong);border:1px solid var(--border);border-radius:14px;padding:1rem 1.2rem;margin-bottom:1rem;box-shadow:0 4px 12px rgba(82,58,32,0.06);">'
                 f'<div style="font-weight:800;font-size:0.95rem;margin-bottom:0.8rem;">{icon} {title}</div>'
@@ -3653,7 +3655,7 @@ with tab_dashboard:
                 f'<span style="font-size:1.2rem;">{icon}</span>'
                 f'<div style="flex:1;">'
                 f'<div style="font-weight:800;font-size:0.9rem;">{html_mod.escape(current_ticker)} <span style="font-weight:400;color:var(--muted);font-size:0.8rem;">{html_mod.escape(current_name)}</span></div>'
-                f'<div style="font-size:0.7rem;color:var(--muted);">Reigning · {streak} day streak</div></div>'
+                f'<div style="font-size:0.7rem;color:var(--muted);">Reigning {_reign_start} – {_today_label} · {streak} day streak</div></div>'
                 f'<div style="text-align:right;"><div style="font-weight:800;color:{_ret_color};font-size:1.1rem;">{current_ret:+.2f}%</div>'
                 f'<div style="font-size:0.65rem;color:var(--muted);">Current</div></div></div>'
             )
