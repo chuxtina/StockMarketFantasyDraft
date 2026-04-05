@@ -2693,7 +2693,7 @@ with tab_dashboard:
         meh_ret = meh.get("return", 0)
         meh_rank = meh.get("rank", 0)
 
-        metric_cols = st.columns(4)
+        metric_cols = st.columns(3)
         metric_cols[0].markdown(
             f"""
             <div class="metric-card mvp">
@@ -2731,41 +2731,66 @@ with tab_dashboard:
             unsafe_allow_html=True,
         )
 
-        # --- ETF Standing with progress bars ---
-        max_etf_val = max(abs(v) for v in etf_avgs.values()) if etf_avgs else 1
-        etf_bar_html = ""
-        for i, (etf, avg_ret) in enumerate(etf_ranked):
-            medal = medals[i] if i < len(medals) else ""
-            emoji = ETF_EMOJI.get(etf, "")
-            bar_pct = max(int(abs(avg_ret) / max_etf_val * 100), 12)
-            bar_color = "var(--accent)" if avg_ret >= 0 else "var(--negative)"
-            if avg_ret >= 0:
-                left_half = '<div class="etf-bar-half left"></div>'
-                right_half = (
-                    f'<div class="etf-bar-half right">'
-                    f'<div class="etf-bar pos" style="width:{bar_pct}%;background:{bar_color};">{avg_ret:+.2f}%</div>'
-                    f'</div>'
-                )
-            else:
-                left_half = (
-                    f'<div class="etf-bar-half left">'
-                    f'<div class="etf-bar neg" style="width:{bar_pct}%;background:{bar_color};">{avg_ret:+.2f}%</div>'
-                    f'</div>'
-                )
-                right_half = '<div class="etf-bar-half right"></div>'
-            etf_bar_html += (
-                f'<div class="etf-row">'
-                f'<span class="etf-label">{medal} {emoji} {html_mod.escape(etf)}</span>'
-                f'<div class="etf-bar-bg">{left_half}{right_half}</div>'
-                f'</div>'
+        # --- ETF Breakdown (replaces ETF Standing) ---
+        _etf_emoji_top = {"UNCL": "👨‍🦳", "ANTY": "👩🏻", "KIDZ": "👶🏻"}
+        _etf_colors_top = {"ANTY": "#a855f7", "UNCL": "#3b82f6", "KIDZ": "#eab308"}
+        _etf_names_top = {"ANTY": "Auntie", "UNCL": "Uncle", "KIDZ": "Kids"}
+
+        _etf_cards_top = ''
+        for etf_code in ["ANTY", "UNCL", "KIDZ"]:
+            _etf_tickers_t = [t for t in valid_tickers if ETF_MAP.get(t) == etf_code]
+            if not _etf_tickers_t:
+                continue
+            _etf_inv = INVESTMENT * len(_etf_tickers_t)
+            _etf_mk = sum(INVESTMENT / start_prices[t] * end_prices[t] for t in _etf_tickers_t)
+            _etf_dv = sum(INVESTMENT / start_prices[t] * dividends.get(t, 0.0) for t in _etf_tickers_t)
+            _etf_vl = _etf_mk + _etf_dv
+            _etf_p = _etf_vl - _etf_inv
+            _etf_ar = ((_etf_vl / _etf_inv) - 1) * 100 if _etf_inv else 0
+            _etf_w = sum(1 for t in _etf_tickers_t if (INVESTMENT / start_prices[t] * end_prices[t] + INVESTMENT / start_prices[t] * dividends.get(t, 0.0)) >= INVESTMENT)
+            _etf_l = len(_etf_tickers_t) - _etf_w
+            _etf_wr = int(_etf_w / len(_etf_tickers_t) * 100) if _etf_tickers_t else 0
+            _etf_rt = {t: ((INVESTMENT / start_prices[t] * end_prices[t] + INVESTMENT / start_prices[t] * dividends.get(t, 0.0)) / INVESTMENT - 1) * 100 for t in _etf_tickers_t}
+            _etf_bt = max(_etf_rt, key=_etf_rt.get)
+            _etf_wt = min(_etf_rt, key=_etf_rt.get)
+            _ec = _etf_colors_top[etf_code]
+            _pc = "#19a05f" if _etf_p >= 0 else "#d14a34"
+            _rc = "#19a05f" if _etf_ar >= 0 else "#d14a34"
+            _wp = int(_etf_w / len(_etf_tickers_t) * 100) if _etf_tickers_t else 0
+            _lp = 100 - _wp
+
+            _etf_cards_top += (
+                f'<div style="background:var(--panel-strong);border:1px solid var(--border);border-radius:16px;'
+                f'padding:1rem 1.2rem;border-left:3px solid {_ec};">'
+                f'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.7rem;">'
+                f'<div><div style="font-size:1.1rem;font-weight:800;">{_etf_emoji_top[etf_code]} {etf_code}</div>'
+                f'<div style="font-size:0.7rem;color:var(--muted);">{len(_etf_tickers_t)} stocks · Managed by {_etf_names_top[etf_code]}</div></div>'
+                f'<div style="text-align:right;"><div style="font-size:1.2rem;font-weight:800;color:{_rc};">{_etf_ar:+.2f}%</div>'
+                f'<div style="font-size:0.68rem;color:var(--muted);">Avg Total Return</div></div></div>'
+                f'<div style="display:flex;gap:0.5rem;margin-bottom:0.6rem;">'
+                f'<div style="flex:1;background:rgba(18,51,36,0.03);border-radius:8px;padding:0.5rem 0.6rem;">'
+                f'<div style="font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);">Portfolio</div>'
+                f'<div style="font-size:0.95rem;font-weight:700;color:{_pc};">${_etf_vl:,.2f}</div></div>'
+                f'<div style="flex:1;background:rgba(18,51,36,0.03);border-radius:8px;padding:0.5rem 0.6rem;">'
+                f'<div style="font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);">P/L</div>'
+                f'<div style="font-size:0.95rem;font-weight:700;color:{_pc};">{"+" if _etf_p >= 0 else ""}${_etf_p:,.2f}</div></div>'
+                f'<div style="flex:1;background:rgba(18,51,36,0.03);border-radius:8px;padding:0.5rem 0.6rem;">'
+                f'<div style="font-size:0.62rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);">Win Rate</div>'
+                f'<div style="font-size:0.95rem;font-weight:700;">{_etf_wr}%</div></div></div>'
+                f'<div style="display:flex;border-radius:6px;overflow:hidden;height:24px;">'
+                f'<div style="width:{_wp}%;background:rgba(25,160,95,0.12);display:flex;align-items:center;justify-content:center;font-size:0.68rem;font-weight:700;color:#19a05f;">{_etf_w} ↑</div>'
+                f'<div style="width:{_lp}%;background:rgba(209,74,52,0.1);display:flex;align-items:center;justify-content:center;font-size:0.68rem;font-weight:700;color:#d14a34;">{_etf_l} ↓</div></div>'
+                f'<div style="display:flex;justify-content:space-between;font-size:0.75rem;margin-top:0.5rem;">'
+                f'<span>Best: <b style="color:#19a05f;">{_etf_bt} {_etf_rt[_etf_bt]:+.2f}%</b></span>'
+                f'<span>Worst: <b style="color:#d14a34;">{_etf_wt} {_etf_rt[_etf_wt]:+.2f}%</b></span>'
+                f'</div></div>'
             )
-        metric_cols[3].markdown(
-            f"""
-            <div class="metric-card" style="height:100%;">
-              <div class="metric-label">ETF Standing</div>
-              <div style="margin-top:0.4rem;">{etf_bar_html}</div>
-            </div>
-            """,
+
+        st.markdown(
+            f'<div style="margin:0.8rem 0 0.5rem;font-size:1.1rem;font-weight:800;letter-spacing:0.04em;text-transform:uppercase;color:var(--accent);display:flex;align-items:center;gap:0.5rem;">'
+            f'<span style="font-size:1.3rem;">⚔️</span> ETF Breakdown</div>'
+            f'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-bottom:0.8rem;">'
+            f'{_etf_cards_top}</div>',
             unsafe_allow_html=True,
         )
 
@@ -3612,6 +3637,54 @@ with tab_dashboard:
             unsafe_allow_html=True,
         )
 
+        # --- Portfolio Summary Cards ---
+        start_date_label = returns.index[0].strftime("%m/%d/%Y")
+        end_date_label = returns.index[-1].strftime("%m/%d/%Y")
+
+        st.markdown(
+            '<div style="display:flex;align-items:center;gap:0.5rem;margin:0.5rem 0 0.3rem;">'
+            '<span style="font-size:1.3rem;">💰</span>'
+            '<span style="font-size:1.1rem;font-weight:800;letter-spacing:0.04em;text-transform:uppercase;'
+            'color:var(--accent);">Portfolio Overview</span></div>',
+            unsafe_allow_html=True,
+        )
+
+        _port_total_invested = INVESTMENT * len(valid_tickers)
+        _port_mkt_val = sum(INVESTMENT / start_prices[t] * end_prices[t] for t in valid_tickers)
+        _port_divs = sum(INVESTMENT / start_prices[t] * dividends.get(t, 0.0) for t in valid_tickers)
+        _port_value = _port_mkt_val + _port_divs
+        _port_pl = _port_value - _port_total_invested
+        _port_ret = (_port_value / _port_total_invested - 1) * 100 if _port_total_invested else 0
+        _port_pl_color = "#19a05f" if _port_pl >= 0 else "#d14a34"
+        _port_ret_sign = "+" if _port_ret >= 0 else ""
+        _port_pl_sign = "+" if _port_pl >= 0 else ""
+
+        _card_s = ('background:var(--panel-strong);border:1px solid var(--border);border-radius:16px;'
+                   'padding:1rem 1.2rem;box-shadow:0 4px 12px rgba(82,58,32,0.06);')
+        _lbl_s = 'font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:0.3rem;'
+        _val_s = 'font-size:1.5rem;font-weight:800;letter-spacing:-0.02em;'
+
+        st.markdown(
+            f'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin:0.8rem 0 1.2rem;">'
+            f'<div style="{_card_s}">'
+            f'<div style="{_lbl_s}">Portfolio Value</div>'
+            f'<div style="{_val_s}">${_port_value:,.2f}</div>'
+            f'<div style="font-size:0.75rem;font-weight:600;color:{_port_pl_color};margin-top:0.2rem;">{_port_ret_sign}{_port_ret:.2f}% from start</div>'
+            f'</div>'
+            f'<div style="{_card_s}">'
+            f'<div style="{_lbl_s}">Total Invested</div>'
+            f'<div style="{_val_s}">${_port_total_invested:,.2f}</div>'
+            f'<div style="font-size:0.75rem;color:var(--muted);margin-top:0.2rem;">{len(valid_tickers)} stocks × ${INVESTMENT:.2f}</div>'
+            f'</div>'
+            f'<div style="{_card_s}">'
+            f'<div style="{_lbl_s}">Total P/L</div>'
+            f'<div style="{_val_s}color:{_port_pl_color};">{_port_pl_sign}${abs(_port_pl):,.2f}</div>'
+            f'<div style="font-size:0.75rem;color:var(--muted);margin-top:0.2rem;">Dividends: ${_port_divs:,.2f}</div>'
+            f'</div>'
+            f'</div>',
+            unsafe_allow_html=True,
+        )
+
         # --- Leaderboard ---
         st.markdown(
             '<div style="display:flex;align-items:center;gap:0.5rem;margin:1.2rem 0 0.5rem;">'
@@ -3620,9 +3693,6 @@ with tab_dashboard:
             'color:var(--accent);">Leaderboard</span></div>',
             unsafe_allow_html=True,
         )
-
-        start_date_label = returns.index[0].strftime("%m/%d/%Y")
-        end_date_label = returns.index[-1].strftime("%m/%d/%Y")
 
         rows = []
         for rank, (ticker, ret) in enumerate(final_returns.items(), start=1):
@@ -3704,14 +3774,32 @@ with tab_dashboard:
             eps_display = last_eps_reported if last_eps_reported is not None else eps_actual
             if eps_display is not None:
                 eps_actual_cell = f'${eps_display:.2f}'
+                # Show "vs est $X.XX" line
+                if last_eps_estimate is not None:
+                    eps_actual_cell += f'<br><span style="color:var(--muted);font-size:0.68rem;">vs est ${last_eps_estimate:.2f}</span>'
                 if last_earn_date:
-                    eps_actual_cell += f'<br><span style="color:var(--muted);font-size:0.68rem;">{last_earn_date}</span>'
-                # Beat/miss badge
+                    eps_actual_cell += f' <span style="color:var(--muted);font-size:0.68rem;">{last_earn_date}</span>'
+                # Beat/miss badge + surprise bar
                 if last_eps_reported is not None and last_eps_estimate is not None:
+                    if last_eps_estimate != 0:
+                        _surprise_pct = ((last_eps_reported - last_eps_estimate) / abs(last_eps_estimate)) * 100
+                    else:
+                        _surprise_pct = 100.0 if last_eps_reported > 0 else (-100.0 if last_eps_reported < 0 else 0)
+                    _bar_width = min(abs(_surprise_pct), 100)
                     if last_eps_reported > last_eps_estimate:
-                        eps_actual_cell += ' <span style="display:inline-block;padding:0.05rem 0.4rem;border-radius:999px;font-size:0.62rem;font-weight:700;background:rgba(25,160,95,0.15);color:#19a05f;">BEAT</span>'
+                        eps_actual_cell += (
+                            ' <span style="display:inline-block;padding:0.05rem 0.4rem;border-radius:999px;font-size:0.62rem;font-weight:700;background:rgba(25,160,95,0.15);color:#19a05f;">BEAT</span>'
+                            f'<div style="height:4px;background:rgba(18,51,36,0.08);border-radius:2px;margin-top:3px;overflow:hidden;">'
+                            f'<div style="width:{_bar_width}%;height:100%;background:#19a05f;border-radius:2px;"></div></div>'
+                            f'<span style="font-size:0.6rem;color:#19a05f;font-weight:600;">+{abs(_surprise_pct):.1f}%</span>'
+                        )
                     elif last_eps_reported < last_eps_estimate:
-                        eps_actual_cell += ' <span style="display:inline-block;padding:0.05rem 0.4rem;border-radius:999px;font-size:0.62rem;font-weight:700;background:rgba(209,74,52,0.12);color:#d14a34;">MISS</span>'
+                        eps_actual_cell += (
+                            ' <span style="display:inline-block;padding:0.05rem 0.4rem;border-radius:999px;font-size:0.62rem;font-weight:700;background:rgba(209,74,52,0.12);color:#d14a34;">MISS</span>'
+                            f'<div style="height:4px;background:rgba(18,51,36,0.08);border-radius:2px;margin-top:3px;overflow:hidden;">'
+                            f'<div style="width:{_bar_width}%;height:100%;background:#d14a34;border-radius:2px;"></div></div>'
+                            f'<span style="font-size:0.6rem;color:#d14a34;font-weight:600;">-{abs(_surprise_pct):.1f}%</span>'
+                        )
                     else:
                         eps_actual_cell += ' <span style="display:inline-block;padding:0.05rem 0.4rem;border-radius:999px;font-size:0.62rem;font-weight:700;background:rgba(18,51,36,0.08);color:#5d6f65;">MET</span>'
             else:
@@ -3732,7 +3820,11 @@ with tab_dashboard:
 
             rows.append({
                 "Rank": f'<span style="display:inline-flex;align-items:center;gap:4px;white-space:nowrap;">{arrow} {rank}</span>',
-                "ETF": ETF_MAP.get(ticker, ""),
+                "ETF": (lambda e: f'<span style="display:inline-block;padding:0.12rem 0.45rem;border-radius:6px;font-size:0.7rem;font-weight:700;'
+                       + (f'background:rgba(168,85,247,0.15);color:#a855f7;">{e}</span>' if e == "ANTY"
+                          else f'background:rgba(59,130,246,0.15);color:#3b82f6;">{e}</span>' if e == "UNCL"
+                          else f'background:rgba(234,179,8,0.15);color:#eab308;">{e}</span>' if e == "KIDZ"
+                          else f'">{e}</span>'))(ETF_MAP.get(ticker, "")),
                 "Sector": SECTOR_MAP.get(ticker, ""),
                 "Stock": stock_cell,
                 "Total Return (%)": total_ret_html,
@@ -3953,16 +4045,21 @@ with tab_dashboard:
                 pass
         _next_week_earnings.sort(key=lambda x: x[1])
 
-        # Build the events HTML
+        # Build the events HTML — horizontal card layout
         _events_items = []
         for t, ed, eps_est in _next_week_earnings:
             _day_label = ed.strftime("%a %b %d")
             _eps_note = f' · Est. ${eps_est:.2f}' if eps_est is not None else ''
             _events_items.append(
-                f'<div style="display:flex;align-items:center;gap:0.6rem;padding:0.5rem 0;border-bottom:1px solid rgba(18,51,36,0.06);">'
-                f'<span style="font-size:1rem;">📊</span>'
-                f'<span style="font-weight:700;font-size:0.85rem;">{t}</span>'
-                f'<span style="color:var(--muted);font-size:0.78rem;">Earnings {_day_label}{_eps_note}</span>'
+                f'<div style="flex:0 0 auto;display:flex;align-items:center;gap:0.7rem;padding:0.6rem 1rem;'
+                f'background:rgba(14,95,58,0.04);border:1px solid var(--border);border-radius:12px;min-width:200px;">'
+                f'<span style="font-size:1.1rem;">📊</span>'
+                f'<div style="flex:1;">'
+                f'<div><span style="font-weight:700;font-size:0.85rem;">{t}</span> '
+                f'<span style="color:var(--muted);font-size:0.76rem;">{NAME_MAP.get(t, "")}</span></div>'
+                f'<div style="color:var(--muted);font-size:0.72rem;">Earnings{_eps_note}</div>'
+                f'</div>'
+                f'<span style="font-size:0.7rem;color:var(--muted);background:rgba(18,51,36,0.06);padding:0.2rem 0.5rem;border-radius:5px;font-weight:600;white-space:nowrap;">{_day_label}</span>'
                 f'</div>'
             )
 
@@ -3971,12 +4068,20 @@ with tab_dashboard:
         else:
             _events_html = '<div style="color:var(--muted);font-size:0.82rem;padding:0.6rem 0;">No earnings scheduled next week for roster stocks.</div>'
 
+        _earnings_count = len(_next_week_earnings)
         st.markdown(
             f'<div style="margin:1.2rem 0 0.8rem;">'
-            f'<div style="font-size:1.1rem;font-weight:800;letter-spacing:0.04em;text-transform:uppercase;color:var(--accent);margin-bottom:0.6rem;display:flex;align-items:center;gap:0.5rem;">'
-            f'<span style="font-size:1.3rem;">📅</span> Next Week · {_week_label}</div>'
-            f'<div style="background:rgba(251,253,250,0.96);border:1px solid rgba(18,51,36,0.12);border-radius:18px;padding:0.8rem 1.2rem;box-shadow:0 4px 12px rgba(82,58,32,0.06);">'
+            f'<div style="background:rgba(251,253,250,0.96);border:1px solid rgba(18,51,36,0.12);border-radius:18px;padding:1rem 1.4rem;box-shadow:0 4px 12px rgba(82,58,32,0.06);">'
+            f'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.7rem;">'
+            f'<div>'
+            f'<div style="font-size:0.95rem;font-weight:800;">📅 Next Week</div>'
+            f'<div style="font-size:0.72rem;color:var(--muted);">{_week_label}</div>'
+            f'</div>'
+            f'<span style="font-size:0.7rem;font-weight:700;padding:0.2rem 0.6rem;border-radius:999px;background:rgba(14,95,58,0.08);color:var(--accent);">{_earnings_count} earnings</span>'
+            f'</div>'
+            f'<div style="display:flex;gap:0.7rem;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:0.3rem;">'
             f'{_events_html}'
+            f'</div>'
             f'</div></div>',
             unsafe_allow_html=True,
         )
@@ -4059,11 +4164,32 @@ with tab_dashboard:
                     f'<td {_td}>{_top_etf_html}</td>'
                     f'</tr>'
                 )
+        # Build holdings HTML first
+        _etf_emoji_h = {"UNCL": "👨‍🦳", "ANTY": "👩🏻", "KIDZ": "👶🏻"}
+        _etf_colors_h = {"ANTY": "#a855f7", "UNCL": "#3b82f6", "KIDZ": "#eab308"}
+        _holdings_html = ''
+        for etf_code in ["ANTY", "UNCL", "KIDZ"]:
+            _etf_tickers = sorted([t for t in valid_tickers if ETF_MAP.get(t) == etf_code])
+            _etf_color = _etf_colors_h[etf_code]
+            _badge_bg = f'rgba({int(_etf_color[1:3],16)},{int(_etf_color[3:5],16)},{int(_etf_color[5:7],16)},0.12)'
+            _badges = ' '.join(
+                f'<span style="display:inline-block;padding:0.1rem 0.4rem;border-radius:4px;font-size:0.7rem;font-weight:700;'
+                f'background:{_badge_bg};color:{_etf_color};margin:0.1rem;">{t}</span>'
+                for t in _etf_tickers
+            )
+            _holdings_html += (
+                f'<div>'
+                f'<div style="font-weight:700;font-size:0.82rem;margin-bottom:0.4rem;color:{_etf_color};">'
+                f'{_etf_emoji_h[etf_code]} {etf_code} — {len(_etf_tickers)} stocks</div>'
+                f'<div style="display:flex;flex-wrap:wrap;gap:0.15rem;">{_badges}</div>'
+                f'</div>'
+            )
+
         _th = 'style="text-align:left;padding:10px 8px;background:linear-gradient(90deg,#0d2f20,#13492f);color:#f4f0e3;font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;font-family:Space Grotesk,sans-serif;white-space:normal;line-height:1.3;"'
         st.markdown(
             f'<div style="margin-top:0.8rem;overflow-x:auto;-webkit-overflow-scrolling:touch;">'
-            f'<table style="width:100%;border-collapse:separate;border-spacing:0;border-radius:14px;'
-            f'overflow:hidden;background:var(--panel-strong);border:1px solid var(--border);font-family:Space Grotesk,sans-serif;font-size:0.82rem;">'
+            f'<div style="background:var(--panel-strong);border:1px solid var(--border);border-radius:14px;overflow:hidden;">'
+            f'<table style="width:100%;border-collapse:separate;border-spacing:0;font-family:Space Grotesk,sans-serif;font-size:0.82rem;">'
             f'<tr>'
             f'<th {_th}>Sector</th><th {_th}>#</th><th {_th}>Avg Total Return ({start_date.strftime("%m/%d")} - {end_date.strftime("%m/%d")})</th>'
             f'<th {_th}>Stocks</th><th {_th}>Best</th><th {_th}>Worst</th>'
@@ -4075,7 +4201,12 @@ with tab_dashboard:
             f'<td style="padding:8px 8px;text-align:center;font-size:0.82rem;">{_total_stock_count}</td>'
             f'<td></td><td></td><td></td><td></td><td></td>'
             f'</tr>'
-            f'</table></div>',
+            f'</table>'
+            f'<div style="padding:1rem 1rem 0.8rem;border-top:1px solid rgba(18,51,36,0.08);">'
+            f'<div style="font-weight:800;font-size:0.85rem;margin-bottom:0.6rem;">📋 Holdings by ETF</div>'
+            f'<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;">'
+            f'{_holdings_html}'
+            f'</div></div></div></div>',
             unsafe_allow_html=True,
         )
 
