@@ -2517,7 +2517,7 @@ with tab_dashboard:
                 '<span style="font-size:0.72rem;color:#5d6f65;">closes in <span id="cd-close"></span></span>'
                 f'{_div_html}'
                 '<span style="font-size:0.72rem;color:#888;">refreshes in <span id="cd-refresh"></span></span>'
-                + (f'{_div_html}<span style="font-size:0.68rem;color:#aaa;">{_hol_html}</span>' if _hol_html else '')
+                + (f'{_div_html}<span style="font-size:0.72rem;color:#5d6f65;">{_hol_html}</span>' if _hol_html else '')
                 + '</div>'
                 '<script>'
                 f'var cs={secs_to_close},rs={_secs_to_refresh};'
@@ -2552,8 +2552,8 @@ with tab_dashboard:
                 '<span style="font-size:0.72rem;font-weight:700;color:#888;">CLOSED</span></div>'
                 f'<span style="font-size:0.72rem;color:#5d6f65;">{live_timestamp}</span>'
                 f'{_div_html}'
-                f'<span style="font-size:0.72rem;color:#5d6f65;">\U0001f514 Opens {next_open_label} \u00b7 <span id="cd-open"></span></span>'
-                + (f'{_div_html}<span style="font-size:0.68rem;color:#aaa;">{_hol_html}</span>' if _hol_html else '')
+                f'<span style="font-size:0.72rem;color:#5d6f65;">\U0001f514 Opens in <span id="cd-open"></span></span>'
+                + (f'{_div_html}<span style="font-size:0.72rem;color:#5d6f65;">{_hol_html}</span>' if _hol_html else '')
                 + '</div>'
                 f'<script>var s={secs_to_open};'
                 'function u(){if(s<=0){document.getElementById("cd-open").textContent="opening...";return;}'
