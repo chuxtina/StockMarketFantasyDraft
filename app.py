@@ -3242,14 +3242,29 @@ with tab_dashboard:
             fresh = [r for r in _all_candidates if _strip(r)[:80] not in _recently_used_text]
             pool = fresh if fresh else _all_candidates
 
-            # Shuffle and pick 7-8 unique roasts, ensuring variety (no two about the same stock)
+            # Shuffle and pick 7-8 unique roasts, no duplicate stocks or templates
             _rng.shuffle(pool)
             roasts = []
             _used_tickers = set()
+            _used_templates = set()
+
+            def _extract_template(text):
+                """Strip ticker names and numbers to get the core joke template."""
+                import re as _re_t
+                t = _strip(text)
+                # Remove ticker symbols and percentages
+                for ticker in sorted_rets.index:
+                    t = t.replace(ticker, "")
+                t = _re_t.sub(r'[+-]?\d+\.?\d*%?', '', t)
+                return t.strip()
+
             for r in pool:
-                # Extract ticker from roast text
                 _text = _strip(r)
-                # Skip if we already have a roast about this stock (check first ticker mentioned)
+                _tmpl = _extract_template(r)
+                # Skip if same template already used
+                if _tmpl in _used_templates:
+                    continue
+                # Skip if same ticker already used
                 _found_ticker = None
                 for t in sorted_rets.index:
                     if t in _text:
@@ -3258,6 +3273,7 @@ with tab_dashboard:
                 if _found_ticker and _found_ticker in _used_tickers:
                     continue
                 roasts.append(r)
+                _used_templates.add(_tmpl)
                 if _found_ticker:
                     _used_tickers.add(_found_ticker)
                 if len(roasts) >= 8:
