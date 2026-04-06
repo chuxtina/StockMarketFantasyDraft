@@ -1327,31 +1327,14 @@ SECTOR_MAP = {
     "WMT": "Consumer", "XOM": "Energy",
 }
 
-# --- Trading Windows (via session state, rendered in leaderboard section) ---
+# --- Trading Windows (rendered in leaderboard section) ---
 default_start = datetime.date(2026, 3, 6)
 default_end = datetime.datetime.now(ZoneInfo("America/Los_Angeles")).date()
-
-# Read custom dates from query params (set by Apply button in iframe)
-_qp = st.query_params
-if "cust_start" in _qp and "cust_end" in _qp:
-    try:
-        _cs = datetime.datetime.strptime(_qp["cust_start"], "%Y-%m-%d").date()
-        _ce = datetime.datetime.strptime(_qp["cust_end"], "%Y-%m-%d").date()
-        st.session_state["tw_start"] = _cs
-        st.session_state["tw_end"] = _ce
-        st.session_state["tw_preset"] = "\U0001f4c5 Custom"
-        st.session_state["tw_show_custom"] = True
-    except (ValueError, KeyError):
-        pass
 
 if "tw_start" not in st.session_state:
     st.session_state["tw_start"] = default_start
 if "tw_end" not in st.session_state:
     st.session_state["tw_end"] = default_end
-if "tw_preset" not in st.session_state:
-    st.session_state["tw_preset"] = "ALL"
-if "tw_show_custom" not in st.session_state:
-    st.session_state["tw_show_custom"] = False
 
 start_date = st.session_state["tw_start"]
 end_date = st.session_state["tw_end"]
@@ -2657,36 +2640,36 @@ with tab_dashboard:
             # Countdown to market close (4:00 PM ET)
             market_close_et = now_et.replace(hour=16, minute=0, second=0, microsecond=0)
             secs_to_close = max(0, int((market_close_et - now_et).total_seconds()))
-            countdown_iframe = (
+            # Compute next data refresh countdown (cache TTL = 1h)
+            _secs_into_hour = now_et.minute * 60 + now_et.second
+            _secs_to_refresh = max(0, 3600 - _secs_into_hour)
+            # Single iframe with both countdowns
+            _live_iframe = (
                 '<iframe srcdoc="'
                 '<body style=&quot;margin:0;padding:0;overflow:hidden;background:transparent;&quot;>'
-                '<span id=&quot;c&quot; style=&quot;font-family:Space Grotesk,-apple-system,BlinkMacSystemFont,sans-serif;'
-                f'font-size:14px;color:#aaa;&quot;></span>'
-                f'<script>var e=document.getElementById(&quot;c&quot;),s={secs_to_close};'
-                'setInterval(function(){s--;if(s&lt;=0){e.textContent=&quot;Market closed&quot;;}else{'
-                'var h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sec=s%60;'
-                'e.textContent=&quot;closes in &quot;+h+&quot;h &quot;+(m&lt;10?&quot;0&quot;:&quot;&quot;)+m+&quot;m &quot;+(sec&lt;10?&quot;0&quot;:&quot;&quot;)+sec+&quot;s&quot;;}},1000);'
+                '<span id=&quot;w&quot; style=&quot;font-family:Space Grotesk,-apple-system,BlinkMacSystemFont,sans-serif;'
+                'font-size:13px;color:#888;&quot;></span>'
+                f'<script>var el=document.getElementById(&quot;w&quot;),cs={secs_to_close},rs={_secs_to_refresh};'
+                'function fmt(s){var h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sc=s%60;'
+                'return h+&quot;h &quot;+(m&lt;10?&quot;0&quot;:&quot;&quot;)+m+&quot;m &quot;+(sc&lt;10?&quot;0&quot;:&quot;&quot;)+sc+&quot;s&quot;;}'
+                'function u(){cs--;rs--;'
+                'var ct=cs&gt;0?&quot;closes in &quot;+fmt(cs):&quot;Market closed&quot;;'
+                'var rt=rs&gt;0?&quot;refreshes in &quot;+Math.floor(rs/60)+&quot;m &quot;+(rs%60&lt;10?&quot;0&quot;:&quot;&quot;)+(rs%60)+&quot;s&quot;:&quot;refreshing\u2026&quot;;'
+                'el.innerHTML=ct+&quot; \u00b7 &quot;+rt;'
+                'if(rs&lt;=0)setTimeout(function(){try{window.parent.location.reload();}catch(e){}},2000);}'
+                'u();setInterval(u,1000);'
                 '</script></body>'
-                '" style="border:none;width:200px;height:18px;vertical-align:text-bottom;display:inline-block;'
+                '" style="border:none;width:420px;height:18px;vertical-align:text-bottom;display:inline-block;'
                 'overflow:hidden;background:transparent;" scrolling="no"></iframe>'
             )
-            # Compute next data refresh time (cache TTL = 1h)
-            _refresh_min = 60  # minutes
-            _mins_past = now_et.minute
-            _next_refresh_min = _refresh_min - (_mins_past % _refresh_min)
-            if _next_refresh_min == _refresh_min:
-                _next_refresh_min = 0
-            _refresh_note = f'Data refreshes in ~{_next_refresh_min}m' if _next_refresh_min > 0 else 'Data refreshing...'
             st.markdown(
                 f'<div style="display:flex;align-items:center;gap:0.4rem;margin-bottom:0;">'
                 f'<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#19a05f;'
                 f'box-shadow:0 0 6px #19a05f;"></span>'
-                f'<span style="font-size:14px;color:#888;line-height:18px;">'
+                f'<span style="font-size:13px;color:#888;line-height:18px;">'
                 f'<strong style="color:#19a05f;">LIVE</strong> &middot; {live_timestamp}'
-                f' &middot; {countdown_iframe}'
-                f'</span></div>'
-                f'<div style="font-size:0.7rem;color:var(--muted);margin:0.1rem 0 0 1.3rem;">'
-                f'\U0001f504 {_refresh_note}</div>',
+                f' &middot; {_live_iframe}'
+                f'</span></div>',
                 unsafe_allow_html=True,
             )
         else:
@@ -3685,7 +3668,7 @@ with tab_dashboard:
         def _render_throne(history, icon, title, accent_color, current_ticker, current_name, current_ret, streak):
             _ret_color = "#19a05f" if current_ret >= 0 else "#d14a34"
             _reign_start = history[0]["date"].strftime("%b %d") if history else ""
-            _today_label = "Present"
+            _today_label = "Present" if end_date >= default_end else end_date.strftime("%b %d")
             _header = (
                 f'<div style="background:var(--panel-strong);border:1px solid var(--border);border-radius:14px;padding:1rem 1.2rem;margin-bottom:1rem;box-shadow:0 4px 12px rgba(82,58,32,0.06);">'
                 f'<div style="font-weight:800;font-size:0.95rem;margin-bottom:0.8rem;">{icon} {title}</div>'
@@ -3696,7 +3679,7 @@ with tab_dashboard:
                 f'<div style="font-size:0.9rem;">{_etf_colored(current_ticker)} <span style="font-weight:400;color:var(--muted);font-size:0.8rem;">{html_mod.escape(current_name)}</span></div>'
                 f'<div style="font-size:0.7rem;color:var(--muted);line-height:1.5;">Reigning<br>{_reign_start} – {_today_label}<br>{streak} day streak</div></div>'
                 f'<div style="text-align:right;"><div style="font-weight:800;color:{_ret_color};font-size:1.1rem;">{current_ret:+.2f}%</div>'
-                f'<div style="font-size:0.65rem;color:var(--muted);">Current</div></div></div>'
+                f'<div style="font-size:0.65rem;color:var(--muted);">{"Current" if end_date >= default_end else end_date.strftime("%b %d")}</div></div></div>'
             )
             # Past holders with dethronement info and duration
             # history is newest-first; compute end dates for each reign
@@ -3760,91 +3743,55 @@ with tab_dashboard:
             unsafe_allow_html=True,
         )
 
-        # --- Date presets + custom date picker ---
-        _today_preset = datetime.datetime.now(ZoneInfo("America/Los_Angeles")).date()
-        _preset_ranges = {
-            "1W": (_today_preset - datetime.timedelta(days=7), _today_preset),
-            "2W": (_today_preset - datetime.timedelta(days=14), _today_preset),
-            "1M": (_today_preset - datetime.timedelta(days=30), _today_preset),
-            "3M": (_today_preset - datetime.timedelta(days=90), _today_preset),
-            "ALL": (default_start, _today_preset),
-            "\U0001f4c5 Custom": (None, None),
-        }
-        _preset_options = list(_preset_ranges.keys())
-
-        def _on_preset_change():
-            pick = st.session_state.get("tw_pills")
-            if pick and pick != "\U0001f4c5 Custom":
-                s, e = _preset_ranges[pick]
-                st.session_state["tw_start"] = s
-                st.session_state["tw_end"] = e
-                st.session_state["tw_preset"] = pick
-                st.session_state["tw_show_custom"] = False
-            elif pick == "\U0001f4c5 Custom":
-                st.session_state["tw_preset"] = "\U0001f4c5 Custom"
-                st.session_state["tw_show_custom"] = True
-
-        _cur_preset = st.session_state.get("tw_preset", "ALL")
-        _pill_default = _cur_preset if _cur_preset in _preset_options else "ALL"
-        _active_pill = st.session_state.get("tw_pills", "ALL")
-        if _active_pill and _active_pill != "\U0001f4c5 Custom" and _active_pill in _preset_ranges:
-            _lbl_start, _lbl_end = _preset_ranges[_active_pill]
-        else:
-            _lbl_start, _lbl_end = start_date, end_date
-        _range_label = f'{_lbl_start.strftime("%b %d")} \u2013 {_lbl_end.strftime("%b %d, %Y")}'
-
-        st.pills("Date Range", _preset_options, default=_pill_default, key="tw_pills",
-                 on_change=_on_preset_change, label_visibility="collapsed")
+        # --- Date range form ---
         st.markdown(
-            f'<div style="font-size:0.75rem;font-weight:700;color:var(--muted);margin:-0.4rem 0 0.3rem;">'
-            f'{_range_label}</div>',
+            '<style>'
+            '/* Date form: no border, tight spacing */'
+            '[data-testid="stForm"] { border: none !important; padding: 0 !important; }'
+            '/* Compact date inputs */'
+            '[data-testid="stDateInput"] > div > div {'
+            '  border: 1.5px solid rgba(18,51,36,0.12) !important; border-radius: 8px !important;'
+            '  padding: 0 !important; min-height: 0 !important; height: auto !important; }'
+            '[data-testid="stDateInput"] > div > div:focus-within {'
+            '  border-color: rgba(14,95,58,0.4) !important; }'
+            '[data-testid="stDateInput"] input {'
+            '  font-size: 0.8rem !important; padding: 0.25rem 0.4rem !important;'
+            '  height: auto !important; min-height: 0 !important; }'
+            '[data-testid="stDateInput"] label p {'
+            '  font-size: 0.68rem !important; font-weight: 700 !important; color: #5d6f65 !important;'
+            '  margin-bottom: -2px !important; }'
+            '/* Compact buttons */'
+            '[data-testid="stFormSubmitButton"] button {'
+            '  font-size: 0.72rem !important; padding: 0.25rem 0.7rem !important;'
+            '  border-radius: 8px !important; min-height: 0 !important; height: auto !important; }'
+            '/* Reduce column gaps */'
+            '[data-testid="stForm"] [data-testid="stHorizontalBlock"] { gap: 0.4rem !important; }'
+            '</style>',
             unsafe_allow_html=True,
         )
-
-        if st.session_state.get("tw_show_custom"):
-            _cust_start_val = start_date.strftime("%Y-%m-%d")
-            _cust_end_val = end_date.strftime("%Y-%m-%d")
-            _cust_html = (
-                '<style>'
-                '* { box-sizing: border-box; margin: 0; padding: 0; }'
-                'body { font-family: "Space Grotesk", sans-serif; background: transparent; }'
-                '.cust-row { display: flex; align-items: end; gap: 0.6rem; }'
-                '.cust-field label { display: block; font-size: 0.7rem; font-weight: 700;'
-                '  color: #5d6f65; letter-spacing: 0.03em; margin-bottom: 0.2rem; }'
-                '.cust-field input { border: 1.5px solid rgba(18,51,36,0.12); border-radius: 10px;'
-                '  padding: 0.4rem 0.6rem; font-family: "Space Grotesk", sans-serif;'
-                '  font-size: 0.82rem; font-weight: 600; color: #102018; background: white;'
-                '  outline: none; width: 150px; transition: border-color 0.15s; }'
-                '.cust-field input:focus { border-color: rgba(14,95,58,0.4); }'
-                '.cust-sep { color: #5d6f65; font-size: 0.85rem; padding-bottom: 0.35rem; }'
-                '.cust-apply { padding: 0.4rem 0.8rem; border-radius: 10px; border: none;'
-                '  background: #0e5f3a; color: white; font-family: "Space Grotesk", sans-serif;'
-                '  font-size: 0.75rem; font-weight: 700; cursor: pointer; transition: background 0.15s; }'
-                '.cust-apply:hover { background: #0a4a2d; }'
-                '</style>'
-                '<div class="cust-row">'
-                '<div class="cust-field">'
-                '  <label>Start Date</label>'
-                f'  <input type="date" id="custStart" value="{_cust_start_val}">'
-                '</div>'
-                '<span class="cust-sep">\u2013</span>'
-                '<div class="cust-field">'
-                '  <label>End Date</label>'
-                f'  <input type="date" id="custEnd" value="{_cust_end_val}">'
-                '</div>'
-                '<button class="cust-apply" onclick="applyDates()">Apply</button>'
-                '</div>'
-                '<script>'
-                'function applyDates() {'
-                '  var s = document.getElementById("custStart").value;'
-                '  var e = document.getElementById("custEnd").value;'
-                '  if (s && e) {'
-                '    window.parent.location.search = "?cust_start=" + s + "&cust_end=" + e;'
-                '  }'
-                '}'
-                '</script>'
-            )
-            components.html(_cust_html, height=60, scrolling=False)
+        with st.form("custom_date_form", border=False):
+            _c1, _c_sep, _c2, _c_btn, _c_rst, _c_pad = st.columns([1, 0.1, 1, 0.5, 0.5, 3])
+            with _c1:
+                _form_start = st.date_input("Start Date", value=start_date, format="MM/DD/YYYY")
+            with _c_sep:
+                st.markdown('<div style="text-align:center;padding-top:1.5rem;color:#5d6f65;font-size:0.75rem;">\u2013</div>',
+                            unsafe_allow_html=True)
+            with _c2:
+                _form_end = st.date_input("End Date", value=end_date, format="MM/DD/YYYY")
+            with _c_btn:
+                st.markdown('<div style="height:1.1rem;"></div>', unsafe_allow_html=True)
+                _submitted = st.form_submit_button("Apply", type="primary")
+            with _c_rst:
+                st.markdown('<div style="height:1.1rem;"></div>', unsafe_allow_html=True)
+                _reset = st.form_submit_button("Reset")
+        if _submitted:
+            st.session_state["tw_start"] = _form_start
+            st.session_state["tw_end"] = _form_end
+            st.rerun()
+        if _reset:
+            st.session_state["tw_start"] = default_start
+            st.session_state["tw_end"] = default_end
+            st.rerun()
 
         rows = []
         for rank, (ticker, ret) in enumerate(final_returns.items(), start=1):
