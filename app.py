@@ -2531,7 +2531,7 @@ with tab_dashboard:
                 'u();setInterval(u,1000);'
                 '</script>'
             )
-            components.html(_status_bar, height=34, scrolling=False)
+            components.html(_status_bar, height=80, scrolling=False)
         else:
             next_open = now_et.replace(hour=9, minute=30, second=0, microsecond=0)
             if now_et >= next_open:
@@ -2563,7 +2563,7 @@ with tab_dashboard:
                 'u();setInterval(u,1000);'
                 '</script>'
             )
-            components.html(_status_bar, height=34, scrolling=False)
+            components.html(_status_bar, height=80, scrolling=False)
         # --- Generate Trash Talk & Achievements ---
         trash_talk_lines = generate_trash_talk(throne, superlatives, final_returns, NAME_MAP, ETF_MAP, returns, valid_tickers)
         achievements = compute_achievements(returns, valid_tickers, NAME_MAP, dividends, throne, final_returns, start_prices, INVESTMENT)
