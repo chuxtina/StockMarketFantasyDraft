@@ -1379,44 +1379,42 @@ def _file_cache(ttl_seconds):
 @_file_cache(ttl_seconds=3600)
 @st.cache_data(ttl=3600)
 def fetch_returns(tickers, start, end):
-    """Download adjusted prices and compute daily cumulative % return with retry for missing tickers."""
+    """Download adjusted prices and compute daily cumulative % return with retry."""
     import time as _time
+    end_dl = end + datetime.timedelta(days=1)
 
+    # Bulk download all tickers
+    data = yf.download(tickers, start=start, end=end_dl, auto_adjust=True, progress=False, threads=True)
     all_close = None
-    remaining = list(tickers)
-
-    for attempt in range(3):
-        if not remaining:
-            break
-        data = yf.download(
-            remaining,
-            start=start,
-            end=end + datetime.timedelta(days=1),
-            auto_adjust=True,
-            progress=False,
-            threads=True,
-        )
-        if data.empty:
-            if attempt < 2:
-                _time.sleep(2)
-                continue
-            break
-
+    if not data.empty:
         close = data["Close"]
         if isinstance(close, pd.Series):
-            close = close.to_frame(name=remaining[0])
+            close = close.to_frame(name=tickers[0])
+        all_close = close
 
-        if all_close is None:
-            all_close = close
-        else:
-            for col in close.columns:
-                if col not in all_close.columns:
-                    all_close[col] = close[col]
-
-        # Find which tickers are still missing
-        remaining = [t for t in tickers if all_close is None or t not in all_close.columns or all_close[t].isna().all()]
-        if remaining and attempt < 2:
-            _time.sleep(2)
+    # Find missing tickers and retry individually
+    missing = [t for t in tickers if all_close is None or t not in all_close.columns or all_close[t].isna().all()]
+    if missing:
+        _time.sleep(1)
+        from concurrent.futures import ThreadPoolExecutor
+        def _fetch_single(t):
+            for _try in range(2):
+                try:
+                    d = yf.download(t, start=start, end=end_dl, auto_adjust=True, progress=False)
+                    if not d.empty and "Close" in d.columns:
+                        return t, d["Close"]
+                except Exception:
+                    pass
+                _time.sleep(1)
+            return t, None
+        with ThreadPoolExecutor(max_workers=5) as pool:
+            results = list(pool.map(_fetch_single, missing))
+        for t, series in results:
+            if series is not None:
+                if all_close is None:
+                    all_close = series.to_frame(name=t)
+                else:
+                    all_close[t] = series
 
     if all_close is None or all_close.empty:
         return None, None, None
