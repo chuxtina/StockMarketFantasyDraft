@@ -1345,22 +1345,28 @@ roster_search = ""
 @st.cache_data(ttl=3600)
 def fetch_returns(tickers, start, end):
     """Download adjusted prices and compute daily cumulative % return."""
-    data = yf.download(
-        tickers,
-        start=start,
-        end=end + datetime.timedelta(days=1),
-        auto_adjust=True,
-        progress=False,
-        threads=True,
-    )
+    end_dl = end + datetime.timedelta(days=1)
 
-    if data.empty:
+    # Download in batches of 20 to avoid rate limiting on Streamlit Cloud
+    batch_size = 20
+    frames = []
+    for i in range(0, len(tickers), batch_size):
+        batch = tickers[i:i + batch_size]
+        try:
+            data = yf.download(batch, start=start, end=end_dl, auto_adjust=True, progress=False, threads=True)
+            if not data.empty:
+                c = data["Close"]
+                if isinstance(c, pd.Series):
+                    c = c.to_frame(name=batch[0])
+                frames.append(c)
+        except Exception:
+            pass
+
+    if not frames:
         return None, None, None
 
-    close = data["Close"]
-    if isinstance(close, pd.Series):
-        close = close.to_frame(name=tickers[0])
-
+    close = pd.concat(frames, axis=1)
+    close = close.loc[:, ~close.columns.duplicated()]
     close = close.ffill().bfill()
     start_prices = close.iloc[0]
     end_prices = close.iloc[-1]
