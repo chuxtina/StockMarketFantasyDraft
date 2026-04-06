@@ -1379,32 +1379,52 @@ def _file_cache(ttl_seconds):
 @_file_cache(ttl_seconds=3600)
 @st.cache_data(ttl=3600)
 def fetch_returns(tickers, start, end):
-    """Download adjusted prices and compute daily cumulative % return."""
-    data = yf.download(
-        tickers,
-        start=start,
-        end=end + datetime.timedelta(days=1),
-        auto_adjust=True,
-        progress=False,
-        threads=True,
-    )
+    """Download adjusted prices and compute daily cumulative % return with retry for missing tickers."""
+    import time as _time
 
-    if data.empty:
+    all_close = None
+    remaining = list(tickers)
+
+    for attempt in range(3):
+        if not remaining:
+            break
+        data = yf.download(
+            remaining,
+            start=start,
+            end=end + datetime.timedelta(days=1),
+            auto_adjust=True,
+            progress=False,
+            threads=True,
+        )
+        if data.empty:
+            if attempt < 2:
+                _time.sleep(2)
+                continue
+            break
+
+        close = data["Close"]
+        if isinstance(close, pd.Series):
+            close = close.to_frame(name=remaining[0])
+
+        if all_close is None:
+            all_close = close
+        else:
+            for col in close.columns:
+                if col not in all_close.columns:
+                    all_close[col] = close[col]
+
+        # Find which tickers are still missing
+        remaining = [t for t in tickers if all_close is None or t not in all_close.columns or all_close[t].isna().all()]
+        if remaining and attempt < 2:
+            _time.sleep(2)
+
+    if all_close is None or all_close.empty:
         return None, None, None
 
-    close = data["Close"]
-
-    # If single ticker, yf.download returns a Series — wrap it
-    if isinstance(close, pd.Series):
-        close = close.to_frame(name=tickers[0])
-
-    # Forward-fill then back-fill gaps (holidays / missing data)
-    close = close.ffill().bfill()
-
-    # Compute cumulative % return from the first available price
-    start_prices = close.iloc[0]
-    end_prices = close.iloc[-1]
-    pct_return = (close / start_prices - 1) * 100
+    all_close = all_close.ffill().bfill()
+    start_prices = all_close.iloc[0]
+    end_prices = all_close.iloc[-1]
+    pct_return = (all_close / start_prices - 1) * 100
 
     return pct_return, start_prices, end_prices
 
