@@ -2681,57 +2681,51 @@ with tab_dashboard:
                 f'</div>'
             )
 
-        # Holiday section for the status bar
-        _div = '<span style="width:1px;height:14px;background:rgba(18,51,36,0.1);display:inline-block;vertical-align:middle;"></span>'
-        _hol_span = ''
-        if _holiday_html:
+        # Holiday info
+        _hol_html = ''
+        if _next_holidays:
             _nh_date, _nh_name = _next_holidays[0]
             _nh_days = (_nh_date - _today_d).days
-            _hol_span = f'{_div} <span style="font-size:0.68rem;color:#aaa;">\U0001f4c5 <b style="color:#5d6f65;">{_nh_name}</b> in {_nh_days}d</span>'
+            _hol_html = f'\U0001f4c5 Next market holiday: <b>{_nh_name}</b> in {_nh_days}d'
+
+        _div_html = '<span style="width:1px;height:12px;background:rgba(18,51,36,0.1);display:inline-block;"></span>'
 
         if is_market_open():
-            # Countdown to market close (4:00 PM ET)
             market_close_et = now_et.replace(hour=16, minute=0, second=0, microsecond=0)
             secs_to_close = max(0, int((market_close_et - now_et).total_seconds()))
             _secs_into_hour = now_et.minute * 60 + now_et.second
             _secs_to_refresh = max(0, 3600 - _secs_into_hour)
-            # Single iframe with close + refresh countdowns
-            _live_iframe = (
-                '<iframe srcdoc="'
-                '<body style=&quot;margin:0;padding:0;overflow:hidden;background:transparent;&quot;>'
-                '<span id=&quot;w&quot; style=&quot;font-family:Space Grotesk,-apple-system,BlinkMacSystemFont,sans-serif;'
-                'font-size:11.5px;color:#5d6f65;&quot;></span>'
-                f'<script>var el=document.getElementById(&quot;w&quot;),cs={secs_to_close},rs={_secs_to_refresh};'
-                'function fmt(s){var h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sc=s%60;'
-                'return h+&quot;h &quot;+(m&lt;10?&quot;0&quot;:&quot;&quot;)+m+&quot;m &quot;+(sc&lt;10?&quot;0&quot;:&quot;&quot;)+sc+&quot;s&quot;;}'
-                'function u(){cs--;rs--;'
-                'var ct=cs&gt;0?&quot;closes in &quot;+fmt(cs):&quot;Market closed&quot;;'
-                'var rt=rs&gt;0?&quot;refreshes in &quot;+Math.floor(rs/60)+&quot;m &quot;+(rs%60&lt;10?&quot;0&quot;:&quot;&quot;)+(rs%60)+&quot;s&quot;:&quot;refreshing\u2026&quot;;'
-                'el.textContent=ct+&quot; \u00b7 &quot;+rt;'
-                'if(rs&lt;=0)setTimeout(function(){try{window.parent.location.reload();}catch(e){}},2000);}'
-                'u();setInterval(u,1000);'
-                '</script></body>'
-                '" style="border:none;width:380px;height:16px;vertical-align:middle;display:inline-block;'
-                'overflow:hidden;background:transparent;" scrolling="no"></iframe>'
-            )
-            _status_html = (
-                '<div style="display:inline-flex;align-items:center;gap:0.6rem;background:rgba(255,255,255,0.7);'
+            _status_bar = (
+                '<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">'
+                '<style>*{margin:0;padding:0;box-sizing:border-box;font-family:"Space Grotesk",sans-serif;}'
+                '@keyframes glow{0%,100%{box-shadow:0 0 4px #4ade80}50%{box-shadow:0 0 10px #4ade80}}</style>'
+                '<div style="display:inline-flex;align-items:center;gap:0.45rem;background:rgba(255,255,255,0.7);'
                 'backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(25,160,95,0.15);'
-                'border-radius:14px;padding:0.45rem 0.9rem;box-shadow:0 2px 12px rgba(0,0,0,0.04);margin-bottom:0.6rem;flex-wrap:wrap;">'
+                'border-radius:14px;padding:0.4rem 0.85rem;box-shadow:0 2px 12px rgba(0,0,0,0.04);">'
                 '<div style="display:flex;align-items:center;gap:0.3rem;background:rgba(25,160,95,0.1);padding:0.18rem 0.55rem;border-radius:8px;">'
                 '<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#4ade80;animation:glow 2s infinite;"></span>'
-                '<span style="font-size:0.72rem;font-weight:700;color:#19a05f;">LIVE</span>'
-                '</div>'
-                f'<span style="font-size:0.75rem;color:#5d6f65;">{live_timestamp}</span>'
-                f'{_div}'
-                f'{_live_iframe}'
-                f'{_hol_span}'
-                '</div>'
-                '<style>@keyframes glow{0%,100%{box-shadow:0 0 4px #4ade80}50%{box-shadow:0 0 10px #4ade80}}</style>'
+                '<span style="font-size:0.72rem;font-weight:700;color:#19a05f;">LIVE</span></div>'
+                f'<span style="font-size:0.72rem;color:#5d6f65;">{live_timestamp}</span>'
+                f'{_div_html}'
+                '<span style="font-size:0.72rem;color:#5d6f65;">closes in <span id="cd-close"></span></span>'
+                f'{_div_html}'
+                '<span style="font-size:0.72rem;color:#888;">refreshes in <span id="cd-refresh"></span></span>'
+                + (f'{_div_html}<span style="font-size:0.68rem;color:#aaa;">{_hol_html}</span>' if _hol_html else '')
+                + '</div>'
+                '<script>'
+                f'var cs={secs_to_close},rs={_secs_to_refresh};'
+                'function fmt(s){var h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sc=s%60;'
+                'return h+"h "+(m<10?"0":"")+m+"m "+(sc<10?"0":"")+sc+"s";}'
+                'function u(){cs--;rs--;'
+                'document.getElementById("cd-close").textContent=cs>0?fmt(cs):"closed";'
+                'var rm=Math.floor(rs/60),rsc=rs%60;'
+                'document.getElementById("cd-refresh").textContent=rs>0?rm+"m "+(rsc<10?"0":"")+rsc+"s":"refreshing...";'
+                'if(rs<=0)setTimeout(function(){try{window.parent.location.reload();}catch(e){}},2000);}'
+                'u();setInterval(u,1000);'
+                '</script>'
             )
-            st.markdown(_status_html, unsafe_allow_html=True)
+            components.html(_status_bar, height=34, scrolling=False)
         else:
-            # Countdown to next market open (9:30 AM ET next trading day)
             next_open = now_et.replace(hour=9, minute=30, second=0, microsecond=0)
             if now_et >= next_open:
                 next_open += datetime.timedelta(days=1)
@@ -2739,36 +2733,29 @@ with tab_dashboard:
                 next_open += datetime.timedelta(days=1)
             secs_to_open = max(0, int((next_open - now_et).total_seconds()))
             next_open_label = next_open.strftime("%a %b %d, %I:%M %p ET")
-            countdown_iframe = (
-                '<iframe srcdoc="'
-                '<body style=&quot;margin:0;padding:0;overflow:hidden;background:transparent;&quot;>'
-                '<span id=&quot;c&quot; style=&quot;font-family:Space Grotesk,-apple-system,BlinkMacSystemFont,sans-serif;'
-                f'font-size:11.5px;color:#5d6f65;&quot;></span>'
-                f'<script>var e=document.getElementById(&quot;c&quot;),s={secs_to_open};'
-                'function u(){if(s&lt;=0){e.textContent=&quot;Market opening...&quot;;return;}'
-                'var d=Math.floor(s/86400),h=Math.floor((s%86400)/3600),m=Math.floor((s%3600)/60),sec=s%60;'
-                'var t=&quot;&quot;;if(d&gt;0)t+=d+&quot;d &quot;;t+=h+&quot;h &quot;+(m&lt;10?&quot;0&quot;:&quot;&quot;)+m+&quot;m &quot;+(sec&lt;10?&quot;0&quot;:&quot;&quot;)+sec+&quot;s&quot;;'
-                'e.textContent=t;s--;}'
-                'u();setInterval(u,1000);'
-                '</script></body>'
-                '" style="border:none;width:160px;height:16px;vertical-align:middle;display:inline-block;'
-                'overflow:hidden;background:transparent;" scrolling="no"></iframe>'
-            )
-            _status_html = (
-                '<div style="display:inline-flex;align-items:center;gap:0.6rem;background:rgba(255,255,255,0.7);'
+            _status_bar = (
+                '<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">'
+                '<style>*{margin:0;padding:0;box-sizing:border-box;font-family:"Space Grotesk",sans-serif;}</style>'
+                '<div style="display:inline-flex;align-items:center;gap:0.45rem;background:rgba(255,255,255,0.7);'
                 'backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(93,111,101,0.1);'
-                'border-radius:14px;padding:0.45rem 0.9rem;box-shadow:0 2px 12px rgba(0,0,0,0.04);margin-bottom:0.6rem;flex-wrap:wrap;">'
+                'border-radius:14px;padding:0.4rem 0.85rem;box-shadow:0 2px 12px rgba(0,0,0,0.04);">'
                 '<div style="display:flex;align-items:center;gap:0.3rem;background:rgba(93,111,101,0.08);padding:0.18rem 0.55rem;border-radius:8px;">'
                 '<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#aaa;"></span>'
-                '<span style="font-size:0.72rem;font-weight:700;color:#888;">CLOSED</span>'
-                '</div>'
-                f'<span style="font-size:0.75rem;color:#5d6f65;">{live_timestamp}</span>'
-                f'{_div}'
-                f'<span style="font-size:0.72rem;color:#5d6f65;">\U0001f514 Opens {next_open_label} &middot; {countdown_iframe}</span>'
-                f'{_hol_span}'
-                '</div>'
+                '<span style="font-size:0.72rem;font-weight:700;color:#888;">CLOSED</span></div>'
+                f'<span style="font-size:0.72rem;color:#5d6f65;">{live_timestamp}</span>'
+                f'{_div_html}'
+                f'<span style="font-size:0.72rem;color:#5d6f65;">\U0001f514 Opens {next_open_label} \u00b7 <span id="cd-open"></span></span>'
+                + (f'{_div_html}<span style="font-size:0.68rem;color:#aaa;">{_hol_html}</span>' if _hol_html else '')
+                + '</div>'
+                f'<script>var s={secs_to_open};'
+                'function u(){if(s<=0){document.getElementById("cd-open").textContent="opening...";return;}'
+                'var d=Math.floor(s/86400),h=Math.floor((s%86400)/3600),m=Math.floor((s%3600)/60),sc=s%60;'
+                'var t="";if(d>0)t+=d+"d ";t+=h+"h "+(m<10?"0":"")+m+"m "+(sc<10?"0":"")+sc+"s";'
+                'document.getElementById("cd-open").textContent=t;s--;}'
+                'u();setInterval(u,1000);'
+                '</script>'
             )
-            st.markdown(_status_html, unsafe_allow_html=True)
+            components.html(_status_bar, height=34, scrolling=False)
         # --- Generate Trash Talk & Achievements ---
         trash_talk_lines = generate_trash_talk(throne, superlatives, final_returns, NAME_MAP, ETF_MAP, returns, valid_tickers)
         achievements = compute_achievements(returns, valid_tickers, NAME_MAP, dividends, throne, final_returns, start_prices, INVESTMENT)
