@@ -1543,93 +1543,51 @@ def fetch_earnings(tickers_tuple):
     import datetime as _dt
 
     def _fetch_one(ticker):
+        result = {"next_date": "", "eps_est": None, "eps_actual": None,
+                  "last_earnings_date": "", "last_eps_reported": None, "last_eps_estimate": None}
         try:
             t = yf.Ticker(ticker)
             cal = t.calendar
-            # Handle both dict (yfinance >=0.2.31) and DataFrame (older) returns
             cal_dict = None
             if cal is not None:
                 if isinstance(cal, dict):
                     cal_dict = cal
                 elif hasattr(cal, 'to_dict'):
-                    # DataFrame: convert first column or transpose
                     try:
-                        if cal.shape[1] == 1:
-                            cal_dict = cal.iloc[:, 0].to_dict()
-                        else:
-                            cal_dict = cal.T.iloc[0].to_dict() if len(cal.columns) > 0 else None
+                        cal_dict = cal.T.iloc[0].to_dict() if hasattr(cal, 'T') and len(cal.columns) > 0 else None
                     except Exception:
-                        cal_dict = None
-            next_date = ""
-            eps_est = None
-            eps_actual = None
-            if cal_dict is not None:
-                earnings_dates_list = cal_dict.get("Earnings Date", [])
-                if not isinstance(earnings_dates_list, list):
-                    earnings_dates_list = [earnings_dates_list] if earnings_dates_list else []
-                for ed in earnings_dates_list:
+                        pass
+            if cal_dict:
+                ed_list = cal_dict.get("Earnings Date", [])
+                if not isinstance(ed_list, list):
+                    ed_list = [ed_list] if ed_list else []
+                if ed_list:
                     try:
-                        next_date = ed.strftime("%b %d")
-                        break
+                        result["next_date"] = ed_list[0].strftime("%b %d")
                     except Exception:
-                        next_date = str(ed)[:6] if ed else ""
-                        break
-                eps_est = cal_dict.get("Earnings Average")
-            # Fallback: use earnings_dates if calendar didn't provide a date
-            if not next_date:
-                try:
-                    import datetime as _dt2
-                    ed_df = t.get_earnings_dates(limit=4)
-                    if ed_df is not None and len(ed_df) > 0:
-                        today = _dt2.date.today()
-                        for idx_date in ed_df.index:
-                            d = idx_date.date() if hasattr(idx_date, 'date') else idx_date
-                            if d >= today:
-                                next_date = d.strftime("%b %d")
-                                # Try to get EPS estimate from this table
-                                if eps_est is None:
-                                    row = ed_df.loc[idx_date]
-                                    est_val = row.get("EPS Estimate")
-                                    if est_val is not None and str(est_val) != "nan":
-                                        eps_est = float(est_val)
-                                break
-                except Exception:
-                    pass
-            try:
-                info = t.info
-                eps_actual = info.get("trailingEps")
-            except Exception:
-                pass
-            # Get most recent quarterly earnings for beat/miss
-            last_earnings_date = ""
-            last_eps_reported = None
-            last_eps_estimate = None
+                        result["next_date"] = str(ed_list[0])[:6] if ed_list[0] else ""
+                eps_avg = cal_dict.get("Earnings Average")
+                if eps_avg:
+                    result["eps_est"] = round(eps_avg, 2)
+            # Earnings history for beat/miss (skip t.info — too slow)
             try:
                 eh = t.earnings_history
                 if eh is not None and len(eh) > 0:
                     latest = eh.iloc[-1]
-                    last_earnings_date = eh.index[-1].strftime("%b %y")
+                    result["last_earnings_date"] = eh.index[-1].strftime("%b %y")
                     v = latest.get("epsActual")
                     if v is not None and str(v) != "nan":
-                        last_eps_reported = round(float(v), 2)
+                        result["last_eps_reported"] = round(float(v), 2)
                     v = latest.get("epsEstimate")
                     if v is not None and str(v) != "nan":
-                        last_eps_estimate = round(float(v), 2)
+                        result["last_eps_estimate"] = round(float(v), 2)
             except Exception:
                 pass
-            return ticker, {
-                "next_date": next_date,
-                "eps_est": round(eps_est, 2) if eps_est else None,
-                "eps_actual": round(eps_actual, 2) if eps_actual else None,
-                "last_earnings_date": last_earnings_date,
-                "last_eps_reported": last_eps_reported,
-                "last_eps_estimate": last_eps_estimate,
-            }
         except Exception:
             pass
-        return ticker, {"next_date": "", "eps_est": None, "eps_actual": None, "last_earnings_date": "", "last_eps_reported": None, "last_eps_estimate": None}
+        return ticker, result
 
-    with ThreadPoolExecutor(max_workers=10) as pool:
+    with ThreadPoolExecutor(max_workers=20) as pool:
         results = pool.map(_fetch_one, tickers_tuple)
     return dict(results)
 
@@ -2574,9 +2532,16 @@ with tab_dashboard:
         # Identify valid vs invalid tickers
         valid_tickers = [t for t in TICKERS if t in returns.columns and returns[t].notna().any()]
 
-        # Fetch dividends for valid tickers
+        # Fetch dividends, signals, and earnings in parallel
+        from concurrent.futures import ThreadPoolExecutor as _TPE
+        _data_futures = {}
+        _data_pool = _TPE(max_workers=3)
+        _data_futures["dividends"] = _data_pool.submit(fetch_dividends, valid_tickers, start_date, end_date)
+        _data_futures["signals"] = _data_pool.submit(compute_signals, valid_tickers, start_date, end_date)
+        _data_futures["earnings"] = _data_pool.submit(fetch_earnings, tuple(valid_tickers))
+
         try:
-            dividends = fetch_dividends(valid_tickers, start_date, end_date)
+            dividends = _data_futures["dividends"].result()
         except Exception:
             dividends = {t: 0.0 for t in valid_tickers}
         invalid_tickers = [t for t in TICKERS if t not in valid_tickers]
@@ -2968,8 +2933,11 @@ with tab_dashboard:
                     return b
             return None
 
-        # Fetch earnings data early for Beat Street badges
-        earnings_data = fetch_earnings(tuple(valid_tickers))
+        # Fetch earnings data early for Beat Street badges (already started in parallel)
+        try:
+            earnings_data = _data_futures["earnings"].result()
+        except Exception:
+            earnings_data = {}
 
         # Build badges as opposite pairs
         badges_data = []  # (icon, name, holder, desc)
@@ -3233,7 +3201,11 @@ with tab_dashboard:
         st.markdown(f'<div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">{table_html}</div>', unsafe_allow_html=True)
 
         # --- Market Pulse ---
-        stock_signals = compute_signals(valid_tickers, start_date, end_date)
+        # Signals already started in parallel
+        try:
+            stock_signals = _data_futures["signals"].result()
+        except Exception:
+            stock_signals = {}
 
         # Compute signal counts for the bar
         buy_count = sum(1 for s in stock_signals.values() if s["signal"] == "BUY") if stock_signals else 0
