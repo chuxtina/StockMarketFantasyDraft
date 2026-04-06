@@ -1342,7 +1342,7 @@ roster_search = ""
 
 # --- Main ---
 
-@st.cache_data(ttl=3600)
+@st.cache_data(ttl=3600, persist="disk")
 def fetch_returns(tickers, start, end):
     """Download adjusted prices and compute daily cumulative % return."""
     end_dl = end + datetime.timedelta(days=1)
@@ -1375,7 +1375,7 @@ def fetch_returns(tickers, start, end):
     return pct_return, start_prices, end_prices
 
 
-@st.cache_data(ttl=3600)
+@st.cache_data(ttl=3600, persist="disk")
 def fetch_dividends(tickers, start, end):
     """Fetch total dividends per share for each ticker in the date range."""
     from concurrent.futures import ThreadPoolExecutor
@@ -1397,7 +1397,7 @@ def fetch_dividends(tickers, start, end):
     return dict(results)
 
 
-@st.cache_data(ttl=3600)
+@st.cache_data(ttl=3600, persist="disk")
 def compute_signals(tickers, start, end):
     """Compute technical buy/sell signals from price data."""
     # Fetch extra history for indicator warm-up (30 extra calendar days)
@@ -1511,7 +1511,7 @@ def compute_signals(tickers, start, end):
     return signals
 
 
-@st.cache_data(ttl=7200)
+@st.cache_data(ttl=7200, persist="disk")
 def fetch_news_batch(tickers_tuple):
     """Fetch latest news for tickers via yfinance using threads."""
     from concurrent.futures import ThreadPoolExecutor
@@ -1537,7 +1537,7 @@ def fetch_news_batch(tickers_tuple):
     return [r for r in results if r]
 
 
-@st.cache_data(ttl=86400)
+@st.cache_data(ttl=86400, persist="disk")
 def fetch_earnings(tickers_tuple):
     """Fetch next earnings date and EPS estimates for tickers via yfinance using threads."""
     from concurrent.futures import ThreadPoolExecutor
