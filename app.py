@@ -4641,6 +4641,7 @@ with tab_feud:
         <div class="challenge-label"><span class="challenge-num">1</span> Weekly Challenge</div>
         <div class="challenge-title">{_trophy_emoji} Who will be MVP this week?</div>
         <div class="challenge-desc">The stock with the highest total return Mon&ndash;Fri wins.</div>
+        <div style="font-size:0.75rem;color:#5d6f65;margin:-0.2rem 0 0.6rem;">{_clock_emoji} Vote by Mon 9 AM ET &middot; Winner revealed Fri 4 PM ET</div>
         {_mvp_input_html}
         <div id="mvpVoteHeader" class="votes-header">Community Votes ({_mvp_total} total)</div>
         <div id="mvpVoteBars">{_mvp_bars if _mvp_bars else _no_votes_html}</div>
@@ -4651,6 +4652,7 @@ with tab_feud:
         <div class="challenge-label"><span class="challenge-num">2</span> Weekly Challenge</div>
         <div class="challenge-title">{_house_emoji} Who will be Head of Household?</div>
         <div class="challenge-desc">The ETF with the highest average return Mon&ndash;Fri wins.</div>
+        <div style="font-size:0.75rem;color:#5d6f65;margin:-0.2rem 0 0.6rem;">{_clock_emoji} Vote by Mon 9 AM ET &middot; Winner revealed Fri 4 PM ET</div>
         {_hoh_input_html}
         <div id="hohVoteHeader" class="votes-header">Community Votes ({_hoh_total} total)</div>
         <div id="hohVoteBars">{_hoh_bars if _hoh_bars else '<div style="font-size:0.8rem;color:#5d6f65;">No votes yet &mdash; be the first!</div>'}</div>
