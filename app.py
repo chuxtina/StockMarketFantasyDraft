@@ -1331,6 +1331,19 @@ SECTOR_MAP = {
 default_start = datetime.date(2026, 3, 6)
 default_end = datetime.datetime.now(ZoneInfo("America/Los_Angeles")).date()
 
+# Read custom dates from query params (set by Apply button in iframe)
+_qp = st.query_params
+if "cust_start" in _qp and "cust_end" in _qp:
+    try:
+        _cs = datetime.datetime.strptime(_qp["cust_start"], "%Y-%m-%d").date()
+        _ce = datetime.datetime.strptime(_qp["cust_end"], "%Y-%m-%d").date()
+        st.session_state["tw_start"] = _cs
+        st.session_state["tw_end"] = _ce
+        st.session_state["tw_preset"] = "\U0001f4c5 Custom"
+        st.session_state["tw_show_custom"] = True
+    except (ValueError, KeyError):
+        pass
+
 if "tw_start" not in st.session_state:
     st.session_state["tw_start"] = default_start
 if "tw_end" not in st.session_state:
@@ -2657,6 +2670,13 @@ with tab_dashboard:
                 '" style="border:none;width:200px;height:18px;vertical-align:text-bottom;display:inline-block;'
                 'overflow:hidden;background:transparent;" scrolling="no"></iframe>'
             )
+            # Compute next data refresh time (cache TTL = 1h)
+            _refresh_min = 60  # minutes
+            _mins_past = now_et.minute
+            _next_refresh_min = _refresh_min - (_mins_past % _refresh_min)
+            if _next_refresh_min == _refresh_min:
+                _next_refresh_min = 0
+            _refresh_note = f'Data refreshes in ~{_next_refresh_min}m' if _next_refresh_min > 0 else 'Data refreshing...'
             st.markdown(
                 f'<div style="display:flex;align-items:center;gap:0.4rem;margin-bottom:0;">'
                 f'<span style="display:inline-block;width:10px;height:10px;border-radius:50%;background:#19a05f;'
@@ -2664,7 +2684,9 @@ with tab_dashboard:
                 f'<span style="font-size:14px;color:#888;line-height:18px;">'
                 f'<strong style="color:#19a05f;">LIVE</strong> &middot; {live_timestamp}'
                 f' &middot; {countdown_iframe}'
-                f'</span></div>',
+                f'</span></div>'
+                f'<div style="font-size:0.7rem;color:var(--muted);margin:0.1rem 0 0 1.3rem;">'
+                f'\U0001f504 {_refresh_note}</div>',
                 unsafe_allow_html=True,
             )
         else:
@@ -3817,28 +3839,12 @@ with tab_dashboard:
                 '  var s = document.getElementById("custStart").value;'
                 '  var e = document.getElementById("custEnd").value;'
                 '  if (s && e) {'
-                '    var url = new URL(window.parent.location);'
-                '    url.searchParams.set("cust_start", s);'
-                '    url.searchParams.set("cust_end", e);'
-                '    window.parent.location.href = url.toString();'
+                '    window.parent.location.search = "?cust_start=" + s + "&cust_end=" + e;'
                 '  }'
                 '}'
                 '</script>'
             )
             components.html(_cust_html, height=60, scrolling=False)
-            # Read custom dates from query params if present
-            _qp = st.query_params
-            if "cust_start" in _qp and "cust_end" in _qp:
-                try:
-                    _cs = datetime.datetime.strptime(_qp["cust_start"], "%Y-%m-%d").date()
-                    _ce = datetime.datetime.strptime(_qp["cust_end"], "%Y-%m-%d").date()
-                    if _cs != st.session_state["tw_start"] or _ce != st.session_state["tw_end"]:
-                        st.session_state["tw_start"] = _cs
-                        st.session_state["tw_end"] = _ce
-                        st.session_state["tw_preset"] = "\U0001f4c5 Custom"
-                        st.rerun()
-                except (ValueError, KeyError):
-                    pass
 
         rows = []
         for rank, (ticker, ret) in enumerate(final_returns.items(), start=1):
