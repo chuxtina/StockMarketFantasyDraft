@@ -1327,7 +1327,7 @@ SECTOR_MAP = {
     "WMT": "Consumer", "XOM": "Energy",
 }
 
-# --- Trading Windows (rendered in leaderboard section) ---
+# --- Trading Windows ---
 default_start = datetime.date(2026, 3, 6)
 default_end = datetime.datetime.now(ZoneInfo("America/Los_Angeles")).date()
 
@@ -1335,6 +1335,17 @@ if "tw_start" not in st.session_state:
     st.session_state["tw_start"] = default_start
 if "tw_end" not in st.session_state:
     st.session_state["tw_end"] = default_end
+
+# Read date overrides from query params (set by controls bar Apply button)
+_qp = st.query_params
+if "ds" in _qp and "de" in _qp:
+    try:
+        _qs = datetime.datetime.strptime(_qp["ds"], "%Y-%m-%d").date()
+        _qe = datetime.datetime.strptime(_qp["de"], "%Y-%m-%d").date()
+        st.session_state["tw_start"] = _qs
+        st.session_state["tw_end"] = _qe
+    except (ValueError, KeyError):
+        pass
 
 start_date = st.session_state["tw_start"]
 end_date = st.session_state["tw_end"]
@@ -2480,12 +2491,7 @@ with tab_dashboard:
             _nh_date, _nh_name = _next_holidays[0]
             _nh_label = _nh_date.strftime("%a %b %d")
             _nh_days = (_nh_date - _today_d).days
-            _holiday_html = (
-                f'<div style="display:flex;align-items:center;gap:0.35rem;">'
-                f'<span style="font-size:0.7rem;">\U0001f4c5</span>'
-                f'<span>Next market holiday: <b>{_nh_name}</b> &middot; {_nh_label} ({_nh_days}d)</span>'
-                f'</div>'
-            )
+            _holiday_html = f'Next market holiday: <b>{_nh_name}</b> &middot; {_nh_label} ({_nh_days}d)'
 
         # Holiday info
         _hol_html = ''
@@ -2518,9 +2524,8 @@ with tab_dashboard:
                 '<span style="color:#5d6f65;">closes in <span id="cd-close"></span></span>'
                 f'{_div_html}'
                 '<span style="color:#888;">refreshes in <span id="cd-refresh"></span></span>'
-                '</div>'
-                + (f'<div style="font-size:0.72rem;color:#5d6f65;margin-top:0.25rem;">{_hol_html}</div>' if _hol_html else '')
-                + '</div>'
+                + (f'{_div_html}<span style="color:#aaa;">{_hol_html}</span>' if _hol_html else '')
+                + '</div></div>'
                 '<script>'
                 f'var cs={secs_to_close},rs={_secs_to_refresh};'
                 'function fmt(s){var h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sc=s%60;'
@@ -2533,7 +2538,7 @@ with tab_dashboard:
                 'u();setInterval(u,1000);'
                 '</script>'
             )
-            components.html(_status_bar, height=52, scrolling=False)
+            components.html(_status_bar, height=36, scrolling=False)
         else:
             next_open = now_et.replace(hour=9, minute=30, second=0, microsecond=0)
             if now_et >= next_open:
@@ -2556,9 +2561,8 @@ with tab_dashboard:
                 f'<span style="color:#5d6f65;">{live_timestamp}</span>'
                 f'{_div_html}'
                 f'<span style="color:#5d6f65;">Opens in <span id="cd-open"></span></span>'
-                '</div>'
-                + (f'<div style="font-size:0.72rem;color:#5d6f65;margin-top:0.25rem;">{_hol_html}</div>' if _hol_html else '')
-                + '</div>'
+                + (f'{_div_html}<span style="color:#aaa;">{_hol_html}</span>' if _hol_html else '')
+                + '</div></div>'
                 f'<script>var s={secs_to_open};'
                 'function u(){if(s<=0){document.getElementById("cd-open").textContent="opening...";return;}'
                 'var d=Math.floor(s/86400),h=Math.floor((s%86400)/3600),m=Math.floor((s%3600)/60),sc=s%60;'
@@ -2567,7 +2571,7 @@ with tab_dashboard:
                 'u();setInterval(u,1000);'
                 '</script>'
             )
-            components.html(_status_bar, height=52, scrolling=False)
+            components.html(_status_bar, height=36, scrolling=False)
         # --- Generate Trash Talk & Achievements ---
         trash_talk_lines = generate_trash_talk(throne, superlatives, final_returns, NAME_MAP, ETF_MAP, returns, valid_tickers)
         achievements = compute_achievements(returns, valid_tickers, NAME_MAP, dividends, throne, final_returns, start_prices, INVESTMENT)
@@ -2627,7 +2631,10 @@ with tab_dashboard:
         st.markdown(
             f'<div style="background:linear-gradient(135deg,{"#15803d,#166534" if _port_pl >= 0 else "#b91c1c,#991b1b"});border-radius:16px;padding:1.2rem 1.5rem;color:#fff;margin:0.5rem 0 1rem;position:relative;overflow:hidden;">'
             f'<div style="position:absolute;right:-40px;top:-40px;width:180px;height:180px;border-radius:999px;background:rgba(255,255,255,0.05);"></div>'
-            f'<div style="font-size:0.68rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;opacity:0.8;">Portfolio Value</div>'
+            f'<div style="display:flex;justify-content:space-between;align-items:center;">'
+            f'<span style="font-size:0.68rem;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;opacity:0.8;">Portfolio Value</span>'
+            f'<span style="font-size:0.62rem;opacity:0.5;">as of {end_date.strftime("%b %d, %Y")}{" (live)" if is_market_open() else ""}</span>'
+            f'</div>'
             f'<div style="font-size:2rem;font-weight:900;letter-spacing:-0.03em;margin:0.2rem 0 0.5rem;">${_port_value:,.2f}</div>'
             f'<div style="display:flex;gap:1.5rem;font-size:0.78rem;opacity:0.85;">'
             f'<div><div style="font-size:0.6rem;opacity:0.7;text-transform:uppercase;letter-spacing:0.04em;">P/L</div>{"(" if _port_pl < 0 else ""}${abs(_port_pl):,.2f}{")" if _port_pl < 0 else ""}</div>'
@@ -3767,60 +3774,7 @@ with tab_dashboard:
             unsafe_allow_html=True,
         )
 
-        # --- Date range form ---
-        st.markdown(
-            '<style>'
-            '/* Strip ALL spacing from form and its children */'
-            '[data-testid="stForm"] { border: none !important; padding: 0 !important; margin: -0.5rem 0 -0.5rem !important; }'
-            '[data-testid="stForm"] [data-testid="stElementContainer"] { margin: 0 !important; padding: 0 !important; }'
-            '[data-testid="stForm"] [data-testid="stColumn"] > div { padding: 0 !important; }'
-            '[data-testid="stForm"] [data-testid="stHorizontalBlock"] { gap: 0.3rem !important; }'
-            '[data-testid="stForm"] [data-testid="stVerticalBlockBorderWrapper"] { margin: 0 !important; padding: 0 !important; }'
-            '/* Date inputs */'
-            '[data-testid="stDateInput"] { margin: 0 !important; padding: 0 !important; }'
-            '[data-testid="stDateInput"] > div { padding: 0 !important; margin: 0 !important; }'
-            '[data-testid="stDateInput"] > div > div {'
-            '  border: 1.5px solid rgba(18,51,36,0.12) !important; border-radius: 8px !important;'
-            '  padding: 0 0.2rem !important; min-height: 0 !important; }'
-            '[data-testid="stDateInput"] > div > div:focus-within {'
-            '  border-color: rgba(14,95,58,0.4) !important; }'
-            '[data-testid="stDateInput"] input {'
-            '  font-size: 0.8rem !important; padding: 0.2rem 0.2rem !important;'
-            '  height: auto !important; min-height: 0 !important; }'
-            '[data-testid="stDateInput"] button { padding: 0 0.15rem !important; }'
-            '[data-testid="stDateInput"] label { margin: 0 !important; }'
-            '[data-testid="stDateInput"] label p {'
-            '  font-size: 0.68rem !important; font-weight: 700 !important; color: #5d6f65 !important;'
-            '  margin: 0 0 1px 0 !important; }'
-            '/* Compact buttons */'
-            '[data-testid="stFormSubmitButton"] { margin: 0 !important; padding: 0 !important; }'
-            '[data-testid="stFormSubmitButton"] button {'
-            '  font-size: 0.72rem !important; padding: 0.25rem 0.7rem !important;'
-            '  border-radius: 8px !important; min-height: 0 !important; height: auto !important; }'
-            '</style>',
-            unsafe_allow_html=True,
-        )
-        with st.form("custom_date_form", border=False):
-            _c1, _c2, _c_btns = st.columns([1, 1, 1])
-            with _c1:
-                _form_start = st.date_input("Start Date", value=start_date, format="MM/DD/YYYY")
-            with _c2:
-                _form_end = st.date_input("End Date", value=end_date, format="MM/DD/YYYY")
-            with _c_btns:
-                st.markdown('<div style="height:1.1rem;"></div>', unsafe_allow_html=True)
-                _btn_cols = st.columns(2)
-                with _btn_cols[0]:
-                    _submitted = st.form_submit_button("Apply", type="primary", use_container_width=True)
-                with _btn_cols[1]:
-                    _reset = st.form_submit_button("Reset", use_container_width=True)
-        if _submitted:
-            st.session_state["tw_start"] = _form_start
-            st.session_state["tw_end"] = _form_end
-            st.rerun()
-        if _reset:
-            st.session_state["tw_start"] = default_start
-            st.session_state["tw_end"] = default_end
-            st.rerun()
+
 
         rows = []
         for rank, (ticker, ret) in enumerate(final_returns.items(), start=1):
@@ -4053,7 +4007,33 @@ with tab_dashboard:
         _lb_html = (
             '<style>'
             'body { margin:0; padding:0; font-family:"Space Grotesk",sans-serif; }'
-            '.lb-search-wrap { position:relative; margin-bottom:0.5rem; max-width:320px; }'
+            '.lb-search-wrap { display:none; }'
+            '.controls-bar { display:flex;align-items:center;gap:0.4rem;background:rgba(255,255,255,0.7);'
+            '  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(18,51,36,0.1);'
+            '  border-radius:12px;padding:0.4rem 0.5rem;margin-bottom:0.5rem;flex-wrap:nowrap;overflow:hidden; }'
+            '.controls-bar .search-wrap { position:relative;flex:1 1 auto;min-width:80px;overflow:hidden; }'
+            '.controls-bar .search-wrap .s-icon { position:absolute;left:0.5rem;top:50%;transform:translateY(-50%);font-size:0.75rem;color:#9ca8a0;pointer-events:none; }'
+            '.controls-bar .search-wrap input { width:100%;padding:0.3rem 0.4rem 0.3rem 1.6rem;border:1.5px solid rgba(18,51,36,0.1);'
+            '  border-radius:8px;font-family:inherit;font-size:0.75rem;font-weight:600;background:white;color:#102018;outline:none; }'
+            '.controls-bar .search-wrap input:focus { border-color:rgba(14,95,58,0.4); }'
+            '.controls-bar .search-wrap input::placeholder { color:#9ca8a0;font-weight:400; }'
+            '.controls-bar .vdiv { width:1px;height:22px;background:rgba(18,51,36,0.12);flex-shrink:0; }'
+            '.controls-bar .date-group { display:flex;align-items:center;gap:0.25rem;flex-shrink:0;white-space:nowrap; }'
+            '.controls-bar .date-label { font-size:0.65rem;font-weight:700;color:#5d6f65;white-space:nowrap;flex-shrink:0;letter-spacing:0.04em; }'
+            '.controls-bar .date-sep { color:#5d6f65;font-size:0.75rem;flex-shrink:0; }'
+            '.controls-bar .date-input { padding:0.3rem 0.4rem;border:1.5px solid rgba(18,51,36,0.1);border-radius:8px;'
+            '  font-family:inherit;font-size:0.78rem;font-weight:600;color:#102018;outline:none;background:white;flex-shrink:0;width:100px; }'
+            '.controls-bar .date-input:focus { border-color:rgba(14,95,58,0.4); }'
+            '.controls-bar .date-input::-webkit-calendar-picker-indicator { display:none;-webkit-appearance:none; }'
+            '.controls-bar .date-input::-webkit-inner-spin-button { display:none; }'
+            '.controls-bar .date-input::-webkit-clear-button { display:none; }'
+            '.controls-bar .btn-apply { padding:0.3rem 0.6rem;border:none;background:#0e5f3a;color:white;border-radius:8px;'
+            '  font-family:inherit;font-size:0.7rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0; }'
+            '.controls-bar .btn-apply:hover { background:#0a4a2d; }'
+            '.controls-bar .btn-reset { padding:0.3rem 0.6rem;border:1.5px solid rgba(18,51,36,0.12);background:white;color:#5d6f65;'
+            '  border-radius:8px;font-family:inherit;font-size:0.7rem;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0; }'
+            '.controls-bar .btn-reset:hover { background:rgba(18,51,36,0.04); }'
+            '@media(max-width:500px){ .controls-bar .vdiv{display:none;} .controls-bar .date-label{display:none;} }'
             '.lb-search-wrap .search-icon { position:absolute; left:0.7rem; top:50%; transform:translateY(-50%); font-size:0.85rem; color:#5d6f65; pointer-events:none; }'
             '.lb-search-wrap input { width:100%; padding:0.5rem 2.2rem 0.5rem 2.1rem; border:2px solid rgba(18,51,36,0.12); border-radius:12px; font-family:inherit; font-size:0.85rem; font-weight:600; background:white; color:#102018; outline:none; box-sizing:border-box; transition:border-color 0.15s; }'
             '.lb-search-wrap input:focus { border-color:rgba(14,95,58,0.4); }'
@@ -4090,12 +4070,24 @@ with tab_dashboard:
             '  table.leaderboard th { font-size:0.6rem; min-width:40px; }'
             '}'
             '</style>'
-            '<div class="lb-search-wrap">'
-            '<span class="search-icon">\U0001f50d</span>'
-            '<input type="text" id="lbSearch" placeholder="Search by ticker or name..." autocomplete="off">'
-            '<button class="clear-btn" id="lbClear" onclick="clearSearch()">\u2715</button>'
+            '<div class="lb-search-wrap" style="display:none;"></div>'
+            '<div class="lb-search-count" id="lbCount" style="display:none;"></div>'
+            '<div class="controls-bar">'
+            '  <div class="search-wrap">'
+            '    <span class="s-icon">\U0001f50d</span>'
+            '    <input type="text" id="lbSearch" placeholder="Search ticker or name..." autocomplete="off">'
+            '  </div>'
+            '  <div class="vdiv"></div>'
+            '  <div class="date-group">'
+            '    <span class="date-label">FROM</span>'
+            f'    <input type="date" class="date-input" id="dateStart" value="{start_date.strftime("%Y-%m-%d")}">'
+            '    <span class="date-sep">\u2013</span>'
+            '    <span class="date-label">TO</span>'
+            f'    <input type="date" class="date-input" id="dateEnd" value="{end_date.strftime("%Y-%m-%d")}">'
+            '    <button class="btn-apply" onclick="applyDates()">Apply</button>'
+            '    <button class="btn-reset" onclick="resetDates()">Reset</button>'
+            '  </div>'
             '</div>'
-            '<div class="lb-search-count" id="lbCount"></div>'
             '<div class="lb-wrap" style="overflow:scroll;-webkit-overflow-scrolling:touch;max-height:620px;border-radius:18px;border:1px solid rgba(18,51,36,0.12);">'
             + styled_df.to_html(escape=False)
             + '</div>'
@@ -4155,8 +4147,8 @@ with tab_dashboard:
             '}'
             '/* Leaderboard search */'
             'var lbSearch=document.getElementById("lbSearch");'
-            'var lbClear=document.getElementById("lbClear");'
-            'var lbCount=document.getElementById("lbCount");'
+            'var lbClear=document.getElementById("lbClear")||{style:{}};'
+            'var lbCount=document.getElementById("lbCount")||{style:{},set textContent(v){}};'
             'var allRows=Array.from(table.querySelectorAll("tbody tr"));'
             'var totalR=allRows[allRows.length-1];'
             'var stockColIdx=-1;'
@@ -4178,9 +4170,15 @@ with tab_dashboard:
             '});'
             'function clearSearch(){lbSearch.value="";lbClear.style.display="none";lbCount.style.display="none";'
             '  allRows.forEach(function(r){r.classList.remove("search-hidden","search-highlight");});lbSearch.focus();}'
+            'function applyDates(){'
+            '  var s=document.getElementById("dateStart").value;'
+            '  var e=document.getElementById("dateEnd").value;'
+            '  if(s&&e){window.parent.location.search="?ds="+s+"&de="+e;}'
+            '}'
+            f'function resetDates(){{window.parent.location.search="?ds={default_start.strftime("%Y-%m-%d")}&de={default_end.strftime("%Y-%m-%d")}";}}'
             '</script>'
         )
-        components.html(_lb_html, height=668, scrolling=False)
+        components.html(_lb_html, height=700, scrolling=False)
         st.markdown(
             '<div style="font-size:0.7rem;color:var(--muted);line-height:1.4;margin-top:-0.3rem;">'
             '<b>Price Return (%)</b> is the percentage change in share price over the period, excluding dividends. '
