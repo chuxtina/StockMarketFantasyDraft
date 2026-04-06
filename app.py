@@ -3316,68 +3316,209 @@ with tab_dashboard:
             unsafe_allow_html=True,
         )
 
-        def _generate_roasts(final_rets, name_map, throne, superlatives, returns_df, valid_tickers):
-            roasts = []
+        def _generate_roasts(final_rets, name_map, throne, superlatives, returns_df, valid_tickers, used_history=None):
+            import re as _re_mod
+            import random as _rng
+            _rng.seed()
+
             sorted_rets = final_rets.sort_values(ascending=False)
             total = len(sorted_rets)
-            mvp = sorted_rets.index[0]
-            mvp_ret = sorted_rets.iloc[0]
-            bench = sorted_rets.index[-1]
-            bench_ret = sorted_rets.iloc[-1]
 
-            mvp_roasts = [
-                f"{_etf_colored(mvp)} is up {mvp_ret:+.2f}% and won't shut up about it. We get it, you're winning.",
-                f"{_etf_colored(mvp)} at {mvp_ret:+.2f}%? Enjoy it while it lasts. The market humbles everyone.",
-                f"{_etf_colored(mvp)} is carrying this entire draft at {mvp_ret:+.2f}%. The rest of you are just background noise.",
-            ]
-            bench_roasts = [
-                f"{_etf_colored(bench)} at {bench_ret:+.2f}%. If this were a group project, you'd be the one who didn't show up.",
-                f"{_etf_colored(bench)} is at {bench_ret:+.2f}%. Even a random number generator would do better.",
-                f"{_etf_colored(bench)} at {bench_ret:+.2f}%. At this rate, you could lose money slower by literally burning it.",
-            ]
-            day_seed = int(hashlib.md5(datetime.date.today().isoformat().encode()).hexdigest(), 16)
-            roasts.append(f"\U0001f451 {mvp_roasts[day_seed % len(mvp_roasts)]}")
-            roasts.append(f"\U0001f4a9 {bench_roasts[(day_seed + 1) % len(bench_roasts)]}")
+            # Build pool of ALL possible roasts across random stocks, then pick 7-8
+            _all_candidates = []
 
-            if superlatives.get("best_day") and superlatives.get("worst_day"):
-                bd = superlatives["best_day"]
-                wd = superlatives["worst_day"]
-                if bd["ticker"] == wd["ticker"]:
-                    roasts.append(f"\U0001f3a2 {_etf_colored(bd['ticker'])} gained {bd['change']:+.2f}% and lost {wd['change']:+.2f}% in single days. This stock needs therapy.")
-                else:
-                    roasts.append(f"\U0001f3a2 {_etf_colored(wd['ticker'])} nosedived {wd['change']:+.2f}% in one day. That's not investing, that's bungee jumping without the cord.")
+            # --- Roast any stock by its return ---
+            for i, (t, ret) in enumerate(sorted_rets.items()):
+                rank = i + 1
+                tc = _etf_colored(t)
+                if ret > 15:
+                    _all_candidates += [
+                        f"\U0001f451 {tc} is up {ret:+.2f}% and won't shut up about it. We get it, you're winning.",
+                        f"\U0001f451 {tc} at {ret:+.2f}%? Enjoy it while it lasts. The market humbles everyone.",
+                        f"\U0001f451 {tc} sitting pretty at {ret:+.2f}%. Main character energy.",
+                        f"\U0001f451 Someone check on {tc}'s ego. {ret:+.2f}% and counting. Insufferable.",
+                        f"\U0001f451 {tc} at {ret:+.2f}%. That's not a return, that's a flex.",
+                    ]
+                elif ret > 5:
+                    _all_candidates += [
+                        f"\U0001f7e2 {tc} quietly sitting at {ret:+.2f}%. Not flashy, but getting the job done.",
+                        f"\U0001f7e2 {tc} at {ret:+.2f}%. Slow and steady. Boring but profitable.",
+                        f"\U0001f7e2 {tc} up {ret:+.2f}%. Under the radar. Exactly where it wants to be.",
+                    ]
+                elif -2 < ret < 2:
+                    _all_candidates += [
+                        f"\U0001fae5 {tc} returned {ret:+.2f}%. Absolute NPC energy. Doing nothing and hoping nobody notices.",
+                        f"\U0001fae5 {tc} at {ret:+.2f}%. The human equivalent of 'I'm just here so I don't get fined.'",
+                        f"\U0001fae5 {tc} with {ret:+.2f}%. Flatline energy. Even the chart fell asleep.",
+                        f"\U0001fae5 {tc} at {ret:+.2f}%. Not winning, not losing. Just\u2026 existing.",
+                    ]
+                elif ret < -15:
+                    _all_candidates += [
+                        f"\U0001f4a9 {tc} at {ret:+.2f}%. If this were a group project, you'd be the one who didn't show up.",
+                        f"\U0001f4a9 {tc} at {ret:+.2f}%. At this rate, you could lose money slower by literally burning it.",
+                        f"\U0001f4a9 {tc} at {ret:+.2f}%. This stock is speedrunning bankruptcy any%.",
+                        f"\U0001f4a9 Moment of silence for {tc} at {ret:+.2f}%. You didn't have to go this hard\u2026 in the wrong direction.",
+                        f"\U0001f4a9 {tc} at {ret:+.2f}%. Certified bag holder. No, not designer bags.",
+                    ]
+                elif ret < -5:
+                    _all_candidates += [
+                        f"\U0001f534 {tc} down {ret:+.2f}%. Not great, not terrible. Actually, it's terrible.",
+                        f"\U0001f534 {tc} at {ret:+.2f}%. Quietly bleeding out. Nobody's even watching anymore.",
+                        f"\U0001f534 {tc} returning {ret:+.2f}%. Underperforming a savings account. Impressive.",
+                    ]
 
-            mc = superlatives.get("middle")
-            if mc and mc["ticker"]:
-                roasts.append(f"\U0001fae5 {_etf_colored(mc['ticker'])} returned {mc['return']:+.2f}%. Absolute NPC energy. Doing nothing and hoping nobody notices.")
+            # --- Swing / volatility roasts (random volatile stocks) ---
+            if len(returns_df) > 2:
+                daily_changes = returns_df[list(valid_tickers)].diff().dropna()
+                if len(daily_changes) > 0:
+                    worst_days = daily_changes.min()
+                    volatile_stocks = worst_days[worst_days < -3].index.tolist()
+                    _rng.shuffle(volatile_stocks)
+                    for t in volatile_stocks[:3]:
+                        tc = _etf_colored(t)
+                        drop = worst_days[t]
+                        _all_candidates += [
+                            f"\U0001f3a2 {tc} nosedived {drop:+.2f}% in one day. That's bungee jumping without the cord.",
+                            f"\U0001f3a2 {tc} dropped {drop:+.2f}% in a single day. Somewhere a stop-loss is crying.",
+                            f"\U0001f3a2 {tc} lost {drop:+.2f}% in one session. Even gravity was impressed.",
+                        ]
 
-            cb = superlatives.get("comeback")
-            if cb and cb["ticker"] and cb["low"] < -3:
-                roasts.append(f"\U0001f9d7 {_etf_colored(cb['ticker'])} dropped to {cb['low']:+.2f}% and somehow clawed back. Plot armor is real.")
+            # --- Random group roasts (pick random 2-3 stocks from bottom half) ---
+            bottom_half = sorted_rets.tail(total // 2)
+            if len(bottom_half) >= 3:
+                sampled = bottom_half.sample(3, random_state=_rng.randint(0, 99999))
+                tickers_str = ", ".join(_etf_colored(t) for t in sampled.index)
+                combined = sampled.sum()
+                _all_candidates += [
+                    f"\U0001f6bd {tickers_str} combining for {combined:+.2f}%. The Avengers of underperformance.",
+                    f"\U0001f6bd {tickers_str} at {combined:+.2f}% combined. A GoFundMe would be less embarrassing.",
+                    f"\U0001f6bd {tickers_str} returning {combined:+.2f}% together. Three stocks, one shared L.",
+                ]
 
-            bottom3 = sorted_rets.tail(3)
-            tickers_str = ", ".join(_etf_colored(t) for t in bottom3.index)
-            bottom3_roasts = [
-                f"\U0001f6bd {tickers_str} \u2014 the bottom 3. Combined return: {bottom3.sum():+.2f}%. A dumpster fire would've outperformed.",
-                f"\U0001f6bd {tickers_str} sitting at the bottom with {bottom3.sum():+.2f}% combined. If losing money was a sport, you'd be olympians.",
-            ]
-            roasts.append(bottom3_roasts[(day_seed + 2) % len(bottom3_roasts)])
-
+            # --- Throne drama ---
             mvp_changes = len([e for e in throne["mvp_history"] if e.get("prev_ticker")])
             if mvp_changes >= 4:
-                roasts.append(f"\U0001f3b0 The MVP throne changed hands {mvp_changes} times. This draft has more drama than a reality TV show.")
+                _all_candidates += [
+                    f"\U0001f3b0 The MVP throne changed hands {mvp_changes} times. More drama than a reality TV show.",
+                    f"\U0001f3b0 {mvp_changes} throne changes? This draft is a Game of Thrones episode.",
+                ]
             elif mvp_changes <= 1:
-                roasts.append(f"\U0001f3b0 <b>{html_mod.escape(mvp)}</b> has basically owned the throne the whole time. Everyone else? Participation trophies.")
+                mvp = sorted_rets.index[0]
+                _all_candidates += [
+                    f"\U0001f3b0 <b>{html_mod.escape(mvp)}</b> has owned the throne the whole time. Everyone else? Participation trophies.",
+                    f"\U0001f3b0 <b>{html_mod.escape(mvp)}</b> on the throne since day one. The rest of the draft is just DLC.",
+                ]
 
+            # --- Red/green count ---
             red_count = int((final_rets <= 0).sum())
+            green_count = total - red_count
             if red_count > total * 0.6:
-                roasts.append(f"\U0001f534 {red_count} out of {total} stocks are in the red. This isn't a portfolio, it's a crime scene.")
+                _all_candidates += [
+                    f"\U0001f534 {red_count} out of {total} in the red. This isn't a portfolio, it's a crime scene.",
+                    f"\U0001f534 {red_count}/{total} in the red. The market just looked at your portfolio and laughed.",
+                    f"\U0001f534 {red_count} out of {total} red. This portfolio needs a wellness check.",
+                ]
             elif red_count < total * 0.3:
-                roasts.append(f"\U0001f7e2 Only {red_count} out of {total} stocks are in the red. Don't get comfortable \u2014 the market is just loading the next prank.")
+                _all_candidates += [
+                    f"\U0001f7e2 Only {red_count} out of {total} in the red. Don't get comfortable \u2014 the market is just loading the next prank.",
+                    f"\U0001f7e2 {green_count} stocks green? The market is lulling you into a false sense of security.",
+                ]
+
+            # --- Filter out recently used ---
+            def _strip(s):
+                return _re_mod.sub(r'<[^>]+>', '', s).strip()
+
+            _recently_used_text = set()
+            if used_history:
+                for _snippets in used_history.values():
+                    _recently_used_text.update(_strip(s) for s in _snippets)
+
+            fresh = [r for r in _all_candidates if _strip(r)[:80] not in _recently_used_text]
+            pool = fresh if fresh else _all_candidates
+
+            # Shuffle and pick 7-8 unique roasts, ensuring variety (no two about the same stock)
+            _rng.shuffle(pool)
+            roasts = []
+            _used_tickers = set()
+            for r in pool:
+                # Extract ticker from roast text
+                _text = _strip(r)
+                # Skip if we already have a roast about this stock (check first ticker mentioned)
+                _found_ticker = None
+                for t in sorted_rets.index:
+                    if t in _text:
+                        _found_ticker = t
+                        break
+                if _found_ticker and _found_ticker in _used_tickers:
+                    continue
+                roasts.append(r)
+                if _found_ticker:
+                    _used_tickers.add(_found_ticker)
+                if len(roasts) >= 8:
+                    break
+
+            # Ensure at least 7 roasts
+            if len(roasts) < 7:
+                for r in pool:
+                    if r not in roasts:
+                        roasts.append(r)
+                    if len(roasts) >= 7:
+                        break
 
             return roasts
 
-        roasts = _generate_roasts(final_returns, NAME_MAP, throne, superlatives, returns, valid_tickers)
+        # --- Roast cache: persist roasts per trading day, track used templates ---
+        _ROASTS_CACHE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "roasts_cache.json")
+
+        def _load_roasts_cache():
+            try:
+                with open(_ROASTS_CACHE_FILE) as f:
+                    return json.load(f)
+            except (FileNotFoundError, json.JSONDecodeError):
+                return {"date": "", "roasts": [], "used": {}}
+
+        def _save_roasts_cache(cache):
+            with open(_ROASTS_CACHE_FILE, "w") as f:
+                json.dump(cache, f, indent=2)
+
+        # Determine current roast day (last completed trading day after 4 PM ET)
+        _now_roast = datetime.datetime.now(ZoneInfo("America/New_York"))
+        _roast_day = _now_roast.date()
+        _is_trading_day = _roast_day.weekday() < 5 and _roast_day not in _us_market_holidays(_roast_day.year)
+        if not (_is_trading_day and _now_roast.hour >= 16):
+            _roast_day -= datetime.timedelta(days=1)
+        while _roast_day.weekday() >= 5 or _roast_day in _us_market_holidays(_roast_day.year):
+            _roast_day -= datetime.timedelta(days=1)
+        _roast_day_str = _roast_day.isoformat()
+
+        _rcache = _load_roasts_cache()
+        if _rcache.get("date") == _roast_day_str and _rcache.get("roasts"):
+            # Use cached roasts for this trading day
+            roasts = _rcache["roasts"]
+        else:
+            # Generate fresh roasts — pick templates not recently used
+            _used = _rcache.get("used", {})
+            roasts = _generate_roasts(final_returns, NAME_MAP, throne, superlatives, returns, valid_tickers, _used)
+            # Update used tracker (keep last 30 days of history to avoid repeats)
+            import re as _re_outer
+            _used[_roast_day_str] = [_re_outer.sub(r'<[^>]+>', '', r).strip()[:80] for r in roasts]
+            # Also clear any previous day's cache to avoid stale data
+
+            # Prune old entries (keep last 30)
+            _used_keys = sorted(_used.keys())
+            if len(_used_keys) > 30:
+                for _old_k in _used_keys[:-30]:
+                    del _used[_old_k]
+            _save_roasts_cache({"date": _roast_day_str, "roasts": roasts, "used": _used})
+            # Reset reactions for new roasts
+            save_reactions({})
+            # Also reset on Google Sheets
+            try:
+                requests.post(REACTIONS_SHEET_URL, json={"action": "reset_reactions"}, timeout=5)
+            except Exception:
+                pass
+            # Clear Streamlit reaction cache
+            load_reactions.clear()
 
         # Load server-side reaction counts
         all_reactions = load_reactions()
@@ -3401,7 +3542,7 @@ with tab_dashboard:
         ]
         roast_items_html = ""
         for idx, roast in enumerate(roasts):
-            roast_key = f"roast_{idx}"
+            roast_key = f"roast_{_roast_day_str}_{idx}"
             roast_counts = all_reactions.get(roast_key, {})
             btns = ""
             for emoji in REACTION_EMOJIS:
@@ -3502,6 +3643,12 @@ with tab_dashboard:
             </div>
         </div>
         <script>
+        var roastDay = '{_roast_day_str}';
+        if (localStorage.getItem('roast_day') !== roastDay) {{
+            localStorage.removeItem('roast_reacts');
+            localStorage.removeItem('roast_server_counts');
+            localStorage.setItem('roast_day', roastDay);
+        }}
         var userReacts = JSON.parse(localStorage.getItem('roast_reacts') || '{{}}'  );
         var serverCounts = JSON.parse(localStorage.getItem('roast_server_counts') || '{{}}');
 
