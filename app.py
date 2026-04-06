@@ -2841,7 +2841,7 @@ with tab_dashboard:
 
         st.markdown(
             f'<div style="margin:0.8rem 0 0.5rem;font-size:1.1rem;font-weight:800;letter-spacing:0.04em;text-transform:uppercase;color:var(--accent);display:flex;align-items:center;gap:0.5rem;">'
-            f'<span style="font-size:1.3rem;">⚔️</span> ETF Head-to-Head</div>'
+            f'<span style="font-size:1.3rem;">🤜🤛</span> ETF Head-to-Head</div>'
             f'<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem;margin-bottom:0.8rem;">'
             f'{_etf_cards_top}</div>',
             unsafe_allow_html=True,
