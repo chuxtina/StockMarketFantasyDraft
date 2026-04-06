@@ -1547,37 +1547,85 @@ def fetch_earnings(tickers_tuple):
         try:
             t = yf.Ticker(ticker)
             cal = t.calendar
-            if cal is not None and isinstance(cal, dict):
-                earnings_dates_list = cal.get("Earnings Date", [])
-                next_date = earnings_dates_list[0].strftime("%b %d") if earnings_dates_list else ""
-                eps_est = cal.get("Earnings Average")
-                info = t.info
-                eps_actual = info.get("trailingEps")
-                # Get most recent quarterly earnings for beat/miss
-                last_earnings_date = ""
-                last_eps_reported = None
-                last_eps_estimate = None
+            # Handle both dict (yfinance >=0.2.31) and DataFrame (older) returns
+            cal_dict = None
+            if cal is not None:
+                if isinstance(cal, dict):
+                    cal_dict = cal
+                elif hasattr(cal, 'to_dict'):
+                    # DataFrame: convert first column or transpose
+                    try:
+                        if cal.shape[1] == 1:
+                            cal_dict = cal.iloc[:, 0].to_dict()
+                        else:
+                            cal_dict = cal.T.iloc[0].to_dict() if len(cal.columns) > 0 else None
+                    except Exception:
+                        cal_dict = None
+            next_date = ""
+            eps_est = None
+            eps_actual = None
+            if cal_dict is not None:
+                earnings_dates_list = cal_dict.get("Earnings Date", [])
+                if not isinstance(earnings_dates_list, list):
+                    earnings_dates_list = [earnings_dates_list] if earnings_dates_list else []
+                for ed in earnings_dates_list:
+                    try:
+                        next_date = ed.strftime("%b %d")
+                        break
+                    except Exception:
+                        next_date = str(ed)[:6] if ed else ""
+                        break
+                eps_est = cal_dict.get("Earnings Average")
+            # Fallback: use earnings_dates if calendar didn't provide a date
+            if not next_date:
                 try:
-                    eh = t.earnings_history
-                    if eh is not None and len(eh) > 0:
-                        latest = eh.iloc[-1]
-                        last_earnings_date = eh.index[-1].strftime("%b %y")
-                        v = latest.get("epsActual")
-                        if v is not None and str(v) != "nan":
-                            last_eps_reported = round(float(v), 2)
-                        v = latest.get("epsEstimate")
-                        if v is not None and str(v) != "nan":
-                            last_eps_estimate = round(float(v), 2)
+                    import datetime as _dt2
+                    ed_df = t.get_earnings_dates(limit=4)
+                    if ed_df is not None and len(ed_df) > 0:
+                        today = _dt2.date.today()
+                        for idx_date in ed_df.index:
+                            d = idx_date.date() if hasattr(idx_date, 'date') else idx_date
+                            if d >= today:
+                                next_date = d.strftime("%b %d")
+                                # Try to get EPS estimate from this table
+                                if eps_est is None:
+                                    row = ed_df.loc[idx_date]
+                                    est_val = row.get("EPS Estimate")
+                                    if est_val is not None and str(est_val) != "nan":
+                                        eps_est = float(est_val)
+                                break
                 except Exception:
                     pass
-                return ticker, {
-                    "next_date": next_date,
-                    "eps_est": round(eps_est, 2) if eps_est else None,
-                    "eps_actual": round(eps_actual, 2) if eps_actual else None,
-                    "last_earnings_date": last_earnings_date,
-                    "last_eps_reported": last_eps_reported,
-                    "last_eps_estimate": last_eps_estimate,
-                }
+            try:
+                info = t.info
+                eps_actual = info.get("trailingEps")
+            except Exception:
+                pass
+            # Get most recent quarterly earnings for beat/miss
+            last_earnings_date = ""
+            last_eps_reported = None
+            last_eps_estimate = None
+            try:
+                eh = t.earnings_history
+                if eh is not None and len(eh) > 0:
+                    latest = eh.iloc[-1]
+                    last_earnings_date = eh.index[-1].strftime("%b %y")
+                    v = latest.get("epsActual")
+                    if v is not None and str(v) != "nan":
+                        last_eps_reported = round(float(v), 2)
+                    v = latest.get("epsEstimate")
+                    if v is not None and str(v) != "nan":
+                        last_eps_estimate = round(float(v), 2)
+            except Exception:
+                pass
+            return ticker, {
+                "next_date": next_date,
+                "eps_est": round(eps_est, 2) if eps_est else None,
+                "eps_actual": round(eps_actual, 2) if eps_actual else None,
+                "last_earnings_date": last_earnings_date,
+                "last_eps_reported": last_eps_reported,
+                "last_eps_estimate": last_eps_estimate,
+            }
         except Exception:
             pass
         return ticker, {"next_date": "", "eps_est": None, "eps_actual": None, "last_earnings_date": "", "last_eps_reported": None, "last_eps_estimate": None}
