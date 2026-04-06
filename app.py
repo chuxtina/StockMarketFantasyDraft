@@ -2850,7 +2850,7 @@ with tab_dashboard:
         # --- Superlatives Section ---
         st.markdown(
             '<div style="display:flex;align-items:center;gap:0.5rem;margin:1.2rem 0 0.5rem;">'
-            '<span style="font-size:1.3rem;">\U0001f3c6</span>'
+            '<span style="font-size:1.3rem;">💪</span>'
             '<span style="font-size:1.1rem;font-weight:800;letter-spacing:0.04em;text-transform:uppercase;'
             'color:var(--accent);">Bragging Rights</span></div>',
             unsafe_allow_html=True,
