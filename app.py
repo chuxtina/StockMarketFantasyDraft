@@ -2539,7 +2539,7 @@ with tab_dashboard:
                 'u();setInterval(u,1000);'
                 '</script>'
             )
-            components.html(_status_bar, height=40, scrolling=False)
+            components.html(_status_bar, height=60, scrolling=False)
         else:
             next_open = now_et.replace(hour=9, minute=30, second=0, microsecond=0)
             if now_et >= next_open:
@@ -2573,7 +2573,7 @@ with tab_dashboard:
                 'u();setInterval(u,1000);'
                 '</script>'
             )
-            components.html(_status_bar, height=40, scrolling=False)
+            components.html(_status_bar, height=60, scrolling=False)
         # --- Generate Trash Talk & Achievements ---
         trash_talk_lines = generate_trash_talk(throne, superlatives, final_returns, NAME_MAP, ETF_MAP, returns, valid_tickers)
         achievements = compute_achievements(returns, valid_tickers, NAME_MAP, dividends, throne, final_returns, start_prices, INVESTMENT)
@@ -4038,11 +4038,13 @@ with tab_dashboard:
             '@media(max-width:600px){'
             '  .controls-bar{flex-wrap:wrap !important;overflow:visible !important;padding:0.3rem 0.4rem !important;}'
             '  .controls-bar .search-wrap{width:100% !important;min-width:100% !important;margin-bottom:0.2rem;}'
-            '  .controls-bar .search-wrap input{font-size:0.7rem !important;padding:0.25rem 0.4rem 0.25rem 1.5rem !important;}'
+            '  .controls-bar .search-wrap input{font-size:16px !important;padding:0.2rem 0.3rem 0.2rem 1.5rem !important;'
+            '    transform:scale(0.75);transform-origin:left center;width:133% !important;}'
             '  .controls-bar .search-wrap .s-icon{font-size:0.65rem !important;left:0.4rem !important;}'
             '  .controls-bar .vdiv{display:none;}'
             '  .controls-bar .date-group{width:100%;justify-content:space-between;gap:0.2rem !important;}'
-            '  .controls-bar .date-input{flex:1;min-width:0;font-size:0.7rem !important;padding:0.2rem 0.3rem !important;}'
+            '  .controls-bar .date-input{flex:1;min-width:0;font-size:16px !important;padding:0.15rem 0.2rem !important;'
+            '    transform:scale(0.75);transform-origin:left center;}'
             '  .controls-bar .date-label{font-size:0.6rem !important;}'
             '  .controls-bar .btn-apply,.controls-bar .btn-reset{font-size:0.65rem !important;padding:0.25rem 0.5rem !important;}'
             '}'
