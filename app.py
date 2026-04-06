@@ -1377,21 +1377,23 @@ def fetch_returns(tickers, start, end):
 @st.cache_data(ttl=3600)
 def fetch_dividends(tickers, start, end):
     """Fetch total dividends per share for each ticker in the date range."""
-    divs = {}
-    for ticker in tickers:
+    from concurrent.futures import ThreadPoolExecutor
+
+    def _fetch_one(ticker):
         try:
             t = yf.Ticker(ticker)
             d = t.dividends
             if d is not None and not d.empty:
-                # Filter to date range
                 d.index = d.index.tz_localize(None)
                 mask = (d.index >= pd.Timestamp(start)) & (d.index <= pd.Timestamp(end))
-                divs[ticker] = d[mask].sum()
-            else:
-                divs[ticker] = 0.0
+                return ticker, d[mask].sum()
+            return ticker, 0.0
         except Exception:
-            divs[ticker] = 0.0
-    return divs
+            return ticker, 0.0
+
+    with ThreadPoolExecutor(max_workers=10) as pool:
+        results = pool.map(_fetch_one, tickers)
+    return dict(results)
 
 
 @st.cache_data(ttl=3600)
