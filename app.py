@@ -1327,21 +1327,22 @@ SECTOR_MAP = {
     "WMT": "Consumer", "XOM": "Energy",
 }
 
-# --- Sidebar ---
-st.sidebar.title("Trading Windows")
-
+# --- Trading Windows (via session state, rendered in leaderboard section) ---
 default_start = datetime.date(2026, 3, 6)
 default_end = datetime.datetime.now(ZoneInfo("America/Los_Angeles")).date()
 
-start_date = st.sidebar.date_input("Start Date", value=default_start, format="MM/DD/YYYY")
-end_date = st.sidebar.date_input("End Date", value=default_end, format="MM/DD/YYYY")
+if "tw_start" not in st.session_state:
+    st.session_state["tw_start"] = default_start
+if "tw_end" not in st.session_state:
+    st.session_state["tw_end"] = default_end
+if "tw_preset" not in st.session_state:
+    st.session_state["tw_preset"] = "ALL"
+if "tw_show_custom" not in st.session_state:
+    st.session_state["tw_show_custom"] = False
 
-st.sidebar.title("Search Stocks")
-search_options = [""] + [f"{p['ticker']} — {p['name']}" for p in sorted(PLAYERS, key=lambda x: x['ticker'].upper())]
-roster_selection = st.sidebar.selectbox("Search stocks", search_options, format_func=lambda x: "Select a stock" if x == "" else x, label_visibility="collapsed", key="stock_search")
-roster_search = roster_selection.split(" — ")[0] if roster_selection else ""
-if roster_search:
-    st.sidebar.button("Reset Search", on_click=lambda: st.session_state.update({"stock_search": ""}))
+start_date = st.session_state["tw_start"]
+end_date = st.session_state["tw_end"]
+roster_search = ""
 
 # --- Main ---
 
@@ -3737,6 +3738,108 @@ with tab_dashboard:
             unsafe_allow_html=True,
         )
 
+        # --- Date presets + custom date picker ---
+        _today_preset = datetime.datetime.now(ZoneInfo("America/Los_Angeles")).date()
+        _preset_ranges = {
+            "1W": (_today_preset - datetime.timedelta(days=7), _today_preset),
+            "2W": (_today_preset - datetime.timedelta(days=14), _today_preset),
+            "1M": (_today_preset - datetime.timedelta(days=30), _today_preset),
+            "3M": (_today_preset - datetime.timedelta(days=90), _today_preset),
+            "ALL": (default_start, _today_preset),
+            "\U0001f4c5 Custom": (None, None),
+        }
+        _preset_options = list(_preset_ranges.keys())
+
+        def _on_preset_change():
+            pick = st.session_state.get("tw_pills")
+            if pick and pick != "\U0001f4c5 Custom":
+                s, e = _preset_ranges[pick]
+                st.session_state["tw_start"] = s
+                st.session_state["tw_end"] = e
+                st.session_state["tw_preset"] = pick
+                st.session_state["tw_show_custom"] = False
+            elif pick == "\U0001f4c5 Custom":
+                st.session_state["tw_preset"] = "\U0001f4c5 Custom"
+                st.session_state["tw_show_custom"] = True
+
+        _cur_preset = st.session_state.get("tw_preset", "ALL")
+        _pill_default = _cur_preset if _cur_preset in _preset_options else "ALL"
+        _active_pill = st.session_state.get("tw_pills", "ALL")
+        if _active_pill and _active_pill != "\U0001f4c5 Custom" and _active_pill in _preset_ranges:
+            _lbl_start, _lbl_end = _preset_ranges[_active_pill]
+        else:
+            _lbl_start, _lbl_end = start_date, end_date
+        _range_label = f'{_lbl_start.strftime("%b %d")} \u2013 {_lbl_end.strftime("%b %d, %Y")}'
+
+        st.pills("Date Range", _preset_options, default=_pill_default, key="tw_pills",
+                 on_change=_on_preset_change, label_visibility="collapsed")
+        st.markdown(
+            f'<div style="font-size:0.75rem;font-weight:700;color:var(--muted);margin:-0.4rem 0 0.3rem;">'
+            f'{_range_label}</div>',
+            unsafe_allow_html=True,
+        )
+
+        if st.session_state.get("tw_show_custom"):
+            _cust_start_val = start_date.strftime("%Y-%m-%d")
+            _cust_end_val = end_date.strftime("%Y-%m-%d")
+            _cust_html = (
+                '<style>'
+                '* { box-sizing: border-box; margin: 0; padding: 0; }'
+                'body { font-family: "Space Grotesk", sans-serif; background: transparent; }'
+                '.cust-row { display: flex; align-items: end; gap: 0.6rem; }'
+                '.cust-field label { display: block; font-size: 0.7rem; font-weight: 700;'
+                '  color: #5d6f65; letter-spacing: 0.03em; margin-bottom: 0.2rem; }'
+                '.cust-field input { border: 1.5px solid rgba(18,51,36,0.12); border-radius: 10px;'
+                '  padding: 0.4rem 0.6rem; font-family: "Space Grotesk", sans-serif;'
+                '  font-size: 0.82rem; font-weight: 600; color: #102018; background: white;'
+                '  outline: none; width: 150px; transition: border-color 0.15s; }'
+                '.cust-field input:focus { border-color: rgba(14,95,58,0.4); }'
+                '.cust-sep { color: #5d6f65; font-size: 0.85rem; padding-bottom: 0.35rem; }'
+                '.cust-apply { padding: 0.4rem 0.8rem; border-radius: 10px; border: none;'
+                '  background: #0e5f3a; color: white; font-family: "Space Grotesk", sans-serif;'
+                '  font-size: 0.75rem; font-weight: 700; cursor: pointer; transition: background 0.15s; }'
+                '.cust-apply:hover { background: #0a4a2d; }'
+                '</style>'
+                '<div class="cust-row">'
+                '<div class="cust-field">'
+                '  <label>Start Date</label>'
+                f'  <input type="date" id="custStart" value="{_cust_start_val}">'
+                '</div>'
+                '<span class="cust-sep">\u2013</span>'
+                '<div class="cust-field">'
+                '  <label>End Date</label>'
+                f'  <input type="date" id="custEnd" value="{_cust_end_val}">'
+                '</div>'
+                '<button class="cust-apply" onclick="applyDates()">Apply</button>'
+                '</div>'
+                '<script>'
+                'function applyDates() {'
+                '  var s = document.getElementById("custStart").value;'
+                '  var e = document.getElementById("custEnd").value;'
+                '  if (s && e) {'
+                '    var url = new URL(window.parent.location);'
+                '    url.searchParams.set("cust_start", s);'
+                '    url.searchParams.set("cust_end", e);'
+                '    window.parent.location.href = url.toString();'
+                '  }'
+                '}'
+                '</script>'
+            )
+            components.html(_cust_html, height=60, scrolling=False)
+            # Read custom dates from query params if present
+            _qp = st.query_params
+            if "cust_start" in _qp and "cust_end" in _qp:
+                try:
+                    _cs = datetime.datetime.strptime(_qp["cust_start"], "%Y-%m-%d").date()
+                    _ce = datetime.datetime.strptime(_qp["cust_end"], "%Y-%m-%d").date()
+                    if _cs != st.session_state["tw_start"] or _ce != st.session_state["tw_end"]:
+                        st.session_state["tw_start"] = _cs
+                        st.session_state["tw_end"] = _ce
+                        st.session_state["tw_preset"] = "\U0001f4c5 Custom"
+                        st.rerun()
+                except (ValueError, KeyError):
+                    pass
+
         rows = []
         for rank, (ticker, ret) in enumerate(final_returns.items(), start=1):
             share_price = start_prices[ticker]
@@ -3967,7 +4070,17 @@ with tab_dashboard:
         )
         _lb_html = (
             '<style>'
-            'body { margin:0; padding:0; }'
+            'body { margin:0; padding:0; font-family:"Space Grotesk",sans-serif; }'
+            '.lb-search-wrap { position:relative; margin-bottom:0.5rem; max-width:320px; }'
+            '.lb-search-wrap .search-icon { position:absolute; left:0.7rem; top:50%; transform:translateY(-50%); font-size:0.85rem; color:#5d6f65; pointer-events:none; }'
+            '.lb-search-wrap input { width:100%; padding:0.5rem 2.2rem 0.5rem 2.1rem; border:2px solid rgba(18,51,36,0.12); border-radius:12px; font-family:inherit; font-size:0.85rem; font-weight:600; background:white; color:#102018; outline:none; box-sizing:border-box; transition:border-color 0.15s; }'
+            '.lb-search-wrap input:focus { border-color:rgba(14,95,58,0.4); }'
+            '.lb-search-wrap input::placeholder { color:#9ca8a0; font-weight:400; }'
+            '.lb-search-wrap .clear-btn { position:absolute; right:0.6rem; top:50%; transform:translateY(-50%); font-size:0.7rem; color:#5d6f65; cursor:pointer; display:none; background:rgba(18,51,36,0.08); border:none; border-radius:50%; width:20px; height:20px; line-height:20px; text-align:center; font-family:inherit; }'
+            '.lb-search-wrap .clear-btn:hover { background:rgba(18,51,36,0.15); }'
+            '.lb-search-count { font-size:0.72rem; color:#5d6f65; margin-bottom:0.4rem; display:none; }'
+            'table.leaderboard tbody tr.search-hidden { display:none; }'
+            'table.leaderboard tbody tr.search-highlight td { background:rgba(215,168,58,0.25) !important; }'
             '.lb-wrap { overflow:scroll !important; }'
             '.lb-wrap::-webkit-scrollbar { height:10px; width:10px; -webkit-appearance:none; display:block; }'
             '.lb-wrap::-webkit-scrollbar-track { background:rgba(18,51,36,0.03); border-radius:5px; }'
@@ -3995,6 +4108,12 @@ with tab_dashboard:
             '  table.leaderboard th { font-size:0.6rem; min-width:40px; }'
             '}'
             '</style>'
+            '<div class="lb-search-wrap">'
+            '<span class="search-icon">\U0001f50d</span>'
+            '<input type="text" id="lbSearch" placeholder="Search by ticker or name..." autocomplete="off">'
+            '<button class="clear-btn" id="lbClear" onclick="clearSearch()">\u2715</button>'
+            '</div>'
+            '<div class="lb-search-count" id="lbCount"></div>'
             '<div class="lb-wrap" style="overflow:scroll;-webkit-overflow-scrolling:touch;max-height:620px;border-radius:18px;border:1px solid rgba(18,51,36,0.12);">'
             + styled_df.to_html(escape=False)
             + '</div>'
@@ -4052,9 +4171,34 @@ with tab_dashboard:
             '    if(h!==th){var ar=h.querySelector(".sort-arrow");if(ar)ar.textContent="▲▼";}'
             '  });'
             '}'
+            '/* Leaderboard search */'
+            'var lbSearch=document.getElementById("lbSearch");'
+            'var lbClear=document.getElementById("lbClear");'
+            'var lbCount=document.getElementById("lbCount");'
+            'var allRows=Array.from(table.querySelectorAll("tbody tr"));'
+            'var totalR=allRows[allRows.length-1];'
+            'var stockColIdx=-1;'
+            'headers.forEach(function(h,i){if(h.textContent.toLowerCase().indexOf("stock")>-1)stockColIdx=i;});'
+            'lbSearch.addEventListener("input",function(){'
+            '  var q=this.value.toLowerCase().trim();'
+            '  lbClear.style.display=q?"block":"none";'
+            '  if(!q){allRows.forEach(function(r){r.classList.remove("search-hidden","search-highlight");});lbCount.style.display="none";return;}'
+            '  var mc=0,total=0;'
+            '  allRows.forEach(function(r){'
+            '    if(r===totalR){r.classList.remove("search-hidden","search-highlight");return;}'
+            '    total++;'
+            '    var txt=stockColIdx>=0?r.cells[stockColIdx].textContent.toLowerCase():r.textContent.toLowerCase();'
+            '    if(txt.indexOf(q)>-1){r.classList.remove("search-hidden");r.classList.add("search-highlight");mc++;}'
+            '    else{r.classList.add("search-hidden");r.classList.remove("search-highlight");}'
+            '  });'
+            '  lbCount.textContent=mc+" of "+total+" stocks";'
+            '  lbCount.style.display="block";'
+            '});'
+            'function clearSearch(){lbSearch.value="";lbClear.style.display="none";lbCount.style.display="none";'
+            '  allRows.forEach(function(r){r.classList.remove("search-hidden","search-highlight");});lbSearch.focus();}'
             '</script>'
         )
-        components.html(_lb_html, height=628, scrolling=False)
+        components.html(_lb_html, height=668, scrolling=False)
         st.markdown(
             '<div style="font-size:0.7rem;color:var(--muted);line-height:1.4;margin-top:-0.3rem;">'
             '<b>Price Return (%)</b> is the percentage change in share price over the period, excluding dividends. '
