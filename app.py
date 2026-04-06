@@ -4658,6 +4658,13 @@ with tab_feud:
       document.addEventListener('click', function(e) {
         if (!e.target.closest('#mvp-search-wrap')) mvpDropdown.style.display = 'none';
       });
+      document.addEventListener('touchend', function(e) {
+        if (!e.target.closest('#mvp-search-wrap')) mvpDropdown.style.display = 'none';
+      });
+      mvpInput.addEventListener('blur', function() {
+        setTimeout(function() { mvpDropdown.style.display = 'none'; }, 200);
+      });
+      try { window.parent.document.addEventListener('click', function() { mvpDropdown.style.display = 'none'; }); } catch(e) {}
     }
 
     function renderMvpDD(q, showAll) {
