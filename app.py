@@ -2513,9 +2513,6 @@ with tab_dashboard:
                 '@keyframes glow{0%,100%{box-shadow:0 0 4px #4ade80}50%{box-shadow:0 0 10px #4ade80}}'
                 '@media(max-width:600px){.status-divider{display:none !important;}'
                 '.status-row{font-size:0.65rem !important;gap:0.3rem !important;}}</style>'
-                '<div style="background:rgba(255,255,255,0.7);'
-                'backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(25,160,95,0.15);'
-                'border-radius:14px;padding:0.45rem 0.85rem;box-shadow:0 2px 12px rgba(0,0,0,0.04);">'
                 '<div class="status-row" style="display:flex;align-items:center;gap:0.45rem;flex-wrap:wrap;line-height:1.2;font-size:0.72rem;">'
                 '<div style="display:flex;align-items:center;gap:0.3rem;background:rgba(25,160,95,0.1);padding:0.18rem 0.55rem;border-radius:8px;">'
                 '<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#4ade80;animation:glow 2s infinite;"></span>'
@@ -2526,7 +2523,7 @@ with tab_dashboard:
                 f'{_div_html}'
                 '<span style="color:#888;">refreshes in <span id="cd-refresh"></span></span>'
                 + (f'{_div_html}<span style="color:#aaa;">{_hol_html}</span>' if _hol_html else '')
-                + '</div></div>'
+                + '</div>'
                 '<script>'
                 f'var cs={secs_to_close},rs={_secs_to_refresh};'
                 'function fmt(s){var h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sc=s%60;'
@@ -2539,7 +2536,7 @@ with tab_dashboard:
                 'u();setInterval(u,1000);'
                 '</script>'
             )
-            components.html(_status_bar, height=60, scrolling=False)
+            components.html(_status_bar, height=38, scrolling=False)
         else:
             next_open = now_et.replace(hour=9, minute=30, second=0, microsecond=0)
             if now_et >= next_open:
@@ -2553,9 +2550,6 @@ with tab_dashboard:
                 '<style>*{margin:0;padding:0;box-sizing:border-box;font-family:"Space Grotesk",sans-serif;}'
                 '@media(max-width:600px){.status-divider{display:none !important;}'
                 '.status-row{font-size:0.65rem !important;gap:0.3rem !important;}}</style>'
-                '<div style="background:rgba(255,255,255,0.7);'
-                'backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);border:1px solid rgba(93,111,101,0.1);'
-                'border-radius:14px;padding:0.45rem 0.85rem;box-shadow:0 2px 12px rgba(0,0,0,0.04);">'
                 '<div class="status-row" style="display:flex;align-items:center;gap:0.45rem;flex-wrap:wrap;line-height:1.2;font-size:0.72rem;">'
                 '<div style="display:flex;align-items:center;gap:0.3rem;background:rgba(93,111,101,0.08);padding:0.18rem 0.55rem;border-radius:8px;">'
                 '<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#aaa;"></span>'
@@ -2564,7 +2558,7 @@ with tab_dashboard:
                 f'{_div_html}'
                 f'<span style="color:#5d6f65;">Opens in <span id="cd-open"></span></span>'
                 + (f'{_div_html}<span style="color:#aaa;">{_hol_html}</span>' if _hol_html else '')
-                + '</div></div>'
+                + '</div>'
                 f'<script>var s={secs_to_open};'
                 'function u(){if(s<=0){document.getElementById("cd-open").textContent="opening...";return;}'
                 'var d=Math.floor(s/86400),h=Math.floor((s%86400)/3600),m=Math.floor((s%3600)/60),sc=s%60;'
@@ -2573,7 +2567,7 @@ with tab_dashboard:
                 'u();setInterval(u,1000);'
                 '</script>'
             )
-            components.html(_status_bar, height=60, scrolling=False)
+            components.html(_status_bar, height=38, scrolling=False)
         # --- Generate Trash Talk & Achievements ---
         trash_talk_lines = generate_trash_talk(throne, superlatives, final_returns, NAME_MAP, ETF_MAP, returns, valid_tickers)
         achievements = compute_achievements(returns, valid_tickers, NAME_MAP, dividends, throne, final_returns, start_prices, INVESTMENT)
