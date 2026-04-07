@@ -2502,41 +2502,42 @@ with tab_dashboard:
 
         _div_html = '<span class="status-divider" style="width:1px;height:12px;background:rgba(18,51,36,0.1);display:inline-block;"></span>'
 
+        # Inline iframe for countdown timers (no wrapper box)
+        _iframe_style = 'border:none;height:14px;vertical-align:text-bottom;display:inline-block;overflow:hidden;background:transparent;'
+        _iframe_font = 'font-family:Space Grotesk,-apple-system,sans-serif;font-size:0.72rem;color:#5d6f65;'
+
         if is_market_open():
             market_close_et = now_et.replace(hour=16, minute=0, second=0, microsecond=0)
             secs_to_close = max(0, int((market_close_et - now_et).total_seconds()))
             _secs_into_hour = now_et.minute * 60 + now_et.second
             _secs_to_refresh = max(0, 3600 - _secs_into_hour)
-            _status_bar = (
-                '<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">'
-                '<style>*{margin:0;padding:0;box-sizing:border-box;font-family:"Space Grotesk",sans-serif;}'
-                '@keyframes glow{0%,100%{box-shadow:0 0 4px #4ade80}50%{box-shadow:0 0 10px #4ade80}}'
-                '@media(max-width:600px){.status-divider{display:none !important;}'
-                '.status-row{font-size:0.65rem !important;gap:0.3rem !important;}}</style>'
-                '<div class="status-row" style="display:flex;align-items:center;gap:0.45rem;flex-wrap:wrap;line-height:1.2;font-size:0.72rem;">'
-                '<div style="display:flex;align-items:center;gap:0.3rem;background:rgba(25,160,95,0.1);padding:0.18rem 0.55rem;border-radius:8px;">'
-                '<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#4ade80;animation:glow 2s infinite;"></span>'
-                '<span style="font-weight:700;color:#19a05f;">LIVE</span></div>'
-                f'<span style="color:#5d6f65;">{live_timestamp}</span>'
-                f'{_div_html}'
-                '<span style="color:#5d6f65;">closes in <span id="cd-close"></span></span>'
-                f'{_div_html}'
-                '<span style="color:#888;">refreshes in <span id="cd-refresh"></span></span>'
-                + (f'{_div_html}<span style="color:#aaa;">{_hol_html}</span>' if _hol_html else '')
-                + '</div>'
-                '<script>'
-                f'var cs={secs_to_close},rs={_secs_to_refresh};'
+            _cd_iframe = (
+                f'<iframe srcdoc="<body style=&quot;margin:0;padding:0;background:transparent;&quot;>'
+                f'<span id=&quot;w&quot; style=&quot;{_iframe_font}&quot;></span>'
+                f'<script>var el=document.getElementById(&quot;w&quot;),cs={secs_to_close},rs={_secs_to_refresh};'
                 'function fmt(s){var h=Math.floor(s/3600),m=Math.floor((s%3600)/60),sc=s%60;'
-                'return h+"h "+(m<10?"0":"")+m+"m "+(sc<10?"0":"")+sc+"s";}'
+                'return h+&quot;h &quot;+(m&lt;10?&quot;0&quot;:&quot;&quot;)+m+&quot;m &quot;+(sc&lt;10?&quot;0&quot;:&quot;&quot;)+sc+&quot;s&quot;;}'
                 'function u(){cs--;rs--;'
-                'document.getElementById("cd-close").textContent=cs>0?fmt(cs):"closed";'
-                'var rm=Math.floor(rs/60),rsc=rs%60;'
-                'document.getElementById("cd-refresh").textContent=rs>0?rm+"m "+(rsc<10?"0":"")+rsc+"s":"refreshing...";'
-                'if(rs<=0)setTimeout(function(){try{window.parent.location.reload();}catch(e){}},2000);}'
+                'var ct=cs&gt;0?&quot;closes in &quot;+fmt(cs):&quot;closed&quot;;'
+                'var rt=rs&gt;0?&quot;refreshes in &quot;+Math.floor(rs/60)+&quot;m &quot;+(rs%60&lt;10?&quot;0&quot;:&quot;&quot;)+(rs%60)+&quot;s&quot;:&quot;refreshing...&quot;;'
+                'el.textContent=ct+&quot; · &quot;+rt;'
+                'if(rs&lt;=0)setTimeout(function(){try{window.parent.location.reload();}catch(e){}},2000);}'
                 'u();setInterval(u,1000);'
-                '</script>'
+                f'</script></body>" style="{_iframe_style}width:350px;" scrolling="no"></iframe>'
             )
-            components.html(_status_bar, height=38, scrolling=False)
+            _hol_part = f' &middot; <span style="color:#aaa;">{_hol_html}</span>' if _hol_html else ''
+            st.markdown(
+                f'<div style="display:flex;align-items:center;gap:0.4rem;font-size:0.72rem;flex-wrap:wrap;margin-bottom:0.3rem;">'
+                f'<div style="display:inline-flex;align-items:center;gap:0.3rem;background:rgba(25,160,95,0.1);padding:0.15rem 0.5rem;border-radius:8px;">'
+                f'<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#4ade80;"></span>'
+                f'<span style="font-weight:700;color:#19a05f;font-size:0.72rem;">LIVE</span></div>'
+                f'<span style="color:#5d6f65;font-size:0.72rem;">{live_timestamp}</span>'
+                f'{_div_html}'
+                f'{_cd_iframe}'
+                f'{_hol_part}'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
         else:
             next_open = now_et.replace(hour=9, minute=30, second=0, microsecond=0)
             if now_et >= next_open:
@@ -2544,30 +2545,30 @@ with tab_dashboard:
             while next_open.weekday() >= 5 or next_open.date() in _us_market_holidays(next_open.year):
                 next_open += datetime.timedelta(days=1)
             secs_to_open = max(0, int((next_open - now_et).total_seconds()))
-            next_open_label = next_open.strftime("%a %b %d, %I:%M %p ET")
-            _status_bar = (
-                '<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;700&display=swap" rel="stylesheet">'
-                '<style>*{margin:0;padding:0;box-sizing:border-box;font-family:"Space Grotesk",sans-serif;}'
-                '@media(max-width:600px){.status-divider{display:none !important;}'
-                '.status-row{font-size:0.65rem !important;gap:0.3rem !important;}}</style>'
-                '<div class="status-row" style="display:flex;align-items:center;gap:0.45rem;flex-wrap:wrap;line-height:1.2;font-size:0.72rem;">'
-                '<div style="display:flex;align-items:center;gap:0.3rem;background:rgba(93,111,101,0.08);padding:0.18rem 0.55rem;border-radius:8px;">'
-                '<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#aaa;"></span>'
-                '<span style="font-weight:700;color:#888;">CLOSED</span></div>'
-                f'<span style="color:#5d6f65;">{live_timestamp}</span>'
-                f'{_div_html}'
-                f'<span style="color:#5d6f65;">Opens in <span id="cd-open"></span></span>'
-                + (f'{_div_html}<span style="color:#aaa;">{_hol_html}</span>' if _hol_html else '')
-                + '</div>'
-                f'<script>var s={secs_to_open};'
-                'function u(){if(s<=0){document.getElementById("cd-open").textContent="opening...";return;}'
+            _cd_iframe = (
+                f'<iframe srcdoc="<body style=&quot;margin:0;padding:0;background:transparent;&quot;>'
+                f'<span id=&quot;c&quot; style=&quot;{_iframe_font}&quot;></span>'
+                f'<script>var e=document.getElementById(&quot;c&quot;),s={secs_to_open};'
+                'function u(){if(s&lt;=0){e.textContent=&quot;opening...&quot;;return;}'
                 'var d=Math.floor(s/86400),h=Math.floor((s%86400)/3600),m=Math.floor((s%3600)/60),sc=s%60;'
-                'var t="";if(d>0)t+=d+"d ";t+=h+"h "+(m<10?"0":"")+m+"m "+(sc<10?"0":"")+sc+"s";'
-                'document.getElementById("cd-open").textContent=t;s--;}'
+                'var t=&quot;Opens in &quot;;if(d&gt;0)t+=d+&quot;d &quot;;t+=h+&quot;h &quot;+(m&lt;10?&quot;0&quot;:&quot;&quot;)+m+&quot;m &quot;+(sc&lt;10?&quot;0&quot;:&quot;&quot;)+sc+&quot;s&quot;;'
+                'e.textContent=t;s--;}'
                 'u();setInterval(u,1000);'
-                '</script>'
+                f'</script></body>" style="{_iframe_style}width:200px;" scrolling="no"></iframe>'
             )
-            components.html(_status_bar, height=38, scrolling=False)
+            _hol_part = f' &middot; <span style="color:#aaa;">{_hol_html}</span>' if _hol_html else ''
+            st.markdown(
+                f'<div style="display:flex;align-items:center;gap:0.4rem;font-size:0.72rem;flex-wrap:wrap;margin-bottom:0.3rem;">'
+                f'<div style="display:inline-flex;align-items:center;gap:0.3rem;background:rgba(93,111,101,0.08);padding:0.15rem 0.5rem;border-radius:8px;">'
+                f'<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#aaa;"></span>'
+                f'<span style="font-weight:700;color:#888;font-size:0.72rem;">CLOSED</span></div>'
+                f'<span style="color:#5d6f65;font-size:0.72rem;">{live_timestamp}</span>'
+                f'{_div_html}'
+                f'{_cd_iframe}'
+                f'{_hol_part}'
+                f'</div>',
+                unsafe_allow_html=True,
+            )
         # --- Generate Trash Talk & Achievements ---
         trash_talk_lines = generate_trash_talk(throne, superlatives, final_returns, NAME_MAP, ETF_MAP, returns, valid_tickers)
         achievements = compute_achievements(returns, valid_tickers, NAME_MAP, dividends, throne, final_returns, start_prices, INVESTMENT)
