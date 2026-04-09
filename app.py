@@ -1399,14 +1399,15 @@ def fetch_returns(tickers, start, end):
     if close.empty:
         return None, None, None
 
-    # During market hours, overlay live prices as the latest row
-    if is_market_open():
+    # Always overlay latest prices when JSON data doesn't include today
+    today = datetime.date.today()
+    if close.index[-1].date() < today:
         live = _fetch_live_prices(tuple(tickers))
         if live:
-            today = pd.Timestamp(datetime.date.today())
+            live_ts = pd.Timestamp(today)
             for t, price in live.items():
                 if t in close.columns and not pd.isna(price):
-                    close.loc[today, t] = price
+                    close.loc[live_ts, t] = price
             close = close.sort_index()
 
     close = close.ffill().bfill()
@@ -1447,6 +1448,24 @@ def fetch_earnings(tickers_tuple):
     empty = {"next_date": "", "eps_est": None, "eps_actual": None,
              "last_earnings_date": "", "last_eps_reported": None, "last_eps_estimate": None}
     return {t: earn_data.get(t, empty) for t in tickers_tuple}
+
+
+@st.cache_data(ttl=600)
+def _fetch_actual_eps(ticker):
+    """Live-fetch actual EPS from yfinance earnings_history for a ticker whose earnings date has passed."""
+    try:
+        t = yf.Ticker(ticker)
+        eh = t.earnings_history
+        if eh is not None and len(eh) > 0:
+            latest = eh.iloc[-1]
+            act = latest.get("epsActual")
+            est = latest.get("epsEstimate")
+            actual = round(float(act), 2) if act is not None and str(act) != "nan" else None
+            estimate = round(float(est), 2) if est is not None and str(est) != "nan" else None
+            return {"eps_actual": actual, "eps_estimate": estimate}
+    except Exception:
+        pass
+    return None
 
 
 def compute_throne_history(returns, valid_tickers, name_map, dividends=None, start_prices=None, investment=10.0):
@@ -4209,7 +4228,7 @@ with tab_dashboard:
         _this_saturday = _this_sunday + _dt_mod.timedelta(days=6)
         _week_label = f"{_this_sunday.strftime('%b %d')} – {_this_saturday.strftime('%b %d')}"
 
-        # Collect earnings happening this week
+        # Collect earnings happening this week only (dashboard)
         _next_week_earnings = []
         for t in valid_tickers:
             earn = earnings_data.get(t, {})
@@ -4231,14 +4250,30 @@ with tab_dashboard:
         for t, ed, eps_est in _next_week_earnings:
             _day_label = ed.strftime("%a %b %d")
             _eps_note = f' · Est. ${eps_est:.2f}' if eps_est is not None else ' · Est: N/A'
+            # Check for actual result if earnings date passed
+            _earn_result_badge = ""
+            if ed <= _today:
+                _earn = earnings_data.get(t, {})
+                _eact = _earn.get("eps_actual")
+                if _eact is None:
+                    _live_eps = _fetch_actual_eps(t)
+                    if _live_eps:
+                        _eact = _live_eps.get("eps_actual")
+                if _eact is not None and eps_est is not None:
+                    if _eact >= eps_est:
+                        _earn_result_badge = f' · <span style="color:#19a05f;font-weight:700;">\u2705 Beat ${_eact:.2f}</span>'
+                    else:
+                        _earn_result_badge = f' · <span style="color:#d14a34;font-weight:700;">\u274c Miss ${_eact:.2f}</span>'
+                elif _eact is not None:
+                    _earn_result_badge = f' · <span style="font-weight:700;">Actual: ${_eact:.2f}</span>'
             _events_items.append(
                 f'<div style="flex:1 1 auto;display:flex;align-items:center;gap:0.7rem;padding:0.6rem 1rem;'
                 f'background:rgba(14,95,58,0.04);border:1px solid var(--border);border-radius:12px;min-width:200px;">'
-                f'<span style="font-size:1.1rem;">📊</span>'
+                f'<span style="font-size:1.1rem;">\U0001f4ca</span>'
                 f'<div style="flex:1;">'
                 f'<div><span style="font-size:0.85rem;">{_etf_colored(t)}</span> '
                 f'<span style="color:var(--muted);font-size:0.76rem;">{NAME_MAP.get(t, "")}</span></div>'
-                f'<div style="color:var(--muted);font-size:0.72rem;">Earnings{_eps_note}</div>'
+                f'<div style="color:var(--muted);font-size:0.72rem;">Earnings{_eps_note}{_earn_result_badge}</div>'
                 f'</div>'
                 f'<span style="font-size:0.7rem;color:var(--muted);background:rgba(18,51,36,0.06);padding:0.2rem 0.5rem;border-radius:5px;font-weight:600;white-space:nowrap;">{_day_label}</span>'
                 f'</div>'
@@ -4404,8 +4439,10 @@ with tab_feud:
     # Build stock list for JS
     _stock_list_js = json.dumps([{"ticker": p["ticker"], "name": p["name"], "etf": p.get("etf", "")} for p in PLAYERS])
 
-    # Fetch earnings for this week's challenge
+    # Fetch earnings for this week + next week's challenge
     _feud_earnings = fetch_earnings(tuple(TICKERS))
+    _next_sunday = _this_sunday + datetime.timedelta(days=7)
+    _next_saturday = _next_sunday + datetime.timedelta(days=6)
     _next_week_earnings = []
     for t, edata in _feud_earnings.items():
         edate_str = edata.get("next_date", "")
@@ -4413,14 +4450,23 @@ with tab_feud:
             try:
                 # Parse "Apr 30" style date
                 edate = datetime.datetime.strptime(f"{edate_str} {_now_et.year}", "%b %d %Y").date()
-                # Check if earnings fall in this week (Sun-Sat)
-                if _this_sunday <= edate <= _this_saturday:
+                # Check if earnings fall in this week or next week (Sun-Sat)
+                if _this_sunday <= edate <= _next_saturday:
+                    eps_actual = edata.get("eps_actual")
+                    # If earnings date has passed and no actual in JSON, live-fetch it
+                    if edate <= _today and eps_actual is None:
+                        live_eps = _fetch_actual_eps(t)
+                        if live_eps:
+                            eps_actual = live_eps.get("eps_actual")
                     _next_week_earnings.append({
                         "ticker": t,
                         "name": NAME_MAP.get(t, t),
                         "etf": ETF_MAP.get(t, ""),
                         "date": edate_str,
+                        "date_parsed": edate,
                         "eps_est": edata.get("eps_est"),
+                        "eps_actual": eps_actual,
+                        "is_next_week": edate > _this_saturday,
                     })
             except (ValueError, TypeError):
                 pass
@@ -4555,29 +4601,106 @@ with tab_feud:
     _clock_emoji = "\U0001f552"
     _chart_emoji = "\U0001f4c8"
     if _next_week_earnings:
-        _earnings_cards_html = '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:0.7rem;">'
-        for _ei, _es in enumerate(_next_week_earnings):
-            _eps_str = f'Est. EPS: ${_es["eps_est"]:.2f}' if _es["eps_est"] is not None else "Est. EPS: N/A"
+        _this_week_earns = [e for e in _next_week_earnings if not e.get("is_next_week")]
+        _nxt_week_earns = [e for e in _next_week_earnings if e.get("is_next_week")]
+        _earnings_cards_html = ""
+        if _this_week_earns:
             _earnings_cards_html += (
-                f'<div style="background:rgba(18,51,36,0.03);border:1px solid rgba(18,51,36,0.08);border-radius:12px;padding:0.8rem 1rem;">'
-                f'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.4rem;">'
-                f'<div><span style="font-weight:700;font-size:0.9rem;color:{_ETF_CLR.get(ETF_MAP.get(_es["ticker"], ""), "inherit")};">{html_mod.escape(_es["ticker"])}</span> '
-                f'<span style="color:#5d6f65;font-size:0.78rem;">{html_mod.escape(_es["name"])}</span></div>'
-                f'<span style="font-size:0.72rem;color:#5d6f65;">{html_mod.escape(_es["date"])}</span></div>'
-                f'<div style="font-size:0.75rem;color:#5d6f65;margin-bottom:0.6rem;">{_eps_str}</div>'
-                f'<div style="display:flex;gap:0.4rem;">'
-                f'<div class="earnVoteBtn" data-stock="{html_mod.escape(_es["ticker"])}" data-dir="up" '
-                f'onclick="voteEarnings(this)" '
-                f'style="flex:1;padding:0.35rem 0.5rem;border:1px solid rgba(25,160,95,0.3);border-radius:8px;'
-                f'cursor:pointer;font-weight:700;font-size:0.78rem;color:#19a05f;background:rgba(25,160,95,0.06);text-align:center;transition:all 0.15s;">'
-                f'{_up_emoji} Beat <span class="earnCount" style="display:none;margin-left:0.2rem;font-size:0.68rem;opacity:0.8;"></span></div>'
-                f'<div class="earnVoteBtn" data-stock="{html_mod.escape(_es["ticker"])}" data-dir="down" '
-                f'onclick="voteEarnings(this)" '
-                f'style="flex:1;padding:0.35rem 0.5rem;border:1px solid rgba(209,74,52,0.3);border-radius:8px;'
-                f'cursor:pointer;font-weight:700;font-size:0.78rem;color:#d14a34;background:rgba(209,74,52,0.06);text-align:center;transition:all 0.15s;">'
-                f'{_down_emoji} Miss <span class="earnCount" style="display:none;margin-left:0.2rem;font-size:0.68rem;opacity:0.8;"></span></div>'
-                f'</div></div>'
+                '<div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;color:#5d6f65;'
+                'letter-spacing:0.05em;margin-bottom:0.4rem;">This Week</div>'
+                '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:0.7rem;">'
             )
+        elif _nxt_week_earns:
+            _earnings_cards_html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:0.7rem;">'
+        _all_earn_groups = [("this", _this_week_earns), ("next", _nxt_week_earns)]
+        for _grp_key, _grp_list in _all_earn_groups:
+            if _grp_key == "next" and _nxt_week_earns:
+                if _this_week_earns:
+                    _earnings_cards_html += '</div>'
+                _earnings_cards_html += (
+                    '<div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;color:#5d6f65;'
+                    'letter-spacing:0.05em;margin:0.8rem 0 0.4rem;">Next Week</div>'
+                    '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:0.7rem;">'
+                )
+            for _ei, _es in enumerate(_grp_list):
+                _eps_str = f'Est. EPS: ${_es["eps_est"]:.2f}' if _es["eps_est"] is not None else "Est. EPS: N/A"
+                _earn_date_passed = _es.get("date_parsed") and _es["date_parsed"] <= _today
+                _eps_actual = _es.get("eps_actual")
+
+                if _earn_date_passed and _eps_actual is not None:
+                    # Earnings reported — show actual result + vote tallies
+                    _is_beat = _es["eps_est"] is not None and _eps_actual >= _es["eps_est"]
+                    if _es["eps_est"] is None:
+                        _result_label = f"Actual EPS: ${_eps_actual:.2f}"
+                        _result_color = "#5d6f65"
+                        _result_bg = "rgba(18,51,36,0.06)"
+                    elif _is_beat:
+                        _result_label = f"\u2705 BEAT &mdash; Actual: ${_eps_actual:.2f} vs Est: ${_es['eps_est']:.2f}"
+                        _result_color = "#19a05f"
+                        _result_bg = "rgba(25,160,95,0.10)"
+                    else:
+                        _result_label = f"\u274c MISS &mdash; Actual: ${_eps_actual:.2f} vs Est: ${_es['eps_est']:.2f}"
+                        _result_color = "#d14a34"
+                        _result_bg = "rgba(209,74,52,0.10)"
+                    _ev = _earn_vote_data.get(_es["ticker"], {})
+                    _beat_votes = _ev.get("up", 0)
+                    _miss_votes = _ev.get("down", 0)
+                    _votes_html = ""
+                    if _beat_votes or _miss_votes:
+                        _votes_html = (
+                            f'<div style="display:flex;gap:0.5rem;justify-content:center;margin-top:0.4rem;font-size:0.72rem;color:#5d6f65;">'
+                            f'<span>{_up_emoji} Beat: {_beat_votes}</span>'
+                            f'<span>{_down_emoji} Miss: {_miss_votes}</span>'
+                            f'</div>'
+                        )
+                    _bottom_html = (
+                        f'<div style="padding:0.45rem 0.6rem;border-radius:8px;font-weight:700;font-size:0.78rem;'
+                        f'color:{_result_color};background:{_result_bg};text-align:center;">'
+                        f'{_result_label}</div>'
+                        f'{_votes_html}'
+                    )
+                elif _earn_date_passed:
+                    _ev = _earn_vote_data.get(_es["ticker"], {})
+                    _beat_votes = _ev.get("up", 0)
+                    _miss_votes = _ev.get("down", 0)
+                    _votes_html = ""
+                    if _beat_votes or _miss_votes:
+                        _votes_html = (
+                            f'<div style="display:flex;gap:0.5rem;justify-content:center;margin-top:0.4rem;font-size:0.72rem;color:#5d6f65;">'
+                            f'<span>{_up_emoji} Beat: {_beat_votes}</span>'
+                            f'<span>{_down_emoji} Miss: {_miss_votes}</span>'
+                            f'</div>'
+                        )
+                    _bottom_html = (
+                        '<div style="padding:0.35rem 0.5rem;border-radius:8px;font-size:0.75rem;'
+                        'color:#5d6f65;background:rgba(18,51,36,0.04);text-align:center;">'
+                        '\u23f3 Awaiting results...</div>'
+                        f'{_votes_html}'
+                    )
+                else:
+                    _bottom_html = (
+                        f'<div style="display:flex;gap:0.4rem;">'
+                        f'<div class="earnVoteBtn" data-stock="{html_mod.escape(_es["ticker"])}" data-dir="up" '
+                        f'onclick="voteEarnings(this)" '
+                        f'style="flex:1;padding:0.35rem 0.5rem;border:1px solid rgba(25,160,95,0.3);border-radius:8px;'
+                        f'cursor:pointer;font-weight:700;font-size:0.78rem;color:#19a05f;background:rgba(25,160,95,0.06);text-align:center;transition:all 0.15s;">'
+                        f'{_up_emoji} Beat <span class="earnCount" style="display:none;margin-left:0.2rem;font-size:0.68rem;opacity:0.8;"></span></div>'
+                        f'<div class="earnVoteBtn" data-stock="{html_mod.escape(_es["ticker"])}" data-dir="down" '
+                        f'onclick="voteEarnings(this)" '
+                        f'style="flex:1;padding:0.35rem 0.5rem;border:1px solid rgba(209,74,52,0.3);border-radius:8px;'
+                        f'cursor:pointer;font-weight:700;font-size:0.78rem;color:#d14a34;background:rgba(209,74,52,0.06);text-align:center;transition:all 0.15s;">'
+                        f'{_down_emoji} Miss <span class="earnCount" style="display:none;margin-left:0.2rem;font-size:0.68rem;opacity:0.8;"></span></div>'
+                        f'</div>'
+                    )
+                _earnings_cards_html += (
+                    f'<div style="background:rgba(18,51,36,0.03);border:1px solid rgba(18,51,36,0.08);border-radius:12px;padding:0.8rem 1rem;">'
+                    f'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.4rem;">'
+                    f'<div><span style="font-weight:700;font-size:0.9rem;color:{_ETF_CLR.get(ETF_MAP.get(_es["ticker"], ""), "inherit")};">{html_mod.escape(_es["ticker"])}</span> '
+                    f'<span style="color:#5d6f65;font-size:0.78rem;">{html_mod.escape(_es["name"])}</span></div>'
+                    f'<span style="font-size:0.72rem;color:#5d6f65;">{html_mod.escape(_es["date"])}</span></div>'
+                    f'<div style="font-size:0.75rem;color:#5d6f65;margin-bottom:0.6rem;">{_eps_str}</div>'
+                    f'{_bottom_html}</div>'
+                )
         _earnings_cards_html += '</div>'
     else:
         _earnings_cards_html = f'<div style="font-size:0.85rem;color:#5d6f65;text-align:center;padding:1rem;">{_sleep_emoji} No earnings scheduled this week. Enjoy the quiet!</div>'
@@ -5102,10 +5225,25 @@ with tab_feud:
                     correct_count = sum(1 for r in scored if r["correct"])
                     total_scored = len(scored)
                     accuracy = int(correct_count / total_scored * 100)
+                    # Build individual result rows
+                    _result_rows = ""
+                    for r in scored:
+                        _icon = "\u2705" if r["correct"] else "\u274c"
+                        _color = "#19a05f" if r["correct"] else "#d14a34"
+                        _result_rows += (
+                            f'<div style="display:flex;align-items:center;gap:0.5rem;padding:0.25rem 0;'
+                            f'font-size:0.75rem;border-bottom:1px solid rgba(18,51,36,0.06);">'
+                            f'<span>{_icon}</span>'
+                            f'<span style="font-weight:700;min-width:3.5rem;">{html_mod.escape(r["ticker"])}</span>'
+                            f'<span style="color:#5d6f65;">{html_mod.escape(r["title"])}</span>'
+                            f'<span style="margin-left:auto;color:{_color};font-size:0.72rem;">{html_mod.escape(r["actual"])}</span>'
+                            f'</div>'
+                        )
                     st.markdown(
                         f'<div style="margin-top:0.5rem;padding:0.5rem 0.8rem;background:rgba(14,95,58,0.06);'
                         f'border:1px solid rgba(14,95,58,0.15);border-radius:12px;font-size:0.8rem;">'
                         f'\U0001f3af <b>Past Accuracy:</b> {correct_count}/{total_scored} predictions correct ({accuracy}%)'
+                        f'<div style="margin-top:0.4rem;">{_result_rows}</div>'
                         f'</div>',
                         unsafe_allow_html=True,
                     )

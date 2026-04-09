@@ -335,6 +335,20 @@ def fetch_earnings(tickers: list[str]) -> dict:
                     v = latest.get("epsEstimate")
                     if v is not None and str(v) != "nan":
                         result["last_eps_estimate"] = round(float(v), 2)
+
+                    # If earnings date has passed, populate eps_actual
+                    if result["next_date"]:
+                        try:
+                            ed = datetime.datetime.strptime(
+                                f"{result['next_date']} {datetime.date.today().year}",
+                                "%b %d %Y",
+                            ).date()
+                            if ed <= datetime.date.today():
+                                act = latest.get("epsActual")
+                                if act is not None and str(act) != "nan":
+                                    result["eps_actual"] = round(float(act), 2)
+                        except Exception:
+                            pass
             except Exception:
                 pass
         except Exception:
