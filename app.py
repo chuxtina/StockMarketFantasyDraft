@@ -4837,7 +4837,7 @@ with tab_feud:
           {_clock_emoji} Voting closes Mon 9 AM ET &middot; Winner at Fri 4 PM ET</span>
       </div>
 
-      <!-- Challenge 1: MVP -->
+      <!-- Challenge 1: MVP (commented out)
       <div class="challenge-card" style="z-index:30;position:relative;">
         <div class="challenge-label"><span class="challenge-num">1</span> Weekly Challenge</div>
         <div class="challenge-title">{_trophy_emoji} Who will be MVP this week?</div>
@@ -4847,8 +4847,9 @@ with tab_feud:
         <div id="mvpVoteHeader" class="votes-header">Community Votes ({_mvp_total} total)</div>
         <div id="mvpVoteBars">{_mvp_bars if _mvp_bars else _no_votes_html}</div>
       </div>
+      -->
 
-      <!-- Challenge 2: HOH -->
+      <!-- Challenge 2: HOH (commented out)
       <div class="challenge-card" style="z-index:20;position:relative;">
         <div class="challenge-label"><span class="challenge-num">2</span> Weekly Challenge</div>
         <div class="challenge-title">{_house_emoji} Who will be Head of Household?</div>
@@ -4858,6 +4859,7 @@ with tab_feud:
         <div id="hohVoteHeader" class="votes-header">Community Votes ({_hoh_total} total)</div>
         <div id="hohVoteBars">{_hoh_bars if _hoh_bars else '<div style="font-size:0.8rem;color:#5d6f65;">No votes yet &mdash; be the first!</div>'}</div>
       </div>
+      -->
 
       <!-- Challenge 3: Earnings -->
       <div class="challenge-card" style="margin-bottom:0;z-index:10;position:relative;">
