@@ -215,6 +215,294 @@
       "confidence": 30,
       "detail": "Avg 5-day momentum: +2.53% across 10 stocks",
       "return_at_prediction": null
+    },
+    {
+      "recorded_date": "2026-04-06",
+      "end_date": "2026-04-06",
+      "title": "Predicted MVP",
+      "ticker": "SNDK",
+      "confidence": 93,
+      "detail": "Strong momentum (+20.97%) + 4/5 green days",
+      "return_at_prediction": null
+    },
+    {
+      "recorded_date": "2026-04-06",
+      "end_date": "2026-04-06",
+      "title": "Predicted Benchwarmer",
+      "ticker": "TYGO",
+      "confidence": 90,
+      "detail": "Dropping -12.17% with 2/5 green days",
+      "return_at_prediction": null
+    },
+    {
+      "recorded_date": "2026-04-06",
+      "end_date": "2026-04-06",
+      "title": "Danger Zone",
+      "ticker": "TYGO",
+      "confidence": 75,
+      "detail": "Dropping -12.17% over 5 days with high volatility",
+      "return_at_prediction": null
+    },
+    {
+      "recorded_date": "2026-04-06",
+      "end_date": "2026-04-06",
+      "title": "Breakout Watch",
+      "ticker": "SNDK",
+      "confidence": 70,
+      "detail": "High volatility (\u00b18.04%) with upward momentum",
+      "return_at_prediction": null
+    },
+    {
+      "recorded_date": "2026-04-06",
+      "end_date": "2026-04-06",
+      "title": "Volatility Bomb",
+      "ticker": "ARM",
+      "confidence": 70,
+      "detail": "Avg daily swing of \u00b18.80% \u2014 expect fireworks",
+      "return_at_prediction": null
+    },
+    {
+      "recorded_date": "2026-04-06",
+      "end_date": "2026-04-06",
+      "title": "Throne Challenger",
+      "ticker": "STX",
+      "confidence": 60,
+      "detail": "Most likely to dethrone SNDK next week",
+      "return_at_prediction": null
+    },
+    {
+      "recorded_date": "2026-04-06",
+      "end_date": "2026-04-06",
+      "title": "Sleeper Alert",
+      "ticker": "META",
+      "confidence": 50,
+      "detail": "Bottom half but gaining +7.83% momentum",
+      "return_at_prediction": null
+    },
+    {
+      "recorded_date": "2026-04-06",
+      "end_date": "2026-04-06",
+      "title": "Head of Household",
+      "ticker": "UNCL",
+      "confidence": 48,
+      "detail": "Avg 5-day momentum: +4.90% across 25 stocks",
+      "return_at_prediction": null
+    },
+    {
+      "recorded_date": "2026-04-07",
+      "end_date": "2026-04-07",
+      "title": "Predicted MVP",
+      "ticker": "SNDK",
+      "confidence": 93,
+      "detail": "Strong momentum (+20.63%) + 4/5 green days",
+      "return_at_prediction": null
+    },
+    {
+      "recorded_date": "2026-04-07",
+      "end_date": "2026-04-07",
+      "title": "Predicted Benchwarmer",
+      "ticker": "TYGO",
+      "confidence": 90,
+      "detail": "Dropping -12.17% with 2/5 green days",
+      "return_at_prediction": null
+    },
+    {
+      "recorded_date": "2026-04-07",
+      "end_date": "2026-04-07",
+      "title": "Danger Zone",
+      "ticker": "TYGO",
+      "confidence": 75,
+      "detail": "Dropping -12.17% over 5 days with high volatility",
+      "return_at_prediction": null
+    },
+    {
+      "recorded_date": "2026-04-07",
+      "end_date": "2026-04-07",
+      "title": "Breakout Watch",
+      "ticker": "SNDK",
+      "confidence": 70,
+      "detail": "High volatility (\u00b18.02%) with upward momentum",
+      "return_at_prediction": null
+    },
+    {
+      "recorded_date": "2026-04-07",
+      "end_date": "2026-04-07",
+      "title": "Volatility Bomb",
+      "ticker": "ARM",
+      "confidence": 70,
+      "detail": "Avg daily swing of \u00b18.80% \u2014 expect fireworks",
+      "return_at_prediction": null
+    },
+    {
+      "recorded_date": "2026-04-07",
+      "end_date": "2026-04-07",
+      "title": "Throne Challenger",
+      "ticker": "STX",
+      "confidence": 60,
+      "detail": "Most likely to dethrone SNDK next week",
+      "return_at_prediction": null
+    },
+    {
+      "recorded_date": "2026-04-07",
+      "end_date": "2026-04-07",
+      "title": "Head of Household",
+      "ticker": "UNCL",
+      "confidence": 52,
+      "detail": "Avg 5-day momentum: +5.28% across 25 stocks",
+      "return_at_prediction": null
+    },
+    {
+      "recorded_date": "2026-04-07",
+      "end_date": "2026-04-07",
+      "title": "Sleeper Alert",
+      "ticker": "RBLX",
+      "confidence": 50,
+      "detail": "Bottom half but gaining +7.70% momentum",
+      "return_at_prediction": null
+    },
+    {
+      "recorded_date": "2026-04-09",
+      "end_date": "2026-04-09",
+      "title": "Predicted MVP",
+      "ticker": "SNDK",
+      "confidence": 95,
+      "detail": "Strong momentum (+52.92%) + 5/5 green days",
+      "return_at_prediction": null
+    },
+    {
+      "recorded_date": "2026-04-09",
+      "end_date": "2026-04-09",
+      "title": "Predicted Benchwarmer",
+      "ticker": "TPL",
+      "confidence": 90,
+      "detail": "Dropping -17.03% with 3/5 green days",
+      "return_at_prediction": null
+    },
+    {
+      "recorded_date": "2026-04-09",
+      "end_date": "2026-04-09",
+      "title": "Danger Zone",
+      "ticker": "TPL",
+      "confidence": 75,
+      "detail": "Dropping -17.03% over 5 days with high volatility",
+      "return_at_prediction": null
+    },
+    {
+      "recorded_date": "2026-04-09",
+      "end_date": "2026-04-09",
+      "title": "Breakout Watch",
+      "ticker": "SNDK",
+      "confidence": 70,
+      "detail": "High volatility (\u00b110.94%) with upward momentum",
+      "return_at_prediction": null
+    },
+    {
+      "recorded_date": "2026-04-09",
+      "end_date": "2026-04-09",
+      "title": "Volatility Bomb",
+      "ticker": "SNDK",
+      "confidence": 70,
+      "detail": "Avg daily swing of \u00b110.94% \u2014 expect fireworks",
+      "return_at_prediction": null
+    },
+    {
+      "recorded_date": "2026-04-09",
+      "end_date": "2026-04-09",
+      "title": "Head of Household",
+      "ticker": "UNCL",
+      "confidence": 65,
+      "detail": "Avg 5-day momentum: +12.43% across 25 stocks",
+      "return_at_prediction": null
+    },
+    {
+      "recorded_date": "2026-04-09",
+      "end_date": "2026-04-09",
+      "title": "Throne Challenger",
+      "ticker": "INTC",
+      "confidence": 60,
+      "detail": "Most likely to dethrone SNDK next week",
+      "return_at_prediction": null
+    },
+    {
+      "recorded_date": "2026-04-09",
+      "end_date": "2026-04-09",
+      "title": "Sleeper Alert",
+      "ticker": "META",
+      "confidence": 50,
+      "detail": "Bottom half but gaining +14.28% momentum",
+      "return_at_prediction": null
+    },
+    {
+      "recorded_date": "2026-04-10",
+      "end_date": "2026-04-10",
+      "title": "Predicted MVP",
+      "ticker": "INTC",
+      "confidence": 94,
+      "detail": "Strong momentum (+33.05%) + 5/5 green days",
+      "return_at_prediction": null
+    },
+    {
+      "recorded_date": "2026-04-10",
+      "end_date": "2026-04-10",
+      "title": "Predicted Benchwarmer",
+      "ticker": "WDAY",
+      "confidence": 90,
+      "detail": "Dropping -10.96% with 1/5 green days",
+      "return_at_prediction": null
+    },
+    {
+      "recorded_date": "2026-04-10",
+      "end_date": "2026-04-10",
+      "title": "Danger Zone",
+      "ticker": "PLTR",
+      "confidence": 75,
+      "detail": "Dropping -11.73% over 5 days with high volatility",
+      "return_at_prediction": null
+    },
+    {
+      "recorded_date": "2026-04-10",
+      "end_date": "2026-04-10",
+      "title": "Breakout Watch",
+      "ticker": "SNDK",
+      "confidence": 70,
+      "detail": "High volatility (\u00b19.50%) with upward momentum",
+      "return_at_prediction": null
+    },
+    {
+      "recorded_date": "2026-04-10",
+      "end_date": "2026-04-10",
+      "title": "Volatility Bomb",
+      "ticker": "SNDK",
+      "confidence": 70,
+      "detail": "Avg daily swing of \u00b19.50% \u2014 expect fireworks",
+      "return_at_prediction": null
+    },
+    {
+      "recorded_date": "2026-04-10",
+      "end_date": "2026-04-10",
+      "title": "Head of Household",
+      "ticker": "UNCL",
+      "confidence": 63,
+      "detail": "Avg 5-day momentum: +6.39% across 25 stocks",
+      "return_at_prediction": null
+    },
+    {
+      "recorded_date": "2026-04-10",
+      "end_date": "2026-04-10",
+      "title": "Throne Challenger",
+      "ticker": "INTC",
+      "confidence": 60,
+      "detail": "Most likely to dethrone SNDK next week",
+      "return_at_prediction": null
+    },
+    {
+      "recorded_date": "2026-04-10",
+      "end_date": "2026-04-10",
+      "title": "Sleeper Alert",
+      "ticker": "META",
+      "confidence": 50,
+      "detail": "Bottom half but gaining +7.86% momentum",
+      "return_at_prediction": null
     }
   ]
 }

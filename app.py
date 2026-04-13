@@ -1538,6 +1538,11 @@ def compute_throne_history(returns, valid_tickers, name_map, dividends=None, sta
     if len(cum_returns) > 1:
         cum_returns = cum_returns.iloc[1:]
 
+    # Collapse intraday rows to one row per calendar date (last = EOD/latest price)
+    cum_returns.index = pd.to_datetime(cum_returns.index)
+    cum_returns = cum_returns.groupby(cum_returns.index.date).last()
+    cum_returns.index = pd.to_datetime(cum_returns.index)
+
     # Determine #1 (MVP) and last place (benchwarmer) each day by total return
     mvp_series = cum_returns.idxmax(axis=1)
     bench_series = cum_returns.idxmin(axis=1)
@@ -1833,7 +1838,7 @@ def compute_superlatives(returns, valid_tickers, name_map, etf_map, throne, divi
 
 
 # --- News Ticker Generator ---
-def generate_trash_talk(throne, superlatives, final_returns, name_map, etf_map, returns, valid_tickers):
+def generate_trash_talk(_throne, _superlatives, final_returns, _name_map, _etf_map, _returns, _valid_tickers):
     """Generate news headline ticker for all stocks."""
     lines = []
 
@@ -1853,7 +1858,7 @@ def generate_trash_talk(throne, superlatives, final_returns, name_map, etf_map, 
 
 
 # --- Achievements / Badges ---
-def compute_achievements(returns, valid_tickers, name_map, dividends, throne, final_returns, start_prices, investment):
+def compute_achievements(returns, valid_tickers, _name_map, dividends, throne, final_returns, start_prices, investment):
     """Compute fun achievement badges."""
     badges = []
     daily = returns[valid_tickers].copy()
@@ -2243,7 +2248,7 @@ def check_past_predictions(pred_history, current_returns):
 
 
 # --- System Predictions ---
-def generate_predictions(returns, valid_tickers, name_map, etf_map, final_returns, dividends, start_prices, investment):
+def generate_predictions(returns, valid_tickers, name_map, etf_map, final_returns, _dividends, _start_prices, _investment):
     """Generate system predictions for next week based on momentum, trends, and patterns."""
     predictions = []
     daily = returns[valid_tickers]
@@ -2510,16 +2515,6 @@ with tab_dashboard:
 
         # --- ETF Winner ---
         ETF_EMOJI = {"UNCL": "👨‍🦳", "ANTY": "👩🏻", "KIDZ": "👶🏻"}
-        etf_sums = {}
-        etf_counts = {}
-        for ticker in valid_tickers:
-            etf = ETF_MAP.get(ticker, "")
-            if etf:
-                etf_sums[etf] = etf_sums.get(etf, 0) + final_returns[ticker]
-                etf_counts[etf] = etf_counts.get(etf, 0) + 1
-        etf_avgs = {etf: etf_sums[etf] / etf_counts[etf] for etf in etf_sums}
-        etf_ranked = sorted(etf_avgs.items(), key=lambda x: x[1], reverse=True)
-        medals = ["🥇", "🥈", "🥉"]
         best_ticker = final_returns.index[0]
         worst_ticker = final_returns.index[-1]
         throne = compute_throne_history(returns, valid_tickers, NAME_MAP, dividends, start_prices)
@@ -2561,13 +2556,6 @@ with tab_dashboard:
             _holiday_names.update(_hmap)
         _today_d = now_et.date()
         _next_holidays = sorted([(d, n) for d, n in _holiday_names.items() if d > _today_d])
-        _holiday_html = ""
-        if _next_holidays:
-            _nh_date, _nh_name = _next_holidays[0]
-            _nh_label = _nh_date.strftime("%a %b %d")
-            _nh_days = (_nh_date - _today_d).days
-            _holiday_html = f'Next market holiday: <b>{_nh_name}</b> &middot; {_nh_label} ({_nh_days}d)'
-
         # Holiday info
         _hol_html = ''
         if _next_holidays:
@@ -2694,8 +2682,6 @@ with tab_dashboard:
         meh = superlatives.get("middle", {})
         meh_ticker = meh.get("ticker", "")
         meh_ret = meh.get("return", 0)
-        meh_rank = meh.get("rank", 0)
-
         # --- Portfolio Overview (hero card) ---
         _port_total_invested = INVESTMENT * len(valid_tickers)
         _port_mkt_val = sum(INVESTMENT / start_prices[t] * end_prices[t] for t in valid_tickers)
@@ -2703,7 +2689,6 @@ with tab_dashboard:
         _port_value = _port_mkt_val + _port_divs
         _port_pl = _port_value - _port_total_invested
         _port_ret = (_port_value / _port_total_invested - 1) * 100 if _port_total_invested else 0
-        _port_pl_color = "#19a05f" if _port_pl >= 0 else "#d14a34"
         st.markdown(
             f'<div style="background:linear-gradient(135deg,{"#15803d,#166534" if _port_pl >= 0 else "#b91c1c,#991b1b"});border-radius:16px;padding:1.2rem 1.5rem;color:#fff;margin:0.5rem 0 1rem;position:relative;overflow:hidden;">'
             f'<div style="position:absolute;right:-40px;top:-40px;width:180px;height:180px;border-radius:999px;background:rgba(255,255,255,0.05);"></div>'
@@ -2990,7 +2975,7 @@ with tab_dashboard:
 
         # Multi-Award bar: find stocks that appear in multiple badges
         ticker_badges = {}
-        for icon, name, holder, desc in badges_data:
+        for icon, name, holder, _ in badges_data:
             # Extract tickers from holder string
             tickers_in_badge = []
             base = holder.split(" (")[0] if holder else ""
@@ -3010,7 +2995,7 @@ with tab_dashboard:
 
         # ETF award count
         _etf_award_counts = {"ANTY": 0, "UNCL": 0, "KIDZ": 0}
-        for icon, name, holder, desc in badges_data:
+        for icon, name, holder, _ in badges_data:
             base = holder.split(" (")[0] if holder else ""
             tickers_in = []
             if " vs " in base:
@@ -3210,7 +3195,7 @@ with tab_dashboard:
             unsafe_allow_html=True,
         )
 
-        def _generate_roasts(final_rets, name_map, throne, superlatives, returns_df, valid_tickers, used_history=None):
+        def _generate_roasts(final_rets, _name_map, throne, _superlatives, returns_df, valid_tickers, used_history=None):
             import re as _re_mod
             import random as _rng
             _rng.seed()
@@ -3222,8 +3207,7 @@ with tab_dashboard:
             _all_candidates = []
 
             # --- Roast any stock by its return ---
-            for i, (t, ret) in enumerate(sorted_rets.items()):
-                rank = i + 1
+            for _i, (t, ret) in enumerate(sorted_rets.items()):
                 tc = _etf_colored(t)
                 if ret > 15:
                     _all_candidates += [
@@ -3800,7 +3784,6 @@ with tab_dashboard:
                 _start_d = entry["date"].strftime("%b %d")
                 # The reign ended when the previous entry (newer) started
                 _end_d = history[i - 1]["date"].strftime("%b %d")
-                _dethroner = history[i - 1]["ticker"]
                 _days = (history[i - 1]["date"] - entry["date"]).days
                 _date_range = f'{_start_d} – {_end_d}' if _start_d != _end_d else _start_d
                 _day_label = f' ({_days}d)' if _days > 0 else ''
@@ -3854,7 +3837,7 @@ with tab_dashboard:
 
 
         rows = []
-        for rank, (ticker, ret) in enumerate(final_returns.items(), start=1):
+        for rank, (ticker, _) in enumerate(final_returns.items(), start=1):
             share_price = start_prices[ticker]
             shares = INVESTMENT / share_price
             div_per_share = dividends.get(ticker, 0.0)
@@ -3923,9 +3906,7 @@ with tab_dashboard:
             earn = earnings_data.get(ticker, {})
             earn_date = earn.get("next_date", "")
             eps_est = earn.get("eps_est")
-            eps_actual = earn.get("eps_actual")
             earn_cell = earn_date if earn_date else '<span style="color:var(--muted);">\u2014</span>'
-            eps_est_cell = f'${eps_est:.2f}' if eps_est is not None else '<span style="color:var(--muted);">\u2014</span>'
             last_earn_date = earn.get("last_earnings_date", "")
             last_eps_reported = earn.get("last_eps_reported")
             last_eps_estimate = earn.get("last_eps_estimate")
@@ -4012,9 +3993,6 @@ with tab_dashboard:
         _total_profit = (_total_mkt_val + _total_divs) - _total_stake
         _total_price_ret = (_total_mkt_val / _total_stake - 1) * 100
         _total_total_ret = ((_total_mkt_val + _total_divs) / _total_stake - 1) * 100
-        _total_ret_color = "#19a05f" if _total_total_ret >= 0 else "#d14a34"
-        _total_price_color = "#19a05f" if _total_price_ret >= 0 else "#d14a34"
-
         rows.append({
             "Rank": '<b>Total</b>',
             "ETF": "",
@@ -4646,7 +4624,6 @@ with tab_feud:
     _no_votes_html = '<div style="font-size:0.8rem;color:#5d6f65;">No votes yet \u2014 be the first!</div>'
 
     # Build earnings challenge cards
-    _cal_emoji = "\U0001f4c5"
     _up_emoji = "\U0001f4c8"
     _down_emoji = "\U0001f4c9"
     _sleep_emoji = "\U0001f634"
@@ -4676,7 +4653,7 @@ with tab_feud:
                     'letter-spacing:0.05em;margin:0.8rem 0 0.4rem;">Next Week</div>'
                     '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:0.7rem;">'
                 )
-            for _ei, _es in enumerate(_grp_list):
+            for _es in _grp_list:
                 _eps_str = f'Est. EPS: ${_es["eps_est"]:.2f}' if _es["eps_est"] is not None else "Est. EPS: N/A"
                 _earn_date_passed = _es.get("date_parsed") and _es["date_parsed"] <= _today
                 _eps_actual = _es.get("eps_actual")
