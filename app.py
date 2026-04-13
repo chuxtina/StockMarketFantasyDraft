@@ -1365,17 +1365,33 @@ except (FileNotFoundError, json.JSONDecodeError):
 
 @st.cache_data(ttl=300)
 def _fetch_live_prices(tickers):
-    """During market hours, fetch current prices via a single yf.download call."""
-    try:
-        data = yf.download(list(tickers), period="2d", auto_adjust=True, progress=False, threads=True)
-        if not data.empty:
-            close = data["Close"]
-            if isinstance(close, pd.Series):
-                close = close.to_frame(name=tickers[0])
-            return close.iloc[-1].to_dict()
-    except Exception:
-        pass
-    return {}
+    """Fetch current prices, batching tickers to avoid timeouts."""
+    results = {}
+    batch_size = 20
+    ticker_list = list(tickers)
+    for i in range(0, len(ticker_list), batch_size):
+        batch = ticker_list[i:i + batch_size]
+        try:
+            data = yf.download(batch, period="2d", auto_adjust=True, progress=False, threads=True)
+            if not data.empty:
+                close = data["Close"]
+                if isinstance(close, pd.Series):
+                    close = close.to_frame(name=batch[0])
+                row = close.iloc[-1]
+                for t in batch:
+                    if t in row.index and not pd.isna(row[t]):
+                        results[t] = row[t]
+        except Exception:
+            # Fallback: fetch individually for this batch
+            for t in batch:
+                try:
+                    tk = yf.Ticker(t)
+                    price = tk.fast_info.get("lastPrice")
+                    if price:
+                        results[t] = price
+                except Exception:
+                    pass
+    return results
 
 
 def fetch_returns(tickers, start, end):
