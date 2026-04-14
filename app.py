@@ -2423,7 +2423,7 @@ def generate_predictions(returns, valid_tickers, name_map, etf_map, final_return
     return predictions
 
 
-tab_dashboard, tab_feud, tab_admin = st.tabs(["Dashboard", "Family Feud", "Admin"])
+tab_dashboard, tab_admin = st.tabs(["Dashboard", "Admin"])
 
 with tab_dashboard:
     st.markdown("""
@@ -4239,89 +4239,89 @@ with tab_dashboard:
             unsafe_allow_html=True,
         )
 
-        # --- This Week Events ---
-        import datetime as _dt_mod
-        _today = _dt_mod.date.today()
-        # Find this week's Sunday (week starts on Sunday)
-        _this_sunday = _today - _dt_mod.timedelta(days=(_today.weekday() + 1) % 7)
-        _this_saturday = _this_sunday + _dt_mod.timedelta(days=6)
-        _week_label = f"{_this_sunday.strftime('%b %d')} – {_this_saturday.strftime('%b %d')}"
+        # # --- This Week Events ---
+        # import datetime as _dt_mod
+        # _today = _dt_mod.date.today()
+        # # Find this week's Sunday (week starts on Sunday)
+        # _this_sunday = _today - _dt_mod.timedelta(days=(_today.weekday() + 1) % 7)
+        # _this_saturday = _this_sunday + _dt_mod.timedelta(days=6)
+        # _week_label = f"{_this_sunday.strftime('%b %d')} – {_this_saturday.strftime('%b %d')}"
 
-        # Collect earnings happening this week only (dashboard)
-        _next_week_earnings = []
-        for t in valid_tickers:
-            earn = earnings_data.get(t, {})
-            earn_date_str = earn.get("next_date", "")
-            if not earn_date_str:
-                continue
-            try:
-                # Parse "Apr 30" style date, assume current year
-                _ed = _dt_mod.datetime.strptime(earn_date_str, "%b %d").date().replace(year=_today.year)
-                if _this_sunday <= _ed <= _this_saturday:
-                    eps_est = earn.get("eps_est")
-                    _next_week_earnings.append((t, _ed, eps_est))
-            except Exception:
-                pass
-        _next_week_earnings.sort(key=lambda x: x[1])
+        # # Collect earnings happening this week only (dashboard)
+        # _next_week_earnings = []
+        # for t in valid_tickers:
+        # earn = earnings_data.get(t, {})
+        # earn_date_str = earn.get("next_date", "")
+        # if not earn_date_str:
+        # continue
+        # try:
+        # # Parse "Apr 30" style date, assume current year
+        # _ed = _dt_mod.datetime.strptime(earn_date_str, "%b %d").date().replace(year=_today.year)
+        # if _this_sunday <= _ed <= _this_saturday:
+        # eps_est = earn.get("eps_est")
+        # _next_week_earnings.append((t, _ed, eps_est))
+        # except Exception:
+        # pass
+        # _next_week_earnings.sort(key=lambda x: x[1])
 
-        # Build the events HTML — horizontal card layout
-        _events_items = []
-        for t, ed, eps_est in _next_week_earnings:
-            _day_label = ed.strftime("%a %b %d")
-            _eps_note = f' · Est. ${eps_est:.2f}' if eps_est is not None else ' · Est: N/A'
-            # Check for actual result if earnings date passed
-            _earn_result_badge = ""
-            if ed <= _today:
-                _earn = earnings_data.get(t, {})
-                _eact = _earn.get("eps_actual")
-                if _eact is None:
-                    _live_eps = _fetch_actual_eps(t)
-                    if _live_eps:
-                        _eact = _live_eps.get("eps_actual")
-                if _eact is not None and eps_est is not None:
-                    if _eact >= eps_est:
-                        _earn_result_badge = f' · <span style="color:#19a05f;font-weight:700;">\u2705 Beat ${_eact:.2f}</span>'
-                    else:
-                        _earn_result_badge = f' · <span style="color:#d14a34;font-weight:700;">\u274c Miss ${_eact:.2f}</span>'
-                elif _eact is not None:
-                    _earn_result_badge = f' · <span style="font-weight:700;">Actual: ${_eact:.2f}</span>'
-            _events_items.append(
-                f'<div style="flex:1 1 auto;display:flex;align-items:center;gap:0.7rem;padding:0.6rem 1rem;'
-                f'background:rgba(14,95,58,0.04);border:1px solid var(--border);border-radius:12px;min-width:200px;">'
-                f'<span style="font-size:1.1rem;">\U0001f4ca</span>'
-                f'<div style="flex:1;">'
-                f'<div><span style="font-size:0.85rem;">{_etf_colored(t)}</span> '
-                f'<span style="color:var(--muted);font-size:0.76rem;">{NAME_MAP.get(t, "")}</span></div>'
-                f'<div style="color:var(--muted);font-size:0.72rem;">Earnings{_eps_note}{_earn_result_badge}</div>'
-                f'</div>'
-                f'<span style="font-size:0.7rem;color:var(--muted);background:rgba(18,51,36,0.06);padding:0.2rem 0.5rem;border-radius:5px;font-weight:600;white-space:nowrap;">{_day_label}</span>'
-                f'</div>'
-            )
+        # # Build the events HTML — horizontal card layout
+        # _events_items = []
+        # for t, ed, eps_est in _next_week_earnings:
+        # _day_label = ed.strftime("%a %b %d")
+        # _eps_note = f' · Est. ${eps_est:.2f}' if eps_est is not None else ' · Est: N/A'
+        # # Check for actual result if earnings date passed
+        # _earn_result_badge = ""
+        # if ed <= _today:
+        # _earn = earnings_data.get(t, {})
+        # _eact = _earn.get("eps_actual")
+        # if _eact is None:
+        # _live_eps = _fetch_actual_eps(t)
+        # if _live_eps:
+        # _eact = _live_eps.get("eps_actual")
+        # if _eact is not None and eps_est is not None:
+        # if _eact >= eps_est:
+        # _earn_result_badge = f' · <span style="color:#19a05f;font-weight:700;">\u2705 Beat ${_eact:.2f}</span>'
+        # else:
+        # _earn_result_badge = f' · <span style="color:#d14a34;font-weight:700;">\u274c Miss ${_eact:.2f}</span>'
+        # elif _eact is not None:
+        # _earn_result_badge = f' · <span style="font-weight:700;">Actual: ${_eact:.2f}</span>'
+        # _events_items.append(
+        # f'<div style="flex:1 1 auto;display:flex;align-items:center;gap:0.7rem;padding:0.6rem 1rem;'
+        # f'background:rgba(14,95,58,0.04);border:1px solid var(--border);border-radius:12px;min-width:200px;">'
+        # f'<span style="font-size:1.1rem;">\U0001f4ca</span>'
+        # f'<div style="flex:1;">'
+        # f'<div><span style="font-size:0.85rem;">{_etf_colored(t)}</span> '
+        # f'<span style="color:var(--muted);font-size:0.76rem;">{NAME_MAP.get(t, "")}</span></div>'
+        # f'<div style="color:var(--muted);font-size:0.72rem;">Earnings{_eps_note}{_earn_result_badge}</div>'
+        # f'</div>'
+        # f'<span style="font-size:0.7rem;color:var(--muted);background:rgba(18,51,36,0.06);padding:0.2rem 0.5rem;border-radius:5px;font-weight:600;white-space:nowrap;">{_day_label}</span>'
+        # f'</div>'
+        # )
 
-        if _events_items:
-            _events_html = ''.join(_events_items)
-        else:
-            _events_html = '<div style="color:var(--muted);font-size:0.82rem;padding:0.6rem 0;">No earnings scheduled this week for roster stocks.</div>'
+        # if _events_items:
+        # _events_html = ''.join(_events_items)
+        # else:
+        # _events_html = '<div style="color:var(--muted);font-size:0.82rem;padding:0.6rem 0;">No earnings scheduled this week for roster stocks.</div>'
 
-        _earnings_count = len(_next_week_earnings)
-        _feud_note = '<div style="font-size:0.72rem;color:var(--muted);margin-top:0.5rem;">\U0001f449 Head to the <b>Family Feud</b> tab to vote Beat or Miss on upcoming earnings!</div>' if _earnings_count > 0 else ''
-        st.markdown(
-            f'<div style="margin:1.2rem 0 0.8rem;">'
-            f'<div style="background:rgba(251,253,250,0.96);border:1px solid rgba(18,51,36,0.12);border-radius:18px;padding:1rem 1.4rem;box-shadow:0 4px 12px rgba(82,58,32,0.06);">'
-            f'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.7rem;">'
-            f'<div>'
-            f'<div style="font-size:0.95rem;font-weight:800;">📅 This Week</div>'
-            f'<div style="font-size:0.72rem;color:var(--muted);">{_week_label}</div>'
-            f'</div>'
-            f'<span style="font-size:0.7rem;font-weight:700;padding:0.2rem 0.6rem;border-radius:999px;background:rgba(14,95,58,0.08);color:var(--accent);">{_earnings_count} earnings</span>'
-            f'</div>'
-            f'<div style="display:flex;gap:0.7rem;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:0.3rem;flex-wrap:wrap;">'
-            f'{_events_html}'
-            f'</div>'
-            f'{_feud_note}'
-            f'</div></div>',
-            unsafe_allow_html=True,
-        )
+        # _earnings_count = len(_next_week_earnings)
+        # _feud_note = '<div style="font-size:0.72rem;color:var(--muted);margin-top:0.5rem;">\U0001f449 Head to the <b>Family Feud</b> tab to vote Beat or Miss on upcoming earnings!</div>' if _earnings_count > 0 else ''
+        # st.markdown(
+        # f'<div style="margin:1.2rem 0 0.8rem;">'
+        # f'<div style="background:rgba(251,253,250,0.96);border:1px solid rgba(18,51,36,0.12);border-radius:18px;padding:1rem 1.4rem;box-shadow:0 4px 12px rgba(82,58,32,0.06);">'
+        # f'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.7rem;">'
+        # f'<div>'
+        # f'<div style="font-size:0.95rem;font-weight:800;">📅 This Week</div>'
+        # f'<div style="font-size:0.72rem;color:var(--muted);">{_week_label}</div>'
+        # f'</div>'
+        # f'<span style="font-size:0.7rem;font-weight:700;padding:0.2rem 0.6rem;border-radius:999px;background:rgba(14,95,58,0.08);color:var(--accent);">{_earnings_count} earnings</span>'
+        # f'</div>'
+        # f'<div style="display:flex;gap:0.7rem;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:0.3rem;flex-wrap:wrap;">'
+        # f'{_events_html}'
+        # f'</div>'
+        # f'{_feud_note}'
+        # f'</div></div>',
+        # unsafe_allow_html=True,
+        # )
 
         # --- Sector Reference Table ---
         from collections import defaultdict
@@ -4434,842 +4434,842 @@ with tab_dashboard:
 
     live_dashboard()
 
-with tab_feud:
-    st.markdown(
-        '<div style="display:flex;align-items:center;gap:0.5rem;margin:0.5rem 0 0.8rem;">'
-        '<span style="font-size:1.5rem;">\U0001f3af</span>'
-        '<span style="font-size:1.3rem;font-weight:800;letter-spacing:0.04em;text-transform:uppercase;'
-        'color:var(--accent);">Prediction Game</span></div>',
-        unsafe_allow_html=True,
-    )
+# with tab_feud:
+#     st.markdown(
+#         '<div style="display:flex;align-items:center;gap:0.5rem;margin:0.5rem 0 0.8rem;">'
+#         '<span style="font-size:1.5rem;">\U0001f3af</span>'
+#         '<span style="font-size:1.3rem;font-weight:800;letter-spacing:0.04em;text-transform:uppercase;'
+#         'color:var(--accent);">Prediction Game</span></div>',
+#         unsafe_allow_html=True,
+#     )
 
-    # Compute this week's range (Sun-Sat, week starts on Sunday)
-    _now_et = datetime.datetime.now(ZoneInfo("America/New_York"))
-    _today = _now_et.date()
-    _this_sunday = _today - datetime.timedelta(days=(_today.weekday() + 1) % 7)
-    _this_saturday = _this_sunday + datetime.timedelta(days=6)
-    _week_label = f"{_this_sunday.strftime('%b %d')} – {_this_saturday.strftime('%b %d')}"
+#     # Compute this week's range (Sun-Sat, week starts on Sunday)
+#     _now_et = datetime.datetime.now(ZoneInfo("America/New_York"))
+#     _today = _now_et.date()
+#     _this_sunday = _today - datetime.timedelta(days=(_today.weekday() + 1) % 7)
+#     _this_saturday = _this_sunday + datetime.timedelta(days=6)
+#     _week_label = f"{_this_sunday.strftime('%b %d')} – {_this_saturday.strftime('%b %d')}"
 
-    # Voting deadline check (Monday 9 AM ET)
-    _this_monday = _this_sunday + datetime.timedelta(days=1)
-    _vote_cutoff = datetime.datetime.combine(_this_monday, datetime.time(9, 0), tzinfo=ZoneInfo("America/New_York"))
-    _voting_open = _now_et < _vote_cutoff
+#     # Voting deadline check (Monday 9 AM ET)
+#     _this_monday = _this_sunday + datetime.timedelta(days=1)
+#     _vote_cutoff = datetime.datetime.combine(_this_monday, datetime.time(9, 0), tzinfo=ZoneInfo("America/New_York"))
+#     _voting_open = _now_et < _vote_cutoff
 
-    # Build stock list for JS
-    _stock_list_js = json.dumps([{"ticker": p["ticker"], "name": p["name"], "etf": p.get("etf", "")} for p in PLAYERS])
+#     # Build stock list for JS
+#     _stock_list_js = json.dumps([{"ticker": p["ticker"], "name": p["name"], "etf": p.get("etf", "")} for p in PLAYERS])
 
-    # Fetch earnings for this week + next week's challenge
-    _feud_earnings = fetch_earnings(tuple(TICKERS))
-    _next_sunday = _this_sunday + datetime.timedelta(days=7)
-    _next_saturday = _next_sunday + datetime.timedelta(days=6)
-    _next_week_earnings = []
-    for t, edata in _feud_earnings.items():
-        edate_str = edata.get("next_date", "")
-        if edate_str:
-            try:
-                # Parse "Apr 30" style date
-                edate = datetime.datetime.strptime(f"{edate_str} {_now_et.year}", "%b %d %Y").date()
-                # Check if earnings fall in this week or next week (Sun-Sat)
-                if _this_sunday <= edate <= _next_saturday:
-                    eps_actual = edata.get("eps_actual")
-                    # If earnings date has passed and no actual in JSON, live-fetch it
-                    if edate <= _today and eps_actual is None:
-                        live_eps = _fetch_actual_eps(t)
-                        if live_eps:
-                            eps_actual = live_eps.get("eps_actual")
-                    _next_week_earnings.append({
-                        "ticker": t,
-                        "name": NAME_MAP.get(t, t),
-                        "etf": ETF_MAP.get(t, ""),
-                        "date": edate_str,
-                        "date_parsed": edate,
-                        "eps_est": edata.get("eps_est"),
-                        "eps_actual": eps_actual,
-                        "is_next_week": edate > _this_saturday,
-                    })
-            except (ValueError, TypeError):
-                pass
-    _next_week_earnings.sort(key=lambda x: x["date"])
+#     # Fetch earnings for this week + next week's challenge
+#     _feud_earnings = fetch_earnings(tuple(TICKERS))
+#     _next_sunday = _this_sunday + datetime.timedelta(days=7)
+#     _next_saturday = _next_sunday + datetime.timedelta(days=6)
+#     _next_week_earnings = []
+#     for t, edata in _feud_earnings.items():
+#         edate_str = edata.get("next_date", "")
+#         if edate_str:
+#             try:
+#                 # Parse "Apr 30" style date
+#                 edate = datetime.datetime.strptime(f"{edate_str} {_now_et.year}", "%b %d %Y").date()
+#                 # Check if earnings fall in this week or next week (Sun-Sat)
+#                 if _this_sunday <= edate <= _next_saturday:
+#                     eps_actual = edata.get("eps_actual")
+#                     # If earnings date has passed and no actual in JSON, live-fetch it
+#                     if edate <= _today and eps_actual is None:
+#                         live_eps = _fetch_actual_eps(t)
+#                         if live_eps:
+#                             eps_actual = live_eps.get("eps_actual")
+#                     _next_week_earnings.append({
+#                         "ticker": t,
+#                         "name": NAME_MAP.get(t, t),
+#                         "etf": ETF_MAP.get(t, ""),
+#                         "date": edate_str,
+#                         "date_parsed": edate,
+#                         "eps_est": edata.get("eps_est"),
+#                         "eps_actual": eps_actual,
+#                         "is_next_week": edate > _this_saturday,
+#                     })
+#             except (ValueError, TypeError):
+#                 pass
+#     _next_week_earnings.sort(key=lambda x: x["date"])
 
-    # --- Challenge 1: MVP Vote ---
-    # --- Challenge 2: HOH Vote ---
-    # Both rendered as a single components.html block for interactivity
+#     # --- Challenge 1: MVP Vote ---
+#     # --- Challenge 2: HOH Vote ---
+#     # Both rendered as a single components.html block for interactivity
 
-    # Load current votes from Google Sheets
-    _vote_data = {}
-    _hoh_vote_data = {}
-    _earn_vote_data = {}
-    with st.spinner("Loading challenges..."):
-        try:
-            resp = requests.get(REACTIONS_SHEET_URL + "?action=get_mvp_votes", timeout=5)
-            if resp.status_code == 200:
-                _vote_data = resp.json()
-        except Exception:
-            pass
-        try:
-            resp = requests.get(REACTIONS_SHEET_URL + "?action=get_hoh_votes", timeout=5)
-            if resp.status_code == 200:
-                _hoh_vote_data = resp.json()
-        except Exception:
-            pass
-        try:
-            resp = requests.get(REACTIONS_SHEET_URL + "?action=get_earn_votes", timeout=5)
-            if resp.status_code == 200:
-                _earn_vote_data = resp.json()
-        except Exception:
-            pass
+#     # Load current votes from Google Sheets
+#     _vote_data = {}
+#     _hoh_vote_data = {}
+#     _earn_vote_data = {}
+#     with st.spinner("Loading challenges..."):
+#         try:
+#             resp = requests.get(REACTIONS_SHEET_URL + "?action=get_mvp_votes", timeout=5)
+#             if resp.status_code == 200:
+#                 _vote_data = resp.json()
+#         except Exception:
+#             pass
+#         try:
+#             resp = requests.get(REACTIONS_SHEET_URL + "?action=get_hoh_votes", timeout=5)
+#             if resp.status_code == 200:
+#                 _hoh_vote_data = resp.json()
+#         except Exception:
+#             pass
+#         try:
+#             resp = requests.get(REACTIONS_SHEET_URL + "?action=get_earn_votes", timeout=5)
+#             if resp.status_code == 200:
+#                 _earn_vote_data = resp.json()
+#         except Exception:
+#             pass
 
-    _mvp_votes = _vote_data.get("votes", {})
-    _mvp_total = _vote_data.get("total", 0)
-    _hoh_votes = _hoh_vote_data.get("votes", {})
-    _hoh_total = _hoh_vote_data.get("total", 0)
-    _earn_votes_js = json.dumps(_earn_vote_data)
+#     _mvp_votes = _vote_data.get("votes", {})
+#     _mvp_total = _vote_data.get("total", 0)
+#     _hoh_votes = _hoh_vote_data.get("votes", {})
+#     _hoh_total = _hoh_vote_data.get("total", 0)
+#     _earn_votes_js = json.dumps(_earn_vote_data)
 
-    # Build MVP vote bars HTML
-    _mvp_bars = ""
-    if _mvp_votes:
-        _sorted_votes = sorted(_mvp_votes.items(), key=lambda x: -x[1])
-        _top_votes = _sorted_votes[:4]
-        _other_count = sum(v for _, v in _sorted_votes[4:])
-        if _other_count > 0:
-            _top_votes.append(("Other", _other_count))
-        _bar_colors = ["#19a05f", "#0e5f3a", "#13492f", "#5d6f65", "#b8b8b8"]
-        for i, (ticker, count) in enumerate(_top_votes):
-            pct = int(count / _mvp_total * 100) if _mvp_total > 0 else 0
-            color = _bar_colors[min(i, len(_bar_colors) - 1)]
-            _mvp_bars += (
-                f'<div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.4rem;">'
-                f'<span style="font-weight:700;font-size:0.85rem;min-width:4.5rem;color:{_ETF_CLR.get(ETF_MAP.get(str(ticker), ""), "inherit")};">{html_mod.escape(str(ticker))}</span>'
-                f'<div style="flex:1;height:26px;background:rgba(18,51,36,0.06);border-radius:8px;overflow:hidden;">'
-                f'<div style="height:100%;width:{max(pct, 5)}%;background:{color};border-radius:8px;'
-                f'display:flex;align-items:center;padding-left:0.5rem;font-size:0.7rem;font-weight:700;color:#fff;">'
-                f'&nbsp;{pct}%</div></div>'
-                f'<span style="font-size:0.78rem;color:#5d6f65;min-width:4rem;text-align:right;">{count} votes</span>'
-                f'</div>'
-            )
+#     # Build MVP vote bars HTML
+#     _mvp_bars = ""
+#     if _mvp_votes:
+#         _sorted_votes = sorted(_mvp_votes.items(), key=lambda x: -x[1])
+#         _top_votes = _sorted_votes[:4]
+#         _other_count = sum(v for _, v in _sorted_votes[4:])
+#         if _other_count > 0:
+#             _top_votes.append(("Other", _other_count))
+#         _bar_colors = ["#19a05f", "#0e5f3a", "#13492f", "#5d6f65", "#b8b8b8"]
+#         for i, (ticker, count) in enumerate(_top_votes):
+#             pct = int(count / _mvp_total * 100) if _mvp_total > 0 else 0
+#             color = _bar_colors[min(i, len(_bar_colors) - 1)]
+#             _mvp_bars += (
+#                 f'<div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.4rem;">'
+#                 f'<span style="font-weight:700;font-size:0.85rem;min-width:4.5rem;color:{_ETF_CLR.get(ETF_MAP.get(str(ticker), ""), "inherit")};">{html_mod.escape(str(ticker))}</span>'
+#                 f'<div style="flex:1;height:26px;background:rgba(18,51,36,0.06);border-radius:8px;overflow:hidden;">'
+#                 f'<div style="height:100%;width:{max(pct, 5)}%;background:{color};border-radius:8px;'
+#                 f'display:flex;align-items:center;padding-left:0.5rem;font-size:0.7rem;font-weight:700;color:#fff;">'
+#                 f'&nbsp;{pct}%</div></div>'
+#                 f'<span style="font-size:0.78rem;color:#5d6f65;min-width:4rem;text-align:right;">{count} votes</span>'
+#                 f'</div>'
+#             )
 
-    # Build HOH vote bars HTML
-    _hoh_bars = ""
-    if _hoh_votes:
-        _sorted_hoh = sorted(_hoh_votes.items(), key=lambda x: -x[1])
-        _bar_colors_hoh = ["#19a05f", "#0e5f3a", "#13492f"]
-        for i, (etf, count) in enumerate(_sorted_hoh):
-            pct = int(count / _hoh_total * 100) if _hoh_total > 0 else 0
-            color = _bar_colors_hoh[min(i, len(_bar_colors_hoh) - 1)]
-            _hoh_bars += (
-                f'<div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.4rem;">'
-                f'<span style="font-weight:700;font-size:0.85rem;min-width:4.5rem;color:{_ETF_CLR.get(str(etf), "inherit")};">{html_mod.escape(str(etf))}</span>'
-                f'<div style="flex:1;height:26px;background:rgba(18,51,36,0.06);border-radius:8px;overflow:hidden;">'
-                f'<div style="height:100%;width:{max(pct, 5)}%;background:{color};border-radius:8px;'
-                f'display:flex;align-items:center;padding-left:0.5rem;font-size:0.7rem;font-weight:700;color:#fff;">'
-                f'&nbsp;{pct}%</div></div>'
-                f'<span style="font-size:0.78rem;color:#5d6f65;min-width:4rem;text-align:right;">{count} votes</span>'
-                f'</div>'
-            )
+#     # Build HOH vote bars HTML
+#     _hoh_bars = ""
+#     if _hoh_votes:
+#         _sorted_hoh = sorted(_hoh_votes.items(), key=lambda x: -x[1])
+#         _bar_colors_hoh = ["#19a05f", "#0e5f3a", "#13492f"]
+#         for i, (etf, count) in enumerate(_sorted_hoh):
+#             pct = int(count / _hoh_total * 100) if _hoh_total > 0 else 0
+#             color = _bar_colors_hoh[min(i, len(_bar_colors_hoh) - 1)]
+#             _hoh_bars += (
+#                 f'<div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.4rem;">'
+#                 f'<span style="font-weight:700;font-size:0.85rem;min-width:4.5rem;color:{_ETF_CLR.get(str(etf), "inherit")};">{html_mod.escape(str(etf))}</span>'
+#                 f'<div style="flex:1;height:26px;background:rgba(18,51,36,0.06);border-radius:8px;overflow:hidden;">'
+#                 f'<div style="height:100%;width:{max(pct, 5)}%;background:{color};border-radius:8px;'
+#                 f'display:flex;align-items:center;padding-left:0.5rem;font-size:0.7rem;font-weight:700;color:#fff;">'
+#                 f'&nbsp;{pct}%</div></div>'
+#                 f'<span style="font-size:0.78rem;color:#5d6f65;min-width:4rem;text-align:right;">{count} votes</span>'
+#                 f'</div>'
+#             )
 
-    # Pre-build conditional sections (can't use ternary with unicode in f-strings)
-    if _voting_open:
-        _mvp_input_html = (
-            '<div style="max-width:100%;margin-bottom:0.8rem;z-index:100;position:relative;" id="mvp-search-wrap">'
-            '<div style="position:relative;">'
-            '<span style="position:absolute;left:0.7rem;top:50%;transform:translateY(-50%);font-size:0.9rem;color:#5d6f65;pointer-events:none;">'
-            '\U0001f50d</span>'
-            '<input id="mvpInput" type="text" placeholder="Search a stock to vote..." autocomplete="off" '
-            'style="width:100%;padding:0.6rem 0.9rem 0.6rem 2.2rem;border:2px solid rgba(18,51,36,0.12);'
-            'border-radius:12px;font-family:inherit;font-size:0.9rem;font-weight:600;background:white;'
-            'color:#102018;outline:none;box-sizing:border-box;">'
-            '</div>'
-            '<div id="mvpDropdown" style="position:absolute;top:100%;left:0;right:0;background:white;'
-            'border:1px solid rgba(18,51,36,0.12);border-radius:12px;margin-top:4px;max-height:320px;'
-            'overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,0.1);z-index:9999;display:none;"></div></div>'
-            '<div id="mvpPick" style="display:none;margin-bottom:0.8rem;">'
-            '<span style="display:inline-flex;align-items:center;gap:0.5rem;padding:0.4rem 0.8rem;'
-            'background:rgba(14,95,58,0.08);border:1px solid #0e5f3a;border-radius:12px;font-weight:700;'
-            'font-size:0.9rem;color:#0e5f3a;">Your pick: <span id="mvpPickTicker">\u2014</span> '
-            '<span id="mvpPickName" style="font-weight:400;color:#5d6f65;font-size:0.8rem;"></span> '
-            '<span onclick="changeMvp()" style="font-size:0.7rem;color:#5d6f65;cursor:pointer;text-decoration:underline;">change</span>'
-            '</span></div>'
-        )
-        _hoh_input_html = (
-            '<div style="display:flex;gap:0.5rem;margin-bottom:0.8rem;flex-wrap:wrap;" id="hohBtns">'
-            '<div class="hohBtn" onclick="selectHoh(this,\'ANTY\')" style="padding:0.5rem 1.2rem;border:2px solid rgba(18,51,36,0.12);border-radius:14px;cursor:pointer;font-weight:700;font-size:0.95rem;background:white;display:flex;align-items:center;gap:0.4rem;transition:all 0.15s;">'
-            '<span style="font-size:1.1rem;">\U0001f469\U0001f3fb</span> <span style="color:#a855f7;">ANTY</span></div>'
-            '<div class="hohBtn" onclick="selectHoh(this,\'UNCL\')" style="padding:0.5rem 1.2rem;border:2px solid rgba(18,51,36,0.12);border-radius:14px;cursor:pointer;font-weight:700;font-size:0.95rem;background:white;display:flex;align-items:center;gap:0.4rem;transition:all 0.15s;">'
-            '<span style="font-size:1.1rem;">\U0001f468\u200d\U0001f9b3</span> <span style="color:#3b82f6;">UNCL</span></div>'
-            '<div class="hohBtn" onclick="selectHoh(this,\'KIDZ\')" style="padding:0.5rem 1.2rem;border:2px solid rgba(18,51,36,0.12);border-radius:14px;cursor:pointer;font-weight:700;font-size:0.95rem;background:white;display:flex;align-items:center;gap:0.4rem;transition:all 0.15s;">'
-            '<span style="font-size:1.1rem;">\U0001f476\U0001f3fb</span> <span style="color:#eab308;">KIDZ</span></div>'
-            '</div>'
-        )
-    else:
-        _mvp_input_html = (
-            '<div style="padding:0.5rem 0.8rem;background:rgba(209,74,52,0.08);border:1px solid rgba(209,74,52,0.2);'
-            'border-radius:12px;font-size:0.8rem;color:#8f2d1b;margin-bottom:0.8rem;">'
-            '\U0001f512 Voting is closed for this week.</div>'
-        )
-        _hoh_input_html = _mvp_input_html
+#     # Pre-build conditional sections (can't use ternary with unicode in f-strings)
+#     if _voting_open:
+#         _mvp_input_html = (
+#             '<div style="max-width:100%;margin-bottom:0.8rem;z-index:100;position:relative;" id="mvp-search-wrap">'
+#             '<div style="position:relative;">'
+#             '<span style="position:absolute;left:0.7rem;top:50%;transform:translateY(-50%);font-size:0.9rem;color:#5d6f65;pointer-events:none;">'
+#             '\U0001f50d</span>'
+#             '<input id="mvpInput" type="text" placeholder="Search a stock to vote..." autocomplete="off" '
+#             'style="width:100%;padding:0.6rem 0.9rem 0.6rem 2.2rem;border:2px solid rgba(18,51,36,0.12);'
+#             'border-radius:12px;font-family:inherit;font-size:0.9rem;font-weight:600;background:white;'
+#             'color:#102018;outline:none;box-sizing:border-box;">'
+#             '</div>'
+#             '<div id="mvpDropdown" style="position:absolute;top:100%;left:0;right:0;background:white;'
+#             'border:1px solid rgba(18,51,36,0.12);border-radius:12px;margin-top:4px;max-height:320px;'
+#             'overflow-y:auto;box-shadow:0 8px 24px rgba(0,0,0,0.1);z-index:9999;display:none;"></div></div>'
+#             '<div id="mvpPick" style="display:none;margin-bottom:0.8rem;">'
+#             '<span style="display:inline-flex;align-items:center;gap:0.5rem;padding:0.4rem 0.8rem;'
+#             'background:rgba(14,95,58,0.08);border:1px solid #0e5f3a;border-radius:12px;font-weight:700;'
+#             'font-size:0.9rem;color:#0e5f3a;">Your pick: <span id="mvpPickTicker">\u2014</span> '
+#             '<span id="mvpPickName" style="font-weight:400;color:#5d6f65;font-size:0.8rem;"></span> '
+#             '<span onclick="changeMvp()" style="font-size:0.7rem;color:#5d6f65;cursor:pointer;text-decoration:underline;">change</span>'
+#             '</span></div>'
+#         )
+#         _hoh_input_html = (
+#             '<div style="display:flex;gap:0.5rem;margin-bottom:0.8rem;flex-wrap:wrap;" id="hohBtns">'
+#             '<div class="hohBtn" onclick="selectHoh(this,\'ANTY\')" style="padding:0.5rem 1.2rem;border:2px solid rgba(18,51,36,0.12);border-radius:14px;cursor:pointer;font-weight:700;font-size:0.95rem;background:white;display:flex;align-items:center;gap:0.4rem;transition:all 0.15s;">'
+#             '<span style="font-size:1.1rem;">\U0001f469\U0001f3fb</span> <span style="color:#a855f7;">ANTY</span></div>'
+#             '<div class="hohBtn" onclick="selectHoh(this,\'UNCL\')" style="padding:0.5rem 1.2rem;border:2px solid rgba(18,51,36,0.12);border-radius:14px;cursor:pointer;font-weight:700;font-size:0.95rem;background:white;display:flex;align-items:center;gap:0.4rem;transition:all 0.15s;">'
+#             '<span style="font-size:1.1rem;">\U0001f468\u200d\U0001f9b3</span> <span style="color:#3b82f6;">UNCL</span></div>'
+#             '<div class="hohBtn" onclick="selectHoh(this,\'KIDZ\')" style="padding:0.5rem 1.2rem;border:2px solid rgba(18,51,36,0.12);border-radius:14px;cursor:pointer;font-weight:700;font-size:0.95rem;background:white;display:flex;align-items:center;gap:0.4rem;transition:all 0.15s;">'
+#             '<span style="font-size:1.1rem;">\U0001f476\U0001f3fb</span> <span style="color:#eab308;">KIDZ</span></div>'
+#             '</div>'
+#         )
+#     else:
+#         _mvp_input_html = (
+#             '<div style="padding:0.5rem 0.8rem;background:rgba(209,74,52,0.08);border:1px solid rgba(209,74,52,0.2);'
+#             'border-radius:12px;font-size:0.8rem;color:#8f2d1b;margin-bottom:0.8rem;">'
+#             '\U0001f512 Voting is closed for this week.</div>'
+#         )
+#         _hoh_input_html = _mvp_input_html
 
-    _no_votes_html = '<div style="font-size:0.8rem;color:#5d6f65;">No votes yet \u2014 be the first!</div>'
+#     _no_votes_html = '<div style="font-size:0.8rem;color:#5d6f65;">No votes yet \u2014 be the first!</div>'
 
-    # Build earnings challenge cards
-    _up_emoji = "\U0001f4c8"
-    _down_emoji = "\U0001f4c9"
-    _sleep_emoji = "\U0001f634"
-    _trophy_emoji = "\U0001f3c6"
-    _house_emoji = "\U0001f3e0"
-    _clock_emoji = "\U0001f552"
-    _chart_emoji = "\U0001f4c8"
-    if _next_week_earnings:
-        _this_week_earns = [e for e in _next_week_earnings if not e.get("is_next_week")]
-        _nxt_week_earns = [e for e in _next_week_earnings if e.get("is_next_week")]
-        _earnings_cards_html = ""
-        if _this_week_earns:
-            _earnings_cards_html += (
-                '<div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;color:#5d6f65;'
-                'letter-spacing:0.05em;margin-bottom:0.4rem;">This Week</div>'
-                '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:0.7rem;">'
-            )
-        elif _nxt_week_earns:
-            _earnings_cards_html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:0.7rem;">'
-        _all_earn_groups = [("this", _this_week_earns), ("next", _nxt_week_earns)]
-        for _grp_key, _grp_list in _all_earn_groups:
-            if _grp_key == "next" and _nxt_week_earns:
-                if _this_week_earns:
-                    _earnings_cards_html += '</div>'
-                _earnings_cards_html += (
-                    '<div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;color:#5d6f65;'
-                    'letter-spacing:0.05em;margin:0.8rem 0 0.4rem;">Next Week</div>'
-                    '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:0.7rem;">'
-                )
-            for _es in _grp_list:
-                _eps_str = f'Est. EPS: ${_es["eps_est"]:.2f}' if _es["eps_est"] is not None else "Est. EPS: N/A"
-                _earn_date_passed = _es.get("date_parsed") and _es["date_parsed"] <= _today
-                _eps_actual = _es.get("eps_actual")
+#     # Build earnings challenge cards
+#     _up_emoji = "\U0001f4c8"
+#     _down_emoji = "\U0001f4c9"
+#     _sleep_emoji = "\U0001f634"
+#     _trophy_emoji = "\U0001f3c6"
+#     _house_emoji = "\U0001f3e0"
+#     _clock_emoji = "\U0001f552"
+#     _chart_emoji = "\U0001f4c8"
+#     if _next_week_earnings:
+#         _this_week_earns = [e for e in _next_week_earnings if not e.get("is_next_week")]
+#         _nxt_week_earns = [e for e in _next_week_earnings if e.get("is_next_week")]
+#         _earnings_cards_html = ""
+#         if _this_week_earns:
+#             _earnings_cards_html += (
+#                 '<div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;color:#5d6f65;'
+#                 'letter-spacing:0.05em;margin-bottom:0.4rem;">This Week</div>'
+#                 '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:0.7rem;">'
+#             )
+#         elif _nxt_week_earns:
+#             _earnings_cards_html += '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:0.7rem;">'
+#         _all_earn_groups = [("this", _this_week_earns), ("next", _nxt_week_earns)]
+#         for _grp_key, _grp_list in _all_earn_groups:
+#             if _grp_key == "next" and _nxt_week_earns:
+#                 if _this_week_earns:
+#                     _earnings_cards_html += '</div>'
+#                 _earnings_cards_html += (
+#                     '<div style="font-size:0.72rem;font-weight:700;text-transform:uppercase;color:#5d6f65;'
+#                     'letter-spacing:0.05em;margin:0.8rem 0 0.4rem;">Next Week</div>'
+#                     '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:0.7rem;">'
+#                 )
+#             for _es in _grp_list:
+#                 _eps_str = f'Est. EPS: ${_es["eps_est"]:.2f}' if _es["eps_est"] is not None else "Est. EPS: N/A"
+#                 _earn_date_passed = _es.get("date_parsed") and _es["date_parsed"] <= _today
+#                 _eps_actual = _es.get("eps_actual")
 
-                if _earn_date_passed and _eps_actual is not None:
-                    # Earnings reported — show actual result + vote tallies
-                    _is_beat = _es["eps_est"] is not None and _eps_actual >= _es["eps_est"]
-                    if _es["eps_est"] is None:
-                        _result_label = f"Actual EPS: ${_eps_actual:.2f}"
-                        _result_color = "#5d6f65"
-                        _result_bg = "rgba(18,51,36,0.06)"
-                    elif _is_beat:
-                        _result_label = f"\u2705 BEAT &mdash; Actual: ${_eps_actual:.2f} vs Est: ${_es['eps_est']:.2f}"
-                        _result_color = "#19a05f"
-                        _result_bg = "rgba(25,160,95,0.10)"
-                    else:
-                        _result_label = f"\u274c MISS &mdash; Actual: ${_eps_actual:.2f} vs Est: ${_es['eps_est']:.2f}"
-                        _result_color = "#d14a34"
-                        _result_bg = "rgba(209,74,52,0.10)"
-                    _ev = _earn_vote_data.get(_es["ticker"], {})
-                    _beat_votes = _ev.get("up", 0)
-                    _miss_votes = _ev.get("down", 0)
-                    _votes_html = ""
-                    if _beat_votes or _miss_votes:
-                        _votes_html = (
-                            f'<div style="display:flex;gap:0.5rem;justify-content:center;margin-top:0.4rem;font-size:0.72rem;color:#5d6f65;">'
-                            f'<span>{_up_emoji} Beat: {_beat_votes}</span>'
-                            f'<span>{_down_emoji} Miss: {_miss_votes}</span>'
-                            f'</div>'
-                        )
-                    _bottom_html = (
-                        f'<div style="padding:0.45rem 0.6rem;border-radius:8px;font-weight:700;font-size:0.78rem;'
-                        f'color:{_result_color};background:{_result_bg};text-align:center;">'
-                        f'{_result_label}</div>'
-                        f'{_votes_html}'
-                    )
-                elif _earn_date_passed:
-                    _ev = _earn_vote_data.get(_es["ticker"], {})
-                    _beat_votes = _ev.get("up", 0)
-                    _miss_votes = _ev.get("down", 0)
-                    _votes_html = ""
-                    if _beat_votes or _miss_votes:
-                        _votes_html = (
-                            f'<div style="display:flex;gap:0.5rem;justify-content:center;margin-top:0.4rem;font-size:0.72rem;color:#5d6f65;">'
-                            f'<span>{_up_emoji} Beat: {_beat_votes}</span>'
-                            f'<span>{_down_emoji} Miss: {_miss_votes}</span>'
-                            f'</div>'
-                        )
-                    _bottom_html = (
-                        '<div style="padding:0.35rem 0.5rem;border-radius:8px;font-size:0.75rem;'
-                        'color:#5d6f65;background:rgba(18,51,36,0.04);text-align:center;">'
-                        '\u23f3 Awaiting results...</div>'
-                        f'{_votes_html}'
-                    )
-                else:
-                    _bottom_html = (
-                        f'<div style="display:flex;gap:0.4rem;">'
-                        f'<div class="earnVoteBtn" data-stock="{html_mod.escape(_es["ticker"])}" data-dir="up" '
-                        f'onclick="voteEarnings(this)" '
-                        f'style="flex:1;padding:0.35rem 0.5rem;border:1px solid rgba(25,160,95,0.3);border-radius:8px;'
-                        f'cursor:pointer;font-weight:700;font-size:0.78rem;color:#19a05f;background:rgba(25,160,95,0.06);text-align:center;transition:all 0.15s;">'
-                        f'{_up_emoji} Beat <span class="earnCount" style="display:none;margin-left:0.2rem;font-size:0.68rem;opacity:0.8;"></span></div>'
-                        f'<div class="earnVoteBtn" data-stock="{html_mod.escape(_es["ticker"])}" data-dir="down" '
-                        f'onclick="voteEarnings(this)" '
-                        f'style="flex:1;padding:0.35rem 0.5rem;border:1px solid rgba(209,74,52,0.3);border-radius:8px;'
-                        f'cursor:pointer;font-weight:700;font-size:0.78rem;color:#d14a34;background:rgba(209,74,52,0.06);text-align:center;transition:all 0.15s;">'
-                        f'{_down_emoji} Miss <span class="earnCount" style="display:none;margin-left:0.2rem;font-size:0.68rem;opacity:0.8;"></span></div>'
-                        f'</div>'
-                    )
-                _earnings_cards_html += (
-                    f'<div style="background:rgba(18,51,36,0.03);border:1px solid rgba(18,51,36,0.08);border-radius:12px;padding:0.8rem 1rem;">'
-                    f'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.4rem;">'
-                    f'<div><span style="font-weight:700;font-size:0.9rem;color:{_ETF_CLR.get(ETF_MAP.get(_es["ticker"], ""), "inherit")};">{html_mod.escape(_es["ticker"])}</span> '
-                    f'<span style="color:#5d6f65;font-size:0.78rem;">{html_mod.escape(_es["name"])}</span></div>'
-                    f'<span style="font-size:0.72rem;color:#5d6f65;">{html_mod.escape(_es["date"])}</span></div>'
-                    f'<div style="font-size:0.75rem;color:#5d6f65;margin-bottom:0.6rem;">{_eps_str}</div>'
-                    f'{_bottom_html}</div>'
-                )
-        _earnings_cards_html += '</div>'
-    else:
-        _earnings_cards_html = f'<div style="font-size:0.85rem;color:#5d6f65;text-align:center;padding:1rem;">{_sleep_emoji} No earnings scheduled this week. Enjoy the quiet!</div>'
+#                 if _earn_date_passed and _eps_actual is not None:
+#                     # Earnings reported — show actual result + vote tallies
+#                     _is_beat = _es["eps_est"] is not None and _eps_actual >= _es["eps_est"]
+#                     if _es["eps_est"] is None:
+#                         _result_label = f"Actual EPS: ${_eps_actual:.2f}"
+#                         _result_color = "#5d6f65"
+#                         _result_bg = "rgba(18,51,36,0.06)"
+#                     elif _is_beat:
+#                         _result_label = f"\u2705 BEAT &mdash; Actual: ${_eps_actual:.2f} vs Est: ${_es['eps_est']:.2f}"
+#                         _result_color = "#19a05f"
+#                         _result_bg = "rgba(25,160,95,0.10)"
+#                     else:
+#                         _result_label = f"\u274c MISS &mdash; Actual: ${_eps_actual:.2f} vs Est: ${_es['eps_est']:.2f}"
+#                         _result_color = "#d14a34"
+#                         _result_bg = "rgba(209,74,52,0.10)"
+#                     _ev = _earn_vote_data.get(_es["ticker"], {})
+#                     _beat_votes = _ev.get("up", 0)
+#                     _miss_votes = _ev.get("down", 0)
+#                     _votes_html = ""
+#                     if _beat_votes or _miss_votes:
+#                         _votes_html = (
+#                             f'<div style="display:flex;gap:0.5rem;justify-content:center;margin-top:0.4rem;font-size:0.72rem;color:#5d6f65;">'
+#                             f'<span>{_up_emoji} Beat: {_beat_votes}</span>'
+#                             f'<span>{_down_emoji} Miss: {_miss_votes}</span>'
+#                             f'</div>'
+#                         )
+#                     _bottom_html = (
+#                         f'<div style="padding:0.45rem 0.6rem;border-radius:8px;font-weight:700;font-size:0.78rem;'
+#                         f'color:{_result_color};background:{_result_bg};text-align:center;">'
+#                         f'{_result_label}</div>'
+#                         f'{_votes_html}'
+#                     )
+#                 elif _earn_date_passed:
+#                     _ev = _earn_vote_data.get(_es["ticker"], {})
+#                     _beat_votes = _ev.get("up", 0)
+#                     _miss_votes = _ev.get("down", 0)
+#                     _votes_html = ""
+#                     if _beat_votes or _miss_votes:
+#                         _votes_html = (
+#                             f'<div style="display:flex;gap:0.5rem;justify-content:center;margin-top:0.4rem;font-size:0.72rem;color:#5d6f65;">'
+#                             f'<span>{_up_emoji} Beat: {_beat_votes}</span>'
+#                             f'<span>{_down_emoji} Miss: {_miss_votes}</span>'
+#                             f'</div>'
+#                         )
+#                     _bottom_html = (
+#                         '<div style="padding:0.35rem 0.5rem;border-radius:8px;font-size:0.75rem;'
+#                         'color:#5d6f65;background:rgba(18,51,36,0.04);text-align:center;">'
+#                         '\u23f3 Awaiting results...</div>'
+#                         f'{_votes_html}'
+#                     )
+#                 else:
+#                     _bottom_html = (
+#                         f'<div style="display:flex;gap:0.4rem;">'
+#                         f'<div class="earnVoteBtn" data-stock="{html_mod.escape(_es["ticker"])}" data-dir="up" '
+#                         f'onclick="voteEarnings(this)" '
+#                         f'style="flex:1;padding:0.35rem 0.5rem;border:1px solid rgba(25,160,95,0.3);border-radius:8px;'
+#                         f'cursor:pointer;font-weight:700;font-size:0.78rem;color:#19a05f;background:rgba(25,160,95,0.06);text-align:center;transition:all 0.15s;">'
+#                         f'{_up_emoji} Beat <span class="earnCount" style="display:none;margin-left:0.2rem;font-size:0.68rem;opacity:0.8;"></span></div>'
+#                         f'<div class="earnVoteBtn" data-stock="{html_mod.escape(_es["ticker"])}" data-dir="down" '
+#                         f'onclick="voteEarnings(this)" '
+#                         f'style="flex:1;padding:0.35rem 0.5rem;border:1px solid rgba(209,74,52,0.3);border-radius:8px;'
+#                         f'cursor:pointer;font-weight:700;font-size:0.78rem;color:#d14a34;background:rgba(209,74,52,0.06);text-align:center;transition:all 0.15s;">'
+#                         f'{_down_emoji} Miss <span class="earnCount" style="display:none;margin-left:0.2rem;font-size:0.68rem;opacity:0.8;"></span></div>'
+#                         f'</div>'
+#                     )
+#                 _earnings_cards_html += (
+#                     f'<div style="background:rgba(18,51,36,0.03);border:1px solid rgba(18,51,36,0.08);border-radius:12px;padding:0.8rem 1rem;">'
+#                     f'<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.4rem;">'
+#                     f'<div><span style="font-weight:700;font-size:0.9rem;color:{_ETF_CLR.get(ETF_MAP.get(_es["ticker"], ""), "inherit")};">{html_mod.escape(_es["ticker"])}</span> '
+#                     f'<span style="color:#5d6f65;font-size:0.78rem;">{html_mod.escape(_es["name"])}</span></div>'
+#                     f'<span style="font-size:0.72rem;color:#5d6f65;">{html_mod.escape(_es["date"])}</span></div>'
+#                     f'<div style="font-size:0.75rem;color:#5d6f65;margin-bottom:0.6rem;">{_eps_str}</div>'
+#                     f'{_bottom_html}</div>'
+#                 )
+#         _earnings_cards_html += '</div>'
+#     else:
+#         _earnings_cards_html = f'<div style="font-size:0.85rem;color:#5d6f65;text-align:center;padding:1rem;">{_sleep_emoji} No earnings scheduled this week. Enjoy the quiet!</div>'
 
-    _feud_html = f"""
-    <style>
-      .challenge-card {{
-        background: rgba(251,253,250,0.96);
-        border: 1px solid rgba(18,51,36,0.10);
-        border-radius: 18px;
-        padding: 1.2rem 1.4rem;
-        margin-bottom: 0.8rem;
-        box-shadow: 0 4px 16px rgba(16,42,32,0.06);
-        position: relative;
-        overflow: visible;
-      }}
-      .challenge-num {{
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        width: 22px; height: 22px;
-        background: #0e5f3a;
-        color: white;
-        font-size: 0.65rem;
-        font-weight: 700;
-        border-radius: 50%;
-        margin-right: 0.4rem;
-        vertical-align: middle;
-      }}
-      .challenge-label {{
-        font-size: 0.68rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        color: #5d6f65;
-        margin-bottom: 0.4rem;
-        display: flex;
-        align-items: center;
-      }}
-      .challenge-title {{
-        font-size: 1.1rem;
-        font-weight: 700;
-        margin-bottom: 0.15rem;
-      }}
-      .challenge-desc {{
-        font-size: 0.78rem;
-        color: #5d6f65;
-        margin-bottom: 0.7rem;
-      }}
-      .votes-header {{
-        font-size: 0.68rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.08em;
-        color: #5d6f65;
-        margin-top: 0.5rem;
-        margin-bottom: 0.3rem;
-        padding-top: 0.5rem;
-        border-top: 1px solid rgba(18,51,36,0.06);
-      }}
-      .week-header {{
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        flex-wrap: wrap;
-        gap: 0.4rem;
-        margin-bottom: 0.8rem;
-        padding-bottom: 0.6rem;
-        border-bottom: 1px solid rgba(18,51,36,0.08);
-      }}
-    </style>
-    <div style="font-family:'Space Grotesk',sans-serif;color:#102018;">
+#     _feud_html = f"""
+#     <style>
+#       .challenge-card {{
+#         background: rgba(251,253,250,0.96);
+#         border: 1px solid rgba(18,51,36,0.10);
+#         border-radius: 18px;
+#         padding: 1.2rem 1.4rem;
+#         margin-bottom: 0.8rem;
+#         box-shadow: 0 4px 16px rgba(16,42,32,0.06);
+#         position: relative;
+#         overflow: visible;
+#       }}
+#       .challenge-num {{
+#         display: inline-flex;
+#         align-items: center;
+#         justify-content: center;
+#         width: 22px; height: 22px;
+#         background: #0e5f3a;
+#         color: white;
+#         font-size: 0.65rem;
+#         font-weight: 700;
+#         border-radius: 50%;
+#         margin-right: 0.4rem;
+#         vertical-align: middle;
+#       }}
+#       .challenge-label {{
+#         font-size: 0.68rem;
+#         font-weight: 700;
+#         text-transform: uppercase;
+#         letter-spacing: 0.08em;
+#         color: #5d6f65;
+#         margin-bottom: 0.4rem;
+#         display: flex;
+#         align-items: center;
+#       }}
+#       .challenge-title {{
+#         font-size: 1.1rem;
+#         font-weight: 700;
+#         margin-bottom: 0.15rem;
+#       }}
+#       .challenge-desc {{
+#         font-size: 0.78rem;
+#         color: #5d6f65;
+#         margin-bottom: 0.7rem;
+#       }}
+#       .votes-header {{
+#         font-size: 0.68rem;
+#         font-weight: 700;
+#         text-transform: uppercase;
+#         letter-spacing: 0.08em;
+#         color: #5d6f65;
+#         margin-top: 0.5rem;
+#         margin-bottom: 0.3rem;
+#         padding-top: 0.5rem;
+#         border-top: 1px solid rgba(18,51,36,0.06);
+#       }}
+#       .week-header {{
+#         display: flex;
+#         align-items: center;
+#         justify-content: space-between;
+#         flex-wrap: wrap;
+#         gap: 0.4rem;
+#         margin-bottom: 0.8rem;
+#         padding-bottom: 0.6rem;
+#         border-bottom: 1px solid rgba(18,51,36,0.08);
+#       }}
+#     </style>
+#     <div style="font-family:'Space Grotesk',sans-serif;color:#102018;">
 
-      <!-- Week header -->
-      <div class="week-header">
-        <span style="display:inline-block;background:rgba(14,95,58,0.1);color:#0e5f3a;font-size:0.72rem;
-            font-weight:700;padding:0.2rem 0.65rem;border-radius:999px;">
-          {_week_label}</span>
-        <span style="font-size:0.7rem;color:#5d6f65;">
-          {_clock_emoji} Voting closes Mon 9 AM ET &middot; Winner at Fri 4 PM ET</span>
-      </div>
+#       <!-- Week header -->
+#       <div class="week-header">
+#         <span style="display:inline-block;background:rgba(14,95,58,0.1);color:#0e5f3a;font-size:0.72rem;
+#             font-weight:700;padding:0.2rem 0.65rem;border-radius:999px;">
+#           {_week_label}</span>
+#         <span style="font-size:0.7rem;color:#5d6f65;">
+#           {_clock_emoji} Voting closes Mon 9 AM ET &middot; Winner at Fri 4 PM ET</span>
+#       </div>
 
-      <!-- Challenge 1: MVP (commented out)
-      <div class="challenge-card" style="z-index:30;position:relative;">
-        <div class="challenge-label"><span class="challenge-num">1</span> Weekly Challenge</div>
-        <div class="challenge-title">{_trophy_emoji} Who will be MVP this week?</div>
-        <div class="challenge-desc">The stock with the highest total return Mon&ndash;Fri wins.</div>
-        <div style="font-size:0.75rem;color:#5d6f65;margin:-0.2rem 0 0.6rem;">{_clock_emoji} Vote by Mon 9 AM ET &middot; Winner revealed Fri 4 PM ET</div>
-        {_mvp_input_html}
-        <div id="mvpVoteHeader" class="votes-header">Community Votes ({_mvp_total} total)</div>
-        <div id="mvpVoteBars">{_mvp_bars if _mvp_bars else _no_votes_html}</div>
-      </div>
-      -->
+#       <!-- Challenge 1: MVP (commented out)
+#       <div class="challenge-card" style="z-index:30;position:relative;">
+#         <div class="challenge-label"><span class="challenge-num">1</span> Weekly Challenge</div>
+#         <div class="challenge-title">{_trophy_emoji} Who will be MVP this week?</div>
+#         <div class="challenge-desc">The stock with the highest total return Mon&ndash;Fri wins.</div>
+#         <div style="font-size:0.75rem;color:#5d6f65;margin:-0.2rem 0 0.6rem;">{_clock_emoji} Vote by Mon 9 AM ET &middot; Winner revealed Fri 4 PM ET</div>
+#         {_mvp_input_html}
+#         <div id="mvpVoteHeader" class="votes-header">Community Votes ({_mvp_total} total)</div>
+#         <div id="mvpVoteBars">{_mvp_bars if _mvp_bars else _no_votes_html}</div>
+#       </div>
+#       -->
 
-      <!-- Challenge 2: HOH (commented out)
-      <div class="challenge-card" style="z-index:20;position:relative;">
-        <div class="challenge-label"><span class="challenge-num">2</span> Weekly Challenge</div>
-        <div class="challenge-title">{_house_emoji} Who will be Head of Household?</div>
-        <div class="challenge-desc">The ETF with the highest average return Mon&ndash;Fri wins.</div>
-        <div style="font-size:0.75rem;color:#5d6f65;margin:-0.2rem 0 0.6rem;">{_clock_emoji} Vote by Mon 9 AM ET &middot; Winner revealed Fri 4 PM ET</div>
-        {_hoh_input_html}
-        <div id="hohVoteHeader" class="votes-header">Community Votes ({_hoh_total} total)</div>
-        <div id="hohVoteBars">{_hoh_bars if _hoh_bars else '<div style="font-size:0.8rem;color:#5d6f65;">No votes yet &mdash; be the first!</div>'}</div>
-      </div>
-      -->
+#       <!-- Challenge 2: HOH (commented out)
+#       <div class="challenge-card" style="z-index:20;position:relative;">
+#         <div class="challenge-label"><span class="challenge-num">2</span> Weekly Challenge</div>
+#         <div class="challenge-title">{_house_emoji} Who will be Head of Household?</div>
+#         <div class="challenge-desc">The ETF with the highest average return Mon&ndash;Fri wins.</div>
+#         <div style="font-size:0.75rem;color:#5d6f65;margin:-0.2rem 0 0.6rem;">{_clock_emoji} Vote by Mon 9 AM ET &middot; Winner revealed Fri 4 PM ET</div>
+#         {_hoh_input_html}
+#         <div id="hohVoteHeader" class="votes-header">Community Votes ({_hoh_total} total)</div>
+#         <div id="hohVoteBars">{_hoh_bars if _hoh_bars else '<div style="font-size:0.8rem;color:#5d6f65;">No votes yet &mdash; be the first!</div>'}</div>
+#       </div>
+#       -->
 
-      <!-- Challenge 3: Earnings -->
-      <div class="challenge-card" style="margin-bottom:0;z-index:10;position:relative;">
-        <div class="challenge-label">Weekly Challenge</div>
-        <div class="challenge-title">{_chart_emoji} Earnings Roulette</div>
-        <div class="challenge-desc">Will the stock go UP or DOWN after earnings? Vote before earnings day at market close.</div>
-        {_earnings_cards_html}
-      </div>
-    </div>
+#       <!-- Challenge 3: Earnings -->
+#       <div class="challenge-card" style="margin-bottom:0;z-index:10;position:relative;">
+#         <div class="challenge-label">Weekly Challenge</div>
+#         <div class="challenge-title">{_chart_emoji} Earnings Roulette</div>
+#         <div class="challenge-desc">Will the stock go UP or DOWN after earnings? Vote before earnings day at market close.</div>
+#         {_earnings_cards_html}
+#       </div>
+#     </div>
 
-    """
+#     """
 
-    # Single script block — use placeholders to inject data safely
-    _feud_js = """
-    <script>
-    var stocks = __STOCKS_DATA__;
-    var sheetUrl = '__SHEET_URL__';
-    var serverEarnVotes = __EARN_VOTES__;
-    var etfColors = {"ANTY": "#a855f7", "UNCL": "#3b82f6", "KIDZ": "#eab308"};
-    // One-time reset: clear old vote data from localStorage
-    var FEUD_VERSION = 'v3';
-    if (localStorage.getItem('feud_version') !== FEUD_VERSION) {
-      localStorage.removeItem('feud_mvp_pick');
-      localStorage.removeItem('feud_hoh_pick');
-      localStorage.removeItem('feud_voter_id');
-      // Clear all earnings votes
-      Object.keys(localStorage).forEach(function(k) {
-        if (k.indexOf('feud_earn_') === 0) localStorage.removeItem(k);
-      });
-      localStorage.setItem('feud_version', FEUD_VERSION);
-    }
-    console.log('Feud loaded, stocks count:', stocks.length);
-    var mvpInput = document.getElementById('mvpInput');
-    var mvpDropdown = document.getElementById('mvpDropdown');
-    var mvpTapped = false;
-    if (mvpInput) {
-      mvpInput.addEventListener('pointerdown', function() { mvpTapped = true; });
-      mvpInput.addEventListener('mousedown', function() { mvpTapped = true; });
-      mvpInput.addEventListener('focus', function() {
-        if (mvpTapped) { renderMvpDD(this.value, true); }
-        mvpTapped = false;
-      });
-      mvpInput.addEventListener('input', function() { renderMvpDD(this.value, true); });
-      mvpInput.addEventListener('keyup', function() { renderMvpDD(this.value, true); });
-      if (mvpDropdown) {
-        mvpDropdown.addEventListener('click', function(e) { e.stopPropagation(); });
-        mvpDropdown.addEventListener('touchstart', function(e) { e.stopPropagation(); });
-      }
-      document.addEventListener('click', function(e) {
-        if (!e.target.closest('#mvp-search-wrap')) mvpDropdown.style.display = 'none';
-      });
-      document.addEventListener('touchend', function(e) {
-        if (!e.target.closest('#mvp-search-wrap')) mvpDropdown.style.display = 'none';
-      });
-      mvpInput.addEventListener('blur', function() {
-        setTimeout(function() { mvpDropdown.style.display = 'none'; }, 200);
-      });
-      try { window.parent.document.addEventListener('click', function() { mvpDropdown.style.display = 'none'; }); } catch(e) {}
-    }
+#     # Single script block — use placeholders to inject data safely
+#     _feud_js = """
+#     <script>
+#     var stocks = __STOCKS_DATA__;
+#     var sheetUrl = '__SHEET_URL__';
+#     var serverEarnVotes = __EARN_VOTES__;
+#     var etfColors = {"ANTY": "#a855f7", "UNCL": "#3b82f6", "KIDZ": "#eab308"};
+#     // One-time reset: clear old vote data from localStorage
+#     var FEUD_VERSION = 'v3';
+#     if (localStorage.getItem('feud_version') !== FEUD_VERSION) {
+#       localStorage.removeItem('feud_mvp_pick');
+#       localStorage.removeItem('feud_hoh_pick');
+#       localStorage.removeItem('feud_voter_id');
+#       // Clear all earnings votes
+#       Object.keys(localStorage).forEach(function(k) {
+#         if (k.indexOf('feud_earn_') === 0) localStorage.removeItem(k);
+#       });
+#       localStorage.setItem('feud_version', FEUD_VERSION);
+#     }
+#     console.log('Feud loaded, stocks count:', stocks.length);
+#     var mvpInput = document.getElementById('mvpInput');
+#     var mvpDropdown = document.getElementById('mvpDropdown');
+#     var mvpTapped = false;
+#     if (mvpInput) {
+#       mvpInput.addEventListener('pointerdown', function() { mvpTapped = true; });
+#       mvpInput.addEventListener('mousedown', function() { mvpTapped = true; });
+#       mvpInput.addEventListener('focus', function() {
+#         if (mvpTapped) { renderMvpDD(this.value, true); }
+#         mvpTapped = false;
+#       });
+#       mvpInput.addEventListener('input', function() { renderMvpDD(this.value, true); });
+#       mvpInput.addEventListener('keyup', function() { renderMvpDD(this.value, true); });
+#       if (mvpDropdown) {
+#         mvpDropdown.addEventListener('click', function(e) { e.stopPropagation(); });
+#         mvpDropdown.addEventListener('touchstart', function(e) { e.stopPropagation(); });
+#       }
+#       document.addEventListener('click', function(e) {
+#         if (!e.target.closest('#mvp-search-wrap')) mvpDropdown.style.display = 'none';
+#       });
+#       document.addEventListener('touchend', function(e) {
+#         if (!e.target.closest('#mvp-search-wrap')) mvpDropdown.style.display = 'none';
+#       });
+#       mvpInput.addEventListener('blur', function() {
+#         setTimeout(function() { mvpDropdown.style.display = 'none'; }, 200);
+#       });
+#       try { window.parent.document.addEventListener('click', function() { mvpDropdown.style.display = 'none'; }); } catch(e) {}
+#     }
 
-    function renderMvpDD(q, showAll) {
-      q = q.toLowerCase().trim();
-      if (!q && !showAll) { mvpDropdown.style.display = 'none'; return; }
-      var f = q ? stocks.filter(function(s) {
-        return s.ticker.toLowerCase().startsWith(q);
-      }).slice(0, 8) : stocks;
-      if (!f.length) {
-        mvpDropdown.innerHTML = '<div style="padding:0.5rem 0.9rem;color:#5d6f65;font-size:0.85rem;">No matches</div>';
-      } else {
-        mvpDropdown.innerHTML = f.map(function(s) {
-          return '<div style="padding:0.5rem 0.9rem;cursor:pointer;font-size:0.85rem;display:flex;justify-content:space-between;align-items:center;" ' +
-            'onmouseover="this.style.background=\\\'rgba(14,95,58,0.06)\\\'" onmouseout="this.style.background=\\\'\\\'" ' +
-            'onclick="selectMvp(\\\'' + s.ticker + '\\\',\\\'' + s.name + '\\\')">' +
-            '<span><b>' + s.ticker + '</b> <span style="color:#5d6f65;font-size:0.78rem;">' + s.name + '</span></span>' +
-            '<span style="font-size:0.65rem;font-weight:700;padding:0.1rem 0.4rem;border-radius:999px;background:rgba(14,95,58,0.08);color:' + (etfColors[s.etf] || '#0e5f3a') + ';">' + s.etf + '</span></div>';
-        }).join('');
-      }
-      mvpDropdown.style.display = 'block';
-    }
+#     function renderMvpDD(q, showAll) {
+#       q = q.toLowerCase().trim();
+#       if (!q && !showAll) { mvpDropdown.style.display = 'none'; return; }
+#       var f = q ? stocks.filter(function(s) {
+#         return s.ticker.toLowerCase().startsWith(q);
+#       }).slice(0, 8) : stocks;
+#       if (!f.length) {
+#         mvpDropdown.innerHTML = '<div style="padding:0.5rem 0.9rem;color:#5d6f65;font-size:0.85rem;">No matches</div>';
+#       } else {
+#         mvpDropdown.innerHTML = f.map(function(s) {
+#           return '<div style="padding:0.5rem 0.9rem;cursor:pointer;font-size:0.85rem;display:flex;justify-content:space-between;align-items:center;" ' +
+#             'onmouseover="this.style.background=\\\'rgba(14,95,58,0.06)\\\'" onmouseout="this.style.background=\\\'\\\'" ' +
+#             'onclick="selectMvp(\\\'' + s.ticker + '\\\',\\\'' + s.name + '\\\')">' +
+#             '<span><b>' + s.ticker + '</b> <span style="color:#5d6f65;font-size:0.78rem;">' + s.name + '</span></span>' +
+#             '<span style="font-size:0.65rem;font-weight:700;padding:0.1rem 0.4rem;border-radius:999px;background:rgba(14,95,58,0.08);color:' + (etfColors[s.etf] || '#0e5f3a') + ';">' + s.etf + '</span></div>';
+#         }).join('');
+#       }
+#       mvpDropdown.style.display = 'block';
+#     }
 
-    function getVoterId() {
-      var voterId = localStorage.getItem('feud_voter_id');
-      if (!voterId) { voterId = 'anon_' + Math.random().toString(36).substr(2, 9); localStorage.setItem('feud_voter_id', voterId); }
-      return voterId;
-    }
+#     function getVoterId() {
+#       var voterId = localStorage.getItem('feud_voter_id');
+#       if (!voterId) { voterId = 'anon_' + Math.random().toString(36).substr(2, 9); localStorage.setItem('feud_voter_id', voterId); }
+#       return voterId;
+#     }
 
-    function selectMvp(ticker, name) {
-      mvpDropdown.style.display = 'none';
-      mvpInput.value = '';
-      document.getElementById('mvp-search-wrap').style.display = 'none';
-      document.getElementById('mvpPick').style.display = 'block';
-      document.getElementById('mvpPickTicker').textContent = ticker;
-      document.getElementById('mvpPickName').textContent = name;
-      localStorage.setItem('feud_mvp_pick', ticker);
-      var voterId = getVoterId();
-      fetch(sheetUrl + '?action=mvp_vote&voter=' + encodeURIComponent(voterId) + '&pick=' + encodeURIComponent(ticker))
-        .then(function() { return fetch(sheetUrl + '?action=get_mvp_votes'); })
-        .then(function(r) { return r.json(); })
-        .then(function(data) { renderVoteBars('mvpVoteHeader', 'mvpVoteBars', data); })
-        .catch(function(){});
-    }
+#     function selectMvp(ticker, name) {
+#       mvpDropdown.style.display = 'none';
+#       mvpInput.value = '';
+#       document.getElementById('mvp-search-wrap').style.display = 'none';
+#       document.getElementById('mvpPick').style.display = 'block';
+#       document.getElementById('mvpPickTicker').textContent = ticker;
+#       document.getElementById('mvpPickName').textContent = name;
+#       localStorage.setItem('feud_mvp_pick', ticker);
+#       var voterId = getVoterId();
+#       fetch(sheetUrl + '?action=mvp_vote&voter=' + encodeURIComponent(voterId) + '&pick=' + encodeURIComponent(ticker))
+#         .then(function() { return fetch(sheetUrl + '?action=get_mvp_votes'); })
+#         .then(function(r) { return r.json(); })
+#         .then(function(data) { renderVoteBars('mvpVoteHeader', 'mvpVoteBars', data); })
+#         .catch(function(){});
+#     }
 
-    function renderVoteBars(headerId, barsId, data) {
-      var votes = data.votes || {};
-      var total = data.total || 0;
-      var header = document.getElementById(headerId);
-      var bars = document.getElementById(barsId);
-      if (header) header.textContent = 'Community Votes (' + total + ' total)';
-      if (!bars) return;
-      var sorted = Object.entries(votes).sort(function(a, b) { return b[1] - a[1]; });
-      var top = sorted.slice(0, 4);
-      var otherCount = sorted.slice(4).reduce(function(s, x) { return s + x[1]; }, 0);
-      if (otherCount > 0) top.push(['Other', otherCount]);
-      var colors = ['#19a05f', '#0e5f3a', '#13492f', '#5d6f65', '#b8b8b8'];
-      if (!top.length) {
-        bars.innerHTML = '<div style="font-size:0.8rem;color:#5d6f65;">No votes yet \\u2014 be the first!</div>';
-        return;
-      }
-      bars.innerHTML = top.map(function(item, i) {
-        var ticker = item[0], count = item[1];
-        var pct = total > 0 ? Math.round(count / total * 100) : 0;
-        var color = colors[Math.min(i, colors.length - 1)];
-        return '<div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.4rem;">' +
-          '<span style="font-weight:700;font-size:0.85rem;min-width:4.5rem;color:' + (etfColors[ticker] || 'inherit') + ';">' + ticker + '</span>' +
-          '<div style="flex:1;height:26px;background:rgba(18,51,36,0.06);border-radius:8px;overflow:hidden;">' +
-          '<div style="height:100%;width:' + Math.max(pct, 5) + '%;background:' + color + ';border-radius:8px;' +
-          'display:flex;align-items:center;padding-left:0.5rem;font-size:0.7rem;font-weight:700;color:#fff;">' +
-          '\\u00a0' + pct + '%</div></div>' +
-          '<span style="font-size:0.78rem;color:#5d6f65;min-width:4rem;text-align:right;">' + count + ' votes</span></div>';
-      }).join('');
-    }
+#     function renderVoteBars(headerId, barsId, data) {
+#       var votes = data.votes || {};
+#       var total = data.total || 0;
+#       var header = document.getElementById(headerId);
+#       var bars = document.getElementById(barsId);
+#       if (header) header.textContent = 'Community Votes (' + total + ' total)';
+#       if (!bars) return;
+#       var sorted = Object.entries(votes).sort(function(a, b) { return b[1] - a[1]; });
+#       var top = sorted.slice(0, 4);
+#       var otherCount = sorted.slice(4).reduce(function(s, x) { return s + x[1]; }, 0);
+#       if (otherCount > 0) top.push(['Other', otherCount]);
+#       var colors = ['#19a05f', '#0e5f3a', '#13492f', '#5d6f65', '#b8b8b8'];
+#       if (!top.length) {
+#         bars.innerHTML = '<div style="font-size:0.8rem;color:#5d6f65;">No votes yet \\u2014 be the first!</div>';
+#         return;
+#       }
+#       bars.innerHTML = top.map(function(item, i) {
+#         var ticker = item[0], count = item[1];
+#         var pct = total > 0 ? Math.round(count / total * 100) : 0;
+#         var color = colors[Math.min(i, colors.length - 1)];
+#         return '<div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.4rem;">' +
+#           '<span style="font-weight:700;font-size:0.85rem;min-width:4.5rem;color:' + (etfColors[ticker] || 'inherit') + ';">' + ticker + '</span>' +
+#           '<div style="flex:1;height:26px;background:rgba(18,51,36,0.06);border-radius:8px;overflow:hidden;">' +
+#           '<div style="height:100%;width:' + Math.max(pct, 5) + '%;background:' + color + ';border-radius:8px;' +
+#           'display:flex;align-items:center;padding-left:0.5rem;font-size:0.7rem;font-weight:700;color:#fff;">' +
+#           '\\u00a0' + pct + '%</div></div>' +
+#           '<span style="font-size:0.78rem;color:#5d6f65;min-width:4rem;text-align:right;">' + count + ' votes</span></div>';
+#       }).join('');
+#     }
 
-    function changeMvp() {
-      document.getElementById('mvp-search-wrap').style.display = 'block';
-      document.getElementById('mvpPick').style.display = 'none';
-      localStorage.removeItem('feud_mvp_pick');
-      var voterId = getVoterId();
-      fetch(sheetUrl + '?action=mvp_remove&voter=' + encodeURIComponent(voterId))
-        .then(function() { return fetch(sheetUrl + '?action=get_mvp_votes'); })
-        .then(function(r) { return r.json(); })
-        .then(function(data) { renderVoteBars('mvpVoteHeader', 'mvpVoteBars', data); })
-        .catch(function(){});
-      if (mvpInput) mvpInput.focus();
-    }
+#     function changeMvp() {
+#       document.getElementById('mvp-search-wrap').style.display = 'block';
+#       document.getElementById('mvpPick').style.display = 'none';
+#       localStorage.removeItem('feud_mvp_pick');
+#       var voterId = getVoterId();
+#       fetch(sheetUrl + '?action=mvp_remove&voter=' + encodeURIComponent(voterId))
+#         .then(function() { return fetch(sheetUrl + '?action=get_mvp_votes'); })
+#         .then(function(r) { return r.json(); })
+#         .then(function(data) { renderVoteBars('mvpVoteHeader', 'mvpVoteBars', data); })
+#         .catch(function(){});
+#       if (mvpInput) mvpInput.focus();
+#     }
 
-    // Restore votes from server (works across devices)
-    fetch(sheetUrl + '?action=get_my_votes&voter=' + encodeURIComponent(getVoterId()))
-      .then(function(r) { return r.json(); })
-      .then(function(picks) {
-        // Restore MVP pick
-        if (picks.mvp && document.getElementById('mvpPick')) {
-          var s = stocks.find(function(x) { return x.ticker === picks.mvp; });
-          if (s) {
-            document.getElementById('mvp-search-wrap').style.display = 'none';
-            document.getElementById('mvpPick').style.display = 'block';
-            document.getElementById('mvpPickTicker').textContent = s.ticker;
-            document.getElementById('mvpPickName').textContent = s.name;
-            localStorage.setItem('feud_mvp_pick', s.ticker);
-          }
-        }
-        // Restore HOH pick
-        if (picks.hoh) {
-          localStorage.setItem('feud_hoh_pick', picks.hoh);
-          document.querySelectorAll('.hohBtn').forEach(function(b) {
-            if (b.textContent.trim().includes(picks.hoh)) {
-              b.style.borderColor = '#0e5f3a';
-              b.style.background = 'rgba(14,95,58,0.1)';
-              b.style.color = '#0e5f3a';
-            }
-          });
-        }
-        // Restore earnings picks
-        if (picks.earn && typeof picks.earn === 'object') {
-          Object.keys(picks.earn).forEach(function(stock) {
-            var val = picks.earn[stock]; // e.g. "AAPL_up"
-            var dir = val.split('_').pop(); // "up" or "down"
-            localStorage.setItem('feud_earn_' + stock, dir);
-            document.querySelectorAll('.earnVoteBtn').forEach(function(btn) {
-              if (btn.dataset.stock === stock && btn.dataset.dir === dir) {
-                if (dir === 'up') {
-                  btn.style.background = 'rgba(25,160,95,0.12)';
-                  btn.style.borderColor = '#19a05f';
-                } else {
-                  btn.style.background = 'rgba(209,74,52,0.12)';
-                  btn.style.borderColor = '#d14a34';
-                }
-              }
-            });
-          });
-        }
-      })
-      .catch(function(){
-        // Fallback to localStorage
-        var savedMvp = localStorage.getItem('feud_mvp_pick');
-        if (savedMvp && document.getElementById('mvpPick')) {
-          var s = stocks.find(function(x) { return x.ticker === savedMvp; });
-          if (s) {
-            document.getElementById('mvp-search-wrap').style.display = 'none';
-            document.getElementById('mvpPick').style.display = 'block';
-            document.getElementById('mvpPickTicker').textContent = s.ticker;
-            document.getElementById('mvpPickName').textContent = s.name;
-          }
-        }
-      });
+#     // Restore votes from server (works across devices)
+#     fetch(sheetUrl + '?action=get_my_votes&voter=' + encodeURIComponent(getVoterId()))
+#       .then(function(r) { return r.json(); })
+#       .then(function(picks) {
+#         // Restore MVP pick
+#         if (picks.mvp && document.getElementById('mvpPick')) {
+#           var s = stocks.find(function(x) { return x.ticker === picks.mvp; });
+#           if (s) {
+#             document.getElementById('mvp-search-wrap').style.display = 'none';
+#             document.getElementById('mvpPick').style.display = 'block';
+#             document.getElementById('mvpPickTicker').textContent = s.ticker;
+#             document.getElementById('mvpPickName').textContent = s.name;
+#             localStorage.setItem('feud_mvp_pick', s.ticker);
+#           }
+#         }
+#         // Restore HOH pick
+#         if (picks.hoh) {
+#           localStorage.setItem('feud_hoh_pick', picks.hoh);
+#           document.querySelectorAll('.hohBtn').forEach(function(b) {
+#             if (b.textContent.trim().includes(picks.hoh)) {
+#               b.style.borderColor = '#0e5f3a';
+#               b.style.background = 'rgba(14,95,58,0.1)';
+#               b.style.color = '#0e5f3a';
+#             }
+#           });
+#         }
+#         // Restore earnings picks
+#         if (picks.earn && typeof picks.earn === 'object') {
+#           Object.keys(picks.earn).forEach(function(stock) {
+#             var val = picks.earn[stock]; // e.g. "AAPL_up"
+#             var dir = val.split('_').pop(); // "up" or "down"
+#             localStorage.setItem('feud_earn_' + stock, dir);
+#             document.querySelectorAll('.earnVoteBtn').forEach(function(btn) {
+#               if (btn.dataset.stock === stock && btn.dataset.dir === dir) {
+#                 if (dir === 'up') {
+#                   btn.style.background = 'rgba(25,160,95,0.12)';
+#                   btn.style.borderColor = '#19a05f';
+#                 } else {
+#                   btn.style.background = 'rgba(209,74,52,0.12)';
+#                   btn.style.borderColor = '#d14a34';
+#                 }
+#               }
+#             });
+#           });
+#         }
+#       })
+#       .catch(function(){
+#         // Fallback to localStorage
+#         var savedMvp = localStorage.getItem('feud_mvp_pick');
+#         if (savedMvp && document.getElementById('mvpPick')) {
+#           var s = stocks.find(function(x) { return x.ticker === savedMvp; });
+#           if (s) {
+#             document.getElementById('mvp-search-wrap').style.display = 'none';
+#             document.getElementById('mvpPick').style.display = 'block';
+#             document.getElementById('mvpPickTicker').textContent = s.ticker;
+#             document.getElementById('mvpPickName').textContent = s.name;
+#           }
+#         }
+#       });
 
-    function selectHoh(btn, etf) {
-      var currentPick = localStorage.getItem('feud_hoh_pick');
-      var voterId = getVoterId();
-      if (currentPick === etf) {
-        // Deselect: clicking same button again
-        btn.style.borderColor = 'rgba(18,51,36,0.12)';
-        btn.style.background = 'white';
-        btn.style.color = '#102018';
-        localStorage.removeItem('feud_hoh_pick');
-        fetch(sheetUrl + '?action=hoh_remove&voter=' + encodeURIComponent(voterId))
-          .then(function() { return fetch(sheetUrl + '?action=get_hoh_votes'); })
-          .then(function(r) { return r.json(); })
-          .then(function(data) { renderVoteBars('hohVoteHeader', 'hohVoteBars', data); })
-          .catch(function(){});
-        return;
-      }
-      document.querySelectorAll('.hohBtn').forEach(function(b) {
-        b.style.borderColor = 'rgba(18,51,36,0.12)';
-        b.style.background = 'white';
-        b.style.color = '#102018';
-      });
-      btn.style.borderColor = '#0e5f3a';
-      btn.style.background = 'rgba(14,95,58,0.1)';
-      btn.style.color = '#0e5f3a';
-      localStorage.setItem('feud_hoh_pick', etf);
-      fetch(sheetUrl + '?action=hoh_vote&voter=' + encodeURIComponent(voterId) + '&pick=' + encodeURIComponent(etf))
-        .then(function() { return fetch(sheetUrl + '?action=get_hoh_votes'); })
-        .then(function(r) { return r.json(); })
-        .then(function(data) { renderVoteBars('hohVoteHeader', 'hohVoteBars', data); })
-        .catch(function(){});
-    }
+#     function selectHoh(btn, etf) {
+#       var currentPick = localStorage.getItem('feud_hoh_pick');
+#       var voterId = getVoterId();
+#       if (currentPick === etf) {
+#         // Deselect: clicking same button again
+#         btn.style.borderColor = 'rgba(18,51,36,0.12)';
+#         btn.style.background = 'white';
+#         btn.style.color = '#102018';
+#         localStorage.removeItem('feud_hoh_pick');
+#         fetch(sheetUrl + '?action=hoh_remove&voter=' + encodeURIComponent(voterId))
+#           .then(function() { return fetch(sheetUrl + '?action=get_hoh_votes'); })
+#           .then(function(r) { return r.json(); })
+#           .then(function(data) { renderVoteBars('hohVoteHeader', 'hohVoteBars', data); })
+#           .catch(function(){});
+#         return;
+#       }
+#       document.querySelectorAll('.hohBtn').forEach(function(b) {
+#         b.style.borderColor = 'rgba(18,51,36,0.12)';
+#         b.style.background = 'white';
+#         b.style.color = '#102018';
+#       });
+#       btn.style.borderColor = '#0e5f3a';
+#       btn.style.background = 'rgba(14,95,58,0.1)';
+#       btn.style.color = '#0e5f3a';
+#       localStorage.setItem('feud_hoh_pick', etf);
+#       fetch(sheetUrl + '?action=hoh_vote&voter=' + encodeURIComponent(voterId) + '&pick=' + encodeURIComponent(etf))
+#         .then(function() { return fetch(sheetUrl + '?action=get_hoh_votes'); })
+#         .then(function(r) { return r.json(); })
+#         .then(function(data) { renderVoteBars('hohVoteHeader', 'hohVoteBars', data); })
+#         .catch(function(){});
+#     }
 
-    var savedHoh = localStorage.getItem('feud_hoh_pick');
-    if (savedHoh) {
-      document.querySelectorAll('.hohBtn').forEach(function(b) {
-        if (b.textContent.trim().includes(savedHoh)) {
-          b.style.borderColor = '#0e5f3a';
-          b.style.background = 'rgba(14,95,58,0.1)';
-          b.style.color = '#0e5f3a';
-        }
-      });
-    }
+#     var savedHoh = localStorage.getItem('feud_hoh_pick');
+#     if (savedHoh) {
+#       document.querySelectorAll('.hohBtn').forEach(function(b) {
+#         if (b.textContent.trim().includes(savedHoh)) {
+#           b.style.borderColor = '#0e5f3a';
+#           b.style.background = 'rgba(14,95,58,0.1)';
+#           b.style.color = '#0e5f3a';
+#         }
+#       });
+#     }
 
-    // --- Earnings Vote ---
-    function updateEarnCounts(stock, serverData) {
-      var data = serverData || serverEarnVotes;
-      var stockData = data[stock] || { up: 0, down: 0 };
-      document.querySelectorAll('.earnVoteBtn').forEach(function(b) {
-        if (b.dataset.stock !== stock) return;
-        var countEl = b.querySelector('.earnCount');
-        if (!countEl) return;
-        var count = stockData[b.dataset.dir] || 0;
-        if (count > 0) {
-          countEl.textContent = '(' + count + ')';
-          countEl.style.display = 'inline';
-        } else {
-          countEl.textContent = '';
-          countEl.style.display = 'none';
-        }
-      });
-    }
+#     // --- Earnings Vote ---
+#     function updateEarnCounts(stock, serverData) {
+#       var data = serverData || serverEarnVotes;
+#       var stockData = data[stock] || { up: 0, down: 0 };
+#       document.querySelectorAll('.earnVoteBtn').forEach(function(b) {
+#         if (b.dataset.stock !== stock) return;
+#         var countEl = b.querySelector('.earnCount');
+#         if (!countEl) return;
+#         var count = stockData[b.dataset.dir] || 0;
+#         if (count > 0) {
+#           countEl.textContent = '(' + count + ')';
+#           countEl.style.display = 'inline';
+#         } else {
+#           countEl.textContent = '';
+#           countEl.style.display = 'none';
+#         }
+#       });
+#     }
 
-    function refreshEarnVotes(stock) {
-      fetch(sheetUrl + '?action=get_earn_votes')
-        .then(function(r) { return r.json(); })
-        .then(function(data) {
-          serverEarnVotes = data;
-          updateEarnCounts(stock, data);
-        })
-        .catch(function(){});
-    }
+#     function refreshEarnVotes(stock) {
+#       fetch(sheetUrl + '?action=get_earn_votes')
+#         .then(function(r) { return r.json(); })
+#         .then(function(data) {
+#           serverEarnVotes = data;
+#           updateEarnCounts(stock, data);
+#         })
+#         .catch(function(){});
+#     }
 
-    function voteEarnings(btn) {
-      var stock = btn.dataset.stock;
-      var dir = btn.dataset.dir;
-      var currentVote = localStorage.getItem('feud_earn_' + stock);
-      var parent = btn.parentElement;
-      var voterId = getVoterId();
-      var voterKey = 'earn_' + voterId + '_' + stock;
+#     function voteEarnings(btn) {
+#       var stock = btn.dataset.stock;
+#       var dir = btn.dataset.dir;
+#       var currentVote = localStorage.getItem('feud_earn_' + stock);
+#       var parent = btn.parentElement;
+#       var voterId = getVoterId();
+#       var voterKey = 'earn_' + voterId + '_' + stock;
 
-      // If clicking the same vote, deselect
-      if (currentVote === dir) {
-        btn.style.background = 'white';
-        btn.style.borderColor = dir === 'up' ? 'rgba(25,160,95,0.3)' : 'rgba(209,74,52,0.3)';
-        localStorage.removeItem('feud_earn_' + stock);
-        fetch(sheetUrl + '?action=earn_remove&voter=' + encodeURIComponent(voterKey))
-          .then(function() { refreshEarnVotes(stock); })
-          .catch(function(){});
-        return;
-      }
+#       // If clicking the same vote, deselect
+#       if (currentVote === dir) {
+#         btn.style.background = 'white';
+#         btn.style.borderColor = dir === 'up' ? 'rgba(25,160,95,0.3)' : 'rgba(209,74,52,0.3)';
+#         localStorage.removeItem('feud_earn_' + stock);
+#         fetch(sheetUrl + '?action=earn_remove&voter=' + encodeURIComponent(voterKey))
+#           .then(function() { refreshEarnVotes(stock); })
+#           .catch(function(){});
+#         return;
+#       }
 
-      // Deselect siblings
-      parent.querySelectorAll('.earnVoteBtn').forEach(function(b) {
-        b.style.background = 'white';
-        b.style.borderColor = b.dataset.dir === 'up' ? 'rgba(25,160,95,0.3)' : 'rgba(209,74,52,0.3)';
-      });
-      // Select this one
-      if (dir === 'up') {
-        btn.style.background = 'rgba(25,160,95,0.12)';
-        btn.style.borderColor = '#19a05f';
-      } else {
-        btn.style.background = 'rgba(209,74,52,0.12)';
-        btn.style.borderColor = '#d14a34';
-      }
-      localStorage.setItem('feud_earn_' + stock, dir);
-      fetch(sheetUrl + '?action=earn_vote&voter=' + encodeURIComponent(voterKey) + '&pick=' + encodeURIComponent(stock + '_' + dir))
-        .then(function() { refreshEarnVotes(stock); })
-        .catch(function(){});
-    }
+#       // Deselect siblings
+#       parent.querySelectorAll('.earnVoteBtn').forEach(function(b) {
+#         b.style.background = 'white';
+#         b.style.borderColor = b.dataset.dir === 'up' ? 'rgba(25,160,95,0.3)' : 'rgba(209,74,52,0.3)';
+#       });
+#       // Select this one
+#       if (dir === 'up') {
+#         btn.style.background = 'rgba(25,160,95,0.12)';
+#         btn.style.borderColor = '#19a05f';
+#       } else {
+#         btn.style.background = 'rgba(209,74,52,0.12)';
+#         btn.style.borderColor = '#d14a34';
+#       }
+#       localStorage.setItem('feud_earn_' + stock, dir);
+#       fetch(sheetUrl + '?action=earn_vote&voter=' + encodeURIComponent(voterKey) + '&pick=' + encodeURIComponent(stock + '_' + dir))
+#         .then(function() { refreshEarnVotes(stock); })
+#         .catch(function(){});
+#     }
 
-    // Restore earnings votes and counts
-    document.querySelectorAll('.earnVoteBtn').forEach(function(btn) {
-      var stock = btn.dataset.stock;
-      var saved = localStorage.getItem('feud_earn_' + stock);
-      if (saved === btn.dataset.dir) {
-        if (saved === 'up') {
-          btn.style.background = 'rgba(25,160,95,0.12)';
-          btn.style.borderColor = '#19a05f';
-        } else {
-          btn.style.background = 'rgba(209,74,52,0.12)';
-          btn.style.borderColor = '#d14a34';
-        }
-      }
-      updateEarnCounts(stock);
-    });
+#     // Restore earnings votes and counts
+#     document.querySelectorAll('.earnVoteBtn').forEach(function(btn) {
+#       var stock = btn.dataset.stock;
+#       var saved = localStorage.getItem('feud_earn_' + stock);
+#       if (saved === btn.dataset.dir) {
+#         if (saved === 'up') {
+#           btn.style.background = 'rgba(25,160,95,0.12)';
+#           btn.style.borderColor = '#19a05f';
+#         } else {
+#           btn.style.background = 'rgba(209,74,52,0.12)';
+#           btn.style.borderColor = '#d14a34';
+#         }
+#       }
+#       updateEarnCounts(stock);
+#     });
 
-    function resizeFrame() {
-      try {
-        var h = document.body.scrollHeight + 20;
-        if (window.frameElement) {
-          window.frameElement.style.setProperty('height', h + 'px', 'important');
-        }
-        // Also try the parent container
-        try {
-          var container = window.frameElement.parentElement;
-          if (container) container.style.setProperty('height', h + 'px', 'important');
-        } catch(e2) {}
-      } catch(e) {}
-    }
-    window.addEventListener('load', resizeFrame);
-    window.addEventListener('resize', resizeFrame);
-    setTimeout(resizeFrame, 50);
-    setTimeout(resizeFrame, 300);
-    setTimeout(resizeFrame, 1000);
-    </script>
-    """
-    _feud_js = _feud_js.replace('__STOCKS_DATA__', _stock_list_js).replace('__SHEET_URL__', REACTIONS_SHEET_URL).replace('__EARN_VOTES__', _earn_votes_js)
-    _feud_html += _feud_js
+#     function resizeFrame() {
+#       try {
+#         var h = document.body.scrollHeight + 20;
+#         if (window.frameElement) {
+#           window.frameElement.style.setProperty('height', h + 'px', 'important');
+#         }
+#         // Also try the parent container
+#         try {
+#           var container = window.frameElement.parentElement;
+#           if (container) container.style.setProperty('height', h + 'px', 'important');
+#         } catch(e2) {}
+#       } catch(e) {}
+#     }
+#     window.addEventListener('load', resizeFrame);
+#     window.addEventListener('resize', resizeFrame);
+#     setTimeout(resizeFrame, 50);
+#     setTimeout(resizeFrame, 300);
+#     setTimeout(resizeFrame, 1000);
+#     </script>
+#     """
+#     _feud_js = _feud_js.replace('__STOCKS_DATA__', _stock_list_js).replace('__SHEET_URL__', REACTIONS_SHEET_URL).replace('__EARN_VOTES__', _earn_votes_js)
+#     _feud_html += _feud_js
 
-    _feud_base_height = 630 + len(_next_week_earnings) * 60
-    components.html(_feud_html, height=_feud_base_height, scrolling=False)
+#     _feud_base_height = 630 + len(_next_week_earnings) * 60
+#     components.html(_feud_html, height=_feud_base_height, scrolling=False)
 
-    # --- System Predictions (commented out) ---
-    # st.markdown(
-    #     '<div style="display:flex;align-items:center;gap:0.5rem;margin:1.2rem 0 0.5rem;">'
-    #     '<span style="font-size:1.3rem;">\U0001f52e</span>'
-    #     '<span style="font-size:1.1rem;font-weight:800;letter-spacing:0.04em;text-transform:uppercase;'
-    #     'color:var(--accent);">This Week\'s Predictions</span></div>',
-    #     unsafe_allow_html=True,
-    # )
-    #
-    # if "_returns" in st.session_state:
-    #     _r = st.session_state["_returns"]
-    #     _vt = st.session_state["_valid_tickers"]
-    #     _sp = st.session_state["_start_prices"]
-    #     _div = st.session_state["_dividends"]
-    #     _ep = st.session_state["_end_prices"]
-    #     _fr = pd.Series({
-    #         t: ((INVESTMENT / _sp[t] * _ep[t] + INVESTMENT / _sp[t] * _div.get(t, 0.0)) / INVESTMENT - 1) * 100
-    #         for t in _vt
-    #     }).sort_values(ascending=False)
-    #     preds = generate_predictions(_r, _vt, NAME_MAP, ETF_MAP, _fr, _div, _sp, INVESTMENT)
-    #     pred_history = load_pred_history()
-    #
-    #     if preds:
-    #         record_predictions(preds, end_date.isoformat(), pred_history)
-    #
-    #         pred_grid_html = '<div class="pred-grid">'
-    #         for pred in preds:
-    #             conf = pred.get("confidence", 50)
-    #             pred_key = f'{pred["title"]}_{pred["ticker"]}'
-    #             votes = pred_history.get("votes", {}).get(pred_key, {"up": 0, "down": 0})
-    #             total_votes = votes["up"] + votes["down"]
-    #             agree_pct = int(votes["up"] / total_votes * 100) if total_votes > 0 else 0
-    #
-    #             vote_bar = ""
-    #             if total_votes > 0:
-    #                 vote_bar = (
-    #                     f'<div style="display:flex;align-items:center;gap:0.4rem;margin-top:0.3rem;'
-    #                     f'padding-top:0.3rem;border-top:1px solid rgba(14,95,58,0.1);">'
-    #                     f'<span style="font-size:0.7rem;">\U0001f44d {votes["up"]}</span>'
-    #                     f'<span style="font-size:0.7rem;">\U0001f44e {votes["down"]}</span>'
-    #                     f'<span style="font-size:0.6rem;color:var(--muted);margin-left:auto;">{agree_pct}% agree</span>'
-    #                     f'</div>'
-    #                 )
-    #             pred_grid_html += (
-    #                 f'<div class="pred-card">'
-    #                 f'<div class="pred-icon">{pred["icon"]}</div>'
-    #                 f'<div class="pred-title">{html_mod.escape(pred["title"])}</div>'
-    #                 f'<div class="pred-ticker">{pred.get("emoji", "")} <span style="color:{_ETF_CLR.get(ETF_MAP.get(pred["ticker"], ""), _ETF_CLR.get(pred["ticker"], "inherit"))};">{html_mod.escape(pred["ticker"])}</span></div>'
-    #                 f'<div class="pred-name">{html_mod.escape(pred["name"])}</div>'
-    #                 f'<div class="pred-detail">{html_mod.escape(pred["detail"])}</div>'
-    #                 f'<div class="pred-confidence">{conf}% confidence</div>'
-    #                 f'{vote_bar}'
-    #                 f'</div>'
-    #             )
-    #         pred_grid_html += '</div>'
-    #         st.markdown(pred_grid_html, unsafe_allow_html=True)
-    #
-    #         past_results = check_past_predictions(pred_history, _fr)
-    #         if past_results:
-    #             scored = [r for r in past_results if r["correct"] is not None]
-    #             if scored:
-    #                 correct_count = sum(1 for r in scored if r["correct"])
-    #                 total_scored = len(scored)
-    #                 accuracy = int(correct_count / total_scored * 100)
-    #                 _result_rows = ""
-    #                 for r in scored:
-    #                     _icon = "\u2705" if r["correct"] else "\u274c"
-    #                     _color = "#19a05f" if r["correct"] else "#d14a34"
-    #                     _result_rows += (
-    #                         f'<div style="display:flex;align-items:center;gap:0.5rem;padding:0.25rem 0;'
-    #                         f'font-size:0.75rem;border-bottom:1px solid rgba(18,51,36,0.06);">'
-    #                         f'<span>{_icon}</span>'
-    #                         f'<span style="font-weight:700;min-width:3.5rem;">{html_mod.escape(r["ticker"])}</span>'
-    #                         f'<span style="color:#5d6f65;">{html_mod.escape(r["title"])}</span>'
-    #                         f'<span style="margin-left:auto;color:{_color};font-size:0.72rem;">{html_mod.escape(r["actual"])}</span>'
-    #                         f'</div>'
-    #                     )
-    #                 st.markdown(
-    #                     f'<div style="margin-top:0.5rem;padding:0.5rem 0.8rem;background:rgba(14,95,58,0.06);'
-    #                     f'border:1px solid rgba(14,95,58,0.15);border-radius:12px;font-size:0.8rem;">'
-    #                     f'\U0001f3af <b>Past Accuracy:</b> {correct_count}/{total_scored} predictions correct ({accuracy}%)'
-    #                     f'<div style="margin-top:0.4rem;">{_result_rows}</div>'
-    #                     f'</div>',
-    #                     unsafe_allow_html=True,
-    #                 )
-    #
-    #         st.caption("\U0001f916 System-generated based on 5-day momentum, volatility, and trend analysis. Not financial advice!")
-    # else:
-    #     st.info("Visit the Dashboard tab first to load stock data.")
+#     # --- System Predictions (commented out) ---
+#     # st.markdown(
+#     #     '<div style="display:flex;align-items:center;gap:0.5rem;margin:1.2rem 0 0.5rem;">'
+#     #     '<span style="font-size:1.3rem;">\U0001f52e</span>'
+#     #     '<span style="font-size:1.1rem;font-weight:800;letter-spacing:0.04em;text-transform:uppercase;'
+#     #     'color:var(--accent);">This Week\'s Predictions</span></div>',
+#     #     unsafe_allow_html=True,
+#     # )
+#     #
+#     # if "_returns" in st.session_state:
+#     #     _r = st.session_state["_returns"]
+#     #     _vt = st.session_state["_valid_tickers"]
+#     #     _sp = st.session_state["_start_prices"]
+#     #     _div = st.session_state["_dividends"]
+#     #     _ep = st.session_state["_end_prices"]
+#     #     _fr = pd.Series({
+#     #         t: ((INVESTMENT / _sp[t] * _ep[t] + INVESTMENT / _sp[t] * _div.get(t, 0.0)) / INVESTMENT - 1) * 100
+#     #         for t in _vt
+#     #     }).sort_values(ascending=False)
+#     #     preds = generate_predictions(_r, _vt, NAME_MAP, ETF_MAP, _fr, _div, _sp, INVESTMENT)
+#     #     pred_history = load_pred_history()
+#     #
+#     #     if preds:
+#     #         record_predictions(preds, end_date.isoformat(), pred_history)
+#     #
+#     #         pred_grid_html = '<div class="pred-grid">'
+#     #         for pred in preds:
+#     #             conf = pred.get("confidence", 50)
+#     #             pred_key = f'{pred["title"]}_{pred["ticker"]}'
+#     #             votes = pred_history.get("votes", {}).get(pred_key, {"up": 0, "down": 0})
+#     #             total_votes = votes["up"] + votes["down"]
+#     #             agree_pct = int(votes["up"] / total_votes * 100) if total_votes > 0 else 0
+#     #
+#     #             vote_bar = ""
+#     #             if total_votes > 0:
+#     #                 vote_bar = (
+#     #                     f'<div style="display:flex;align-items:center;gap:0.4rem;margin-top:0.3rem;'
+#     #                     f'padding-top:0.3rem;border-top:1px solid rgba(14,95,58,0.1);">'
+#     #                     f'<span style="font-size:0.7rem;">\U0001f44d {votes["up"]}</span>'
+#     #                     f'<span style="font-size:0.7rem;">\U0001f44e {votes["down"]}</span>'
+#     #                     f'<span style="font-size:0.6rem;color:var(--muted);margin-left:auto;">{agree_pct}% agree</span>'
+#     #                     f'</div>'
+#     #                 )
+#     #             pred_grid_html += (
+#     #                 f'<div class="pred-card">'
+#     #                 f'<div class="pred-icon">{pred["icon"]}</div>'
+#     #                 f'<div class="pred-title">{html_mod.escape(pred["title"])}</div>'
+#     #                 f'<div class="pred-ticker">{pred.get("emoji", "")} <span style="color:{_ETF_CLR.get(ETF_MAP.get(pred["ticker"], ""), _ETF_CLR.get(pred["ticker"], "inherit"))};">{html_mod.escape(pred["ticker"])}</span></div>'
+#     #                 f'<div class="pred-name">{html_mod.escape(pred["name"])}</div>'
+#     #                 f'<div class="pred-detail">{html_mod.escape(pred["detail"])}</div>'
+#     #                 f'<div class="pred-confidence">{conf}% confidence</div>'
+#     #                 f'{vote_bar}'
+#     #                 f'</div>'
+#     #             )
+#     #         pred_grid_html += '</div>'
+#     #         st.markdown(pred_grid_html, unsafe_allow_html=True)
+#     #
+#     #         past_results = check_past_predictions(pred_history, _fr)
+#     #         if past_results:
+#     #             scored = [r for r in past_results if r["correct"] is not None]
+#     #             if scored:
+#     #                 correct_count = sum(1 for r in scored if r["correct"])
+#     #                 total_scored = len(scored)
+#     #                 accuracy = int(correct_count / total_scored * 100)
+#     #                 _result_rows = ""
+#     #                 for r in scored:
+#     #                     _icon = "\u2705" if r["correct"] else "\u274c"
+#     #                     _color = "#19a05f" if r["correct"] else "#d14a34"
+#     #                     _result_rows += (
+#     #                         f'<div style="display:flex;align-items:center;gap:0.5rem;padding:0.25rem 0;'
+#     #                         f'font-size:0.75rem;border-bottom:1px solid rgba(18,51,36,0.06);">'
+#     #                         f'<span>{_icon}</span>'
+#     #                         f'<span style="font-weight:700;min-width:3.5rem;">{html_mod.escape(r["ticker"])}</span>'
+#     #                         f'<span style="color:#5d6f65;">{html_mod.escape(r["title"])}</span>'
+#     #                         f'<span style="margin-left:auto;color:{_color};font-size:0.72rem;">{html_mod.escape(r["actual"])}</span>'
+#     #                         f'</div>'
+#     #                     )
+#     #                 st.markdown(
+#     #                     f'<div style="margin-top:0.5rem;padding:0.5rem 0.8rem;background:rgba(14,95,58,0.06);'
+#     #                     f'border:1px solid rgba(14,95,58,0.15);border-radius:12px;font-size:0.8rem;">'
+#     #                     f'\U0001f3af <b>Past Accuracy:</b> {correct_count}/{total_scored} predictions correct ({accuracy}%)'
+#     #                     f'<div style="margin-top:0.4rem;">{_result_rows}</div>'
+#     #                     f'</div>',
+#     #                     unsafe_allow_html=True,
+#     #                 )
+#     #
+#     #         st.caption("\U0001f916 System-generated based on 5-day momentum, volatility, and trend analysis. Not financial advice!")
+#     # else:
+#     #     st.info("Visit the Dashboard tab first to load stock data.")
 
 with tab_admin:
     if not st.session_state.admin_authenticated:
