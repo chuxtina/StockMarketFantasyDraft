@@ -3184,447 +3184,447 @@ with tab_dashboard:
 
         # earnings_data already fetched above for bragging rights
 
-        # --- Shots Fired ---
-        st.markdown(
-            '<div style="display:flex;align-items:center;gap:0.5rem;margin:1.2rem 0 0.5rem;">'
-            '<span style="font-size:1.3rem;">\U0001f4a5</span>'
-            '<span style="font-size:1.1rem;font-weight:800;letter-spacing:0.04em;text-transform:uppercase;'
-            'color:var(--accent);">Shots Fired</span>'
-            '<span style="font-size:0.75rem;color:gray;font-weight:400;letter-spacing:normal;text-transform:none;'
-            'margin-left:0.5rem;">reactions have a 200s cooldown</span></div>',
-            unsafe_allow_html=True,
-        )
+        # # --- Shots Fired ---
+        # st.markdown(
+        # '<div style="display:flex;align-items:center;gap:0.5rem;margin:1.2rem 0 0.5rem;">'
+        # '<span style="font-size:1.3rem;">\U0001f4a5</span>'
+        # '<span style="font-size:1.1rem;font-weight:800;letter-spacing:0.04em;text-transform:uppercase;'
+        # 'color:var(--accent);">Shots Fired</span>'
+        # '<span style="font-size:0.75rem;color:gray;font-weight:400;letter-spacing:normal;text-transform:none;'
+        # 'margin-left:0.5rem;">reactions have a 200s cooldown</span></div>',
+        # unsafe_allow_html=True,
+        # )
 
-        def _generate_roasts(final_rets, _name_map, throne, _superlatives, returns_df, valid_tickers, used_history=None):
-            import re as _re_mod
-            import random as _rng
-            _rng.seed()
+        # def _generate_roasts(final_rets, _name_map, throne, _superlatives, returns_df, valid_tickers, used_history=None):
+        # import re as _re_mod
+        # import random as _rng
+        # _rng.seed()
 
-            sorted_rets = final_rets.sort_values(ascending=False)
-            total = len(sorted_rets)
+        # sorted_rets = final_rets.sort_values(ascending=False)
+        # total = len(sorted_rets)
 
-            # Build pool of ALL possible roasts across random stocks, then pick 7-8
-            _all_candidates = []
+        # # Build pool of ALL possible roasts across random stocks, then pick 7-8
+        # _all_candidates = []
 
-            # --- Roast any stock by its return ---
-            for _i, (t, ret) in enumerate(sorted_rets.items()):
-                tc = _etf_colored(t)
-                if ret > 15:
-                    _all_candidates += [
-                        f"\U0001f451 {tc} is up {ret:+.2f}% and won't shut up about it. We get it, you're winning.",
-                        f"\U0001f451 {tc} at {ret:+.2f}%? Enjoy it while it lasts. The market humbles everyone.",
-                        f"\U0001f451 {tc} sitting pretty at {ret:+.2f}%. Main character energy.",
-                        f"\U0001f451 Someone check on {tc}'s ego. {ret:+.2f}% and counting. Insufferable.",
-                        f"\U0001f451 {tc} at {ret:+.2f}%. That's not a return, that's a flex.",
-                    ]
-                elif ret > 5:
-                    _all_candidates += [
-                        f"\U0001f7e2 {tc} quietly sitting at {ret:+.2f}%. Not flashy, but getting the job done.",
-                        f"\U0001f7e2 {tc} at {ret:+.2f}%. Slow and steady. Boring but profitable.",
-                        f"\U0001f7e2 {tc} up {ret:+.2f}%. Under the radar. Exactly where it wants to be.",
-                    ]
-                elif -2 < ret < 2:
-                    _all_candidates += [
-                        f"\U0001fae5 {tc} returned {ret:+.2f}%. Absolute NPC energy. Doing nothing and hoping nobody notices.",
-                        f"\U0001fae5 {tc} at {ret:+.2f}%. The human equivalent of 'I'm just here so I don't get fined.'",
-                        f"\U0001fae5 {tc} with {ret:+.2f}%. Flatline energy. Even the chart fell asleep.",
-                        f"\U0001fae5 {tc} at {ret:+.2f}%. Not winning, not losing. Just\u2026 existing.",
-                    ]
-                elif ret < -15:
-                    _all_candidates += [
-                        f"\U0001f4a9 {tc} at {ret:+.2f}%. If this were a group project, you'd be the one who didn't show up.",
-                        f"\U0001f4a9 {tc} at {ret:+.2f}%. At this rate, you could lose money slower by literally burning it.",
-                        f"\U0001f4a9 {tc} at {ret:+.2f}%. This stock is speedrunning bankruptcy any%.",
-                        f"\U0001f4a9 Moment of silence for {tc} at {ret:+.2f}%. You didn't have to go this hard\u2026 in the wrong direction.",
-                        f"\U0001f4a9 {tc} at {ret:+.2f}%. Certified bag holder. No, not designer bags.",
-                    ]
-                elif ret < -5:
-                    _all_candidates += [
-                        f"\U0001f534 {tc} down {ret:+.2f}%. Not great, not terrible. Actually, it's terrible.",
-                        f"\U0001f534 {tc} at {ret:+.2f}%. Quietly bleeding out. Nobody's even watching anymore.",
-                        f"\U0001f534 {tc} returning {ret:+.2f}%. Underperforming a savings account. Impressive.",
-                    ]
+        # # --- Roast any stock by its return ---
+        # for _i, (t, ret) in enumerate(sorted_rets.items()):
+        # tc = _etf_colored(t)
+        # if ret > 15:
+        # _all_candidates += [
+        # f"\U0001f451 {tc} is up {ret:+.2f}% and won't shut up about it. We get it, you're winning.",
+        # f"\U0001f451 {tc} at {ret:+.2f}%? Enjoy it while it lasts. The market humbles everyone.",
+        # f"\U0001f451 {tc} sitting pretty at {ret:+.2f}%. Main character energy.",
+        # f"\U0001f451 Someone check on {tc}'s ego. {ret:+.2f}% and counting. Insufferable.",
+        # f"\U0001f451 {tc} at {ret:+.2f}%. That's not a return, that's a flex.",
+        # ]
+        # elif ret > 5:
+        # _all_candidates += [
+        # f"\U0001f7e2 {tc} quietly sitting at {ret:+.2f}%. Not flashy, but getting the job done.",
+        # f"\U0001f7e2 {tc} at {ret:+.2f}%. Slow and steady. Boring but profitable.",
+        # f"\U0001f7e2 {tc} up {ret:+.2f}%. Under the radar. Exactly where it wants to be.",
+        # ]
+        # elif -2 < ret < 2:
+        # _all_candidates += [
+        # f"\U0001fae5 {tc} returned {ret:+.2f}%. Absolute NPC energy. Doing nothing and hoping nobody notices.",
+        # f"\U0001fae5 {tc} at {ret:+.2f}%. The human equivalent of 'I'm just here so I don't get fined.'",
+        # f"\U0001fae5 {tc} with {ret:+.2f}%. Flatline energy. Even the chart fell asleep.",
+        # f"\U0001fae5 {tc} at {ret:+.2f}%. Not winning, not losing. Just\u2026 existing.",
+        # ]
+        # elif ret < -15:
+        # _all_candidates += [
+        # f"\U0001f4a9 {tc} at {ret:+.2f}%. If this were a group project, you'd be the one who didn't show up.",
+        # f"\U0001f4a9 {tc} at {ret:+.2f}%. At this rate, you could lose money slower by literally burning it.",
+        # f"\U0001f4a9 {tc} at {ret:+.2f}%. This stock is speedrunning bankruptcy any%.",
+        # f"\U0001f4a9 Moment of silence for {tc} at {ret:+.2f}%. You didn't have to go this hard\u2026 in the wrong direction.",
+        # f"\U0001f4a9 {tc} at {ret:+.2f}%. Certified bag holder. No, not designer bags.",
+        # ]
+        # elif ret < -5:
+        # _all_candidates += [
+        # f"\U0001f534 {tc} down {ret:+.2f}%. Not great, not terrible. Actually, it's terrible.",
+        # f"\U0001f534 {tc} at {ret:+.2f}%. Quietly bleeding out. Nobody's even watching anymore.",
+        # f"\U0001f534 {tc} returning {ret:+.2f}%. Underperforming a savings account. Impressive.",
+        # ]
 
-            # --- Swing / volatility roasts (random volatile stocks) ---
-            if len(returns_df) > 2:
-                daily_changes = returns_df[list(valid_tickers)].diff().dropna()
-                if len(daily_changes) > 0:
-                    worst_days = daily_changes.min()
-                    volatile_stocks = worst_days[worst_days < -3].index.tolist()
-                    _rng.shuffle(volatile_stocks)
-                    for t in volatile_stocks[:3]:
-                        tc = _etf_colored(t)
-                        drop = worst_days[t]
-                        _all_candidates += [
-                            f"\U0001f3a2 {tc} nosedived {drop:+.2f}% in one day. That's bungee jumping without the cord.",
-                            f"\U0001f3a2 {tc} dropped {drop:+.2f}% in a single day. Somewhere a stop-loss is crying.",
-                            f"\U0001f3a2 {tc} lost {drop:+.2f}% in one session. Even gravity was impressed.",
-                        ]
+        # # --- Swing / volatility roasts (random volatile stocks) ---
+        # if len(returns_df) > 2:
+        # daily_changes = returns_df[list(valid_tickers)].diff().dropna()
+        # if len(daily_changes) > 0:
+        # worst_days = daily_changes.min()
+        # volatile_stocks = worst_days[worst_days < -3].index.tolist()
+        # _rng.shuffle(volatile_stocks)
+        # for t in volatile_stocks[:3]:
+        # tc = _etf_colored(t)
+        # drop = worst_days[t]
+        # _all_candidates += [
+        # f"\U0001f3a2 {tc} nosedived {drop:+.2f}% in one day. That's bungee jumping without the cord.",
+        # f"\U0001f3a2 {tc} dropped {drop:+.2f}% in a single day. Somewhere a stop-loss is crying.",
+        # f"\U0001f3a2 {tc} lost {drop:+.2f}% in one session. Even gravity was impressed.",
+        # ]
 
-            # --- Random group roasts (pick random 2-3 stocks from bottom half) ---
-            bottom_half = sorted_rets.tail(total // 2)
-            if len(bottom_half) >= 3:
-                sampled = bottom_half.sample(3, random_state=_rng.randint(0, 99999))
-                tickers_str = ", ".join(_etf_colored(t) for t in sampled.index)
-                combined = sampled.sum()
-                _all_candidates += [
-                    f"\U0001f6bd {tickers_str} combining for {combined:+.2f}%. The Avengers of underperformance.",
-                    f"\U0001f6bd {tickers_str} at {combined:+.2f}% combined. A GoFundMe would be less embarrassing.",
-                    f"\U0001f6bd {tickers_str} returning {combined:+.2f}% together. Three stocks, one shared L.",
-                ]
+        # # --- Random group roasts (pick random 2-3 stocks from bottom half) ---
+        # bottom_half = sorted_rets.tail(total // 2)
+        # if len(bottom_half) >= 3:
+        # sampled = bottom_half.sample(3, random_state=_rng.randint(0, 99999))
+        # tickers_str = ", ".join(_etf_colored(t) for t in sampled.index)
+        # combined = sampled.sum()
+        # _all_candidates += [
+        # f"\U0001f6bd {tickers_str} combining for {combined:+.2f}%. The Avengers of underperformance.",
+        # f"\U0001f6bd {tickers_str} at {combined:+.2f}% combined. A GoFundMe would be less embarrassing.",
+        # f"\U0001f6bd {tickers_str} returning {combined:+.2f}% together. Three stocks, one shared L.",
+        # ]
 
-            # --- Throne drama ---
-            mvp_changes = len([e for e in throne["mvp_history"] if e.get("prev_ticker")])
-            if mvp_changes >= 4:
-                _all_candidates += [
-                    f"\U0001f3b0 The MVP throne changed hands {mvp_changes} times. More drama than a reality TV show.",
-                    f"\U0001f3b0 {mvp_changes} throne changes? This draft is a Game of Thrones episode.",
-                ]
-            elif mvp_changes <= 1:
-                mvp = sorted_rets.index[0]
-                _all_candidates += [
-                    f"\U0001f3b0 <b>{html_mod.escape(mvp)}</b> has owned the throne the whole time. Everyone else? Participation trophies.",
-                    f"\U0001f3b0 <b>{html_mod.escape(mvp)}</b> on the throne since day one. The rest of the draft is just DLC.",
-                ]
+        # # --- Throne drama ---
+        # mvp_changes = len([e for e in throne["mvp_history"] if e.get("prev_ticker")])
+        # if mvp_changes >= 4:
+        # _all_candidates += [
+        # f"\U0001f3b0 The MVP throne changed hands {mvp_changes} times. More drama than a reality TV show.",
+        # f"\U0001f3b0 {mvp_changes} throne changes? This draft is a Game of Thrones episode.",
+        # ]
+        # elif mvp_changes <= 1:
+        # mvp = sorted_rets.index[0]
+        # _all_candidates += [
+        # f"\U0001f3b0 <b>{html_mod.escape(mvp)}</b> has owned the throne the whole time. Everyone else? Participation trophies.",
+        # f"\U0001f3b0 <b>{html_mod.escape(mvp)}</b> on the throne since day one. The rest of the draft is just DLC.",
+        # ]
 
-            # --- Red/green count ---
-            red_count = int((final_rets <= 0).sum())
-            green_count = total - red_count
-            if red_count > total * 0.6:
-                _all_candidates += [
-                    f"\U0001f534 {red_count} out of {total} in the red. This isn't a portfolio, it's a crime scene.",
-                    f"\U0001f534 {red_count}/{total} in the red. The market just looked at your portfolio and laughed.",
-                    f"\U0001f534 {red_count} out of {total} red. This portfolio needs a wellness check.",
-                ]
-            elif red_count < total * 0.3:
-                _all_candidates += [
-                    f"\U0001f7e2 Only {red_count} out of {total} in the red. Don't get comfortable \u2014 the market is just loading the next prank.",
-                    f"\U0001f7e2 {green_count} stocks green? The market is lulling you into a false sense of security.",
-                ]
+        # # --- Red/green count ---
+        # red_count = int((final_rets <= 0).sum())
+        # green_count = total - red_count
+        # if red_count > total * 0.6:
+        # _all_candidates += [
+        # f"\U0001f534 {red_count} out of {total} in the red. This isn't a portfolio, it's a crime scene.",
+        # f"\U0001f534 {red_count}/{total} in the red. The market just looked at your portfolio and laughed.",
+        # f"\U0001f534 {red_count} out of {total} red. This portfolio needs a wellness check.",
+        # ]
+        # elif red_count < total * 0.3:
+        # _all_candidates += [
+        # f"\U0001f7e2 Only {red_count} out of {total} in the red. Don't get comfortable \u2014 the market is just loading the next prank.",
+        # f"\U0001f7e2 {green_count} stocks green? The market is lulling you into a false sense of security.",
+        # ]
 
-            # --- Filter out recently used ---
-            def _strip(s):
-                return _re_mod.sub(r'<[^>]+>', '', s).strip()
+        # # --- Filter out recently used ---
+        # def _strip(s):
+        # return _re_mod.sub(r'<[^>]+>', '', s).strip()
 
-            _recently_used_text = set()
-            if used_history:
-                for _snippets in used_history.values():
-                    _recently_used_text.update(_strip(s) for s in _snippets)
+        # _recently_used_text = set()
+        # if used_history:
+        # for _snippets in used_history.values():
+        # _recently_used_text.update(_strip(s) for s in _snippets)
 
-            fresh = [r for r in _all_candidates if _strip(r)[:80] not in _recently_used_text]
-            pool = fresh if fresh else _all_candidates
+        # fresh = [r for r in _all_candidates if _strip(r)[:80] not in _recently_used_text]
+        # pool = fresh if fresh else _all_candidates
 
-            # Shuffle and pick 7-8 unique roasts, no duplicate stocks or templates
-            _rng.shuffle(pool)
-            roasts = []
-            _used_tickers = set()
-            _used_templates = set()
+        # # Shuffle and pick 7-8 unique roasts, no duplicate stocks or templates
+        # _rng.shuffle(pool)
+        # roasts = []
+        # _used_tickers = set()
+        # _used_templates = set()
 
-            def _extract_template(text):
-                """Strip ticker names and numbers to get the core joke template."""
-                import re as _re_t
-                t = _strip(text)
-                # Remove ticker symbols and percentages
-                for ticker in sorted_rets.index:
-                    t = t.replace(ticker, "")
-                t = _re_t.sub(r'[+-]?\d+\.?\d*%?', '', t)
-                return t.strip()
+        # def _extract_template(text):
+        # """Strip ticker names and numbers to get the core joke template."""
+        # import re as _re_t
+        # t = _strip(text)
+        # # Remove ticker symbols and percentages
+        # for ticker in sorted_rets.index:
+        # t = t.replace(ticker, "")
+        # t = _re_t.sub(r'[+-]?\d+\.?\d*%?', '', t)
+        # return t.strip()
 
-            for r in pool:
-                _text = _strip(r)
-                _tmpl = _extract_template(r)
-                # Skip if same template already used
-                if _tmpl in _used_templates:
-                    continue
-                # Skip if same ticker already used
-                _found_ticker = None
-                for t in sorted_rets.index:
-                    if t in _text:
-                        _found_ticker = t
-                        break
-                if _found_ticker and _found_ticker in _used_tickers:
-                    continue
-                roasts.append(r)
-                _used_templates.add(_tmpl)
-                if _found_ticker:
-                    _used_tickers.add(_found_ticker)
-                if len(roasts) >= 8:
-                    break
+        # for r in pool:
+        # _text = _strip(r)
+        # _tmpl = _extract_template(r)
+        # # Skip if same template already used
+        # if _tmpl in _used_templates:
+        # continue
+        # # Skip if same ticker already used
+        # _found_ticker = None
+        # for t in sorted_rets.index:
+        # if t in _text:
+        # _found_ticker = t
+        # break
+        # if _found_ticker and _found_ticker in _used_tickers:
+        # continue
+        # roasts.append(r)
+        # _used_templates.add(_tmpl)
+        # if _found_ticker:
+        # _used_tickers.add(_found_ticker)
+        # if len(roasts) >= 8:
+        # break
 
-            # Ensure at least 7 roasts
-            if len(roasts) < 7:
-                for r in pool:
-                    if r not in roasts:
-                        roasts.append(r)
-                    if len(roasts) >= 7:
-                        break
+        # # Ensure at least 7 roasts
+        # if len(roasts) < 7:
+        # for r in pool:
+        # if r not in roasts:
+        # roasts.append(r)
+        # if len(roasts) >= 7:
+        # break
 
-            return roasts
+        # return roasts
 
-        # --- Roast cache: persist roasts per trading day, track used templates ---
-        _ROASTS_CACHE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "roasts_cache.json")
+        # # --- Roast cache: persist roasts per trading day, track used templates ---
+        # _ROASTS_CACHE_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "roasts_cache.json")
 
-        def _load_roasts_cache():
-            try:
-                with open(_ROASTS_CACHE_FILE) as f:
-                    return json.load(f)
-            except (FileNotFoundError, json.JSONDecodeError):
-                return {"date": "", "roasts": [], "used": {}}
+        # def _load_roasts_cache():
+        # try:
+        # with open(_ROASTS_CACHE_FILE) as f:
+        # return json.load(f)
+        # except (FileNotFoundError, json.JSONDecodeError):
+        # return {"date": "", "roasts": [], "used": {}}
 
-        def _save_roasts_cache(cache):
-            with open(_ROASTS_CACHE_FILE, "w") as f:
-                json.dump(cache, f, indent=2)
+        # def _save_roasts_cache(cache):
+        # with open(_ROASTS_CACHE_FILE, "w") as f:
+        # json.dump(cache, f, indent=2)
 
-        # Determine current roast day (last completed trading day after 4 PM ET)
-        _now_roast = datetime.datetime.now(ZoneInfo("America/New_York"))
-        _roast_day = _now_roast.date()
-        _is_trading_day = _roast_day.weekday() < 5 and _roast_day not in _us_market_holidays(_roast_day.year)
-        if not (_is_trading_day and _now_roast.hour >= 16):
-            _roast_day -= datetime.timedelta(days=1)
-        while _roast_day.weekday() >= 5 or _roast_day in _us_market_holidays(_roast_day.year):
-            _roast_day -= datetime.timedelta(days=1)
-        _roast_day_str = _roast_day.isoformat()
+        # # Determine current roast day (last completed trading day after 4 PM ET)
+        # _now_roast = datetime.datetime.now(ZoneInfo("America/New_York"))
+        # _roast_day = _now_roast.date()
+        # _is_trading_day = _roast_day.weekday() < 5 and _roast_day not in _us_market_holidays(_roast_day.year)
+        # if not (_is_trading_day and _now_roast.hour >= 16):
+        # _roast_day -= datetime.timedelta(days=1)
+        # while _roast_day.weekday() >= 5 or _roast_day in _us_market_holidays(_roast_day.year):
+        # _roast_day -= datetime.timedelta(days=1)
+        # _roast_day_str = _roast_day.isoformat()
 
-        _rcache = _load_roasts_cache()
-        if _rcache.get("date") == _roast_day_str and _rcache.get("roasts"):
-            # Use cached roasts for this trading day
-            roasts = _rcache["roasts"]
-        else:
-            # Generate fresh roasts — pick templates not recently used
-            _used = _rcache.get("used", {})
-            roasts = _generate_roasts(final_returns, NAME_MAP, throne, superlatives, returns, valid_tickers, _used)
-            # Update used tracker (keep last 30 days of history to avoid repeats)
-            import re as _re_outer
-            _used[_roast_day_str] = [_re_outer.sub(r'<[^>]+>', '', r).strip()[:80] for r in roasts]
-            # Also clear any previous day's cache to avoid stale data
+        # _rcache = _load_roasts_cache()
+        # if _rcache.get("date") == _roast_day_str and _rcache.get("roasts"):
+        # # Use cached roasts for this trading day
+        # roasts = _rcache["roasts"]
+        # else:
+        # # Generate fresh roasts — pick templates not recently used
+        # _used = _rcache.get("used", {})
+        # roasts = _generate_roasts(final_returns, NAME_MAP, throne, superlatives, returns, valid_tickers, _used)
+        # # Update used tracker (keep last 30 days of history to avoid repeats)
+        # import re as _re_outer
+        # _used[_roast_day_str] = [_re_outer.sub(r'<[^>]+>', '', r).strip()[:80] for r in roasts]
+        # # Also clear any previous day's cache to avoid stale data
 
-            # Prune old entries (keep last 30)
-            _used_keys = sorted(_used.keys())
-            if len(_used_keys) > 30:
-                for _old_k in _used_keys[:-30]:
-                    del _used[_old_k]
-            _save_roasts_cache({"date": _roast_day_str, "roasts": roasts, "used": _used})
-            # Reset reactions for new roasts
-            save_reactions({})
-            # Also reset on Google Sheets
-            try:
-                requests.post(REACTIONS_SHEET_URL, json={"action": "reset_reactions"}, timeout=5)
-            except Exception:
-                pass
-            # Clear Streamlit reaction cache
-            load_reactions.clear()
+        # # Prune old entries (keep last 30)
+        # _used_keys = sorted(_used.keys())
+        # if len(_used_keys) > 30:
+        # for _old_k in _used_keys[:-30]:
+        # del _used[_old_k]
+        # _save_roasts_cache({"date": _roast_day_str, "roasts": roasts, "used": _used})
+        # # Reset reactions for new roasts
+        # save_reactions({})
+        # # Also reset on Google Sheets
+        # try:
+        # requests.post(REACTIONS_SHEET_URL, json={"action": "reset_reactions"}, timeout=5)
+        # except Exception:
+        # pass
+        # # Clear Streamlit reaction cache
+        # load_reactions.clear()
 
-        # Load server-side reaction counts
-        all_reactions = load_reactions()
+        # # Load server-side reaction counts
+        # all_reactions = load_reactions()
 
-        # Compute next roast drop date
-        now_et = datetime.datetime.now(ZoneInfo("America/New_York"))
-        next_drop = now_et.replace(hour=16, minute=0, second=0, microsecond=0)
-        if now_et >= next_drop:
-            next_drop += datetime.timedelta(days=1)
-        while next_drop.weekday() >= 5 or next_drop.date() in _us_market_holidays(next_drop.year):
-            next_drop += datetime.timedelta(days=1)
-        next_drop_str = next_drop.strftime('%a %b %d')
+        # # Compute next roast drop date
+        # now_et = datetime.datetime.now(ZoneInfo("America/New_York"))
+        # next_drop = now_et.replace(hour=16, minute=0, second=0, microsecond=0)
+        # if now_et >= next_drop:
+        # next_drop += datetime.timedelta(days=1)
+        # while next_drop.weekday() >= 5 or next_drop.date() in _us_market_holidays(next_drop.year):
+        # next_drop += datetime.timedelta(days=1)
+        # next_drop_str = next_drop.strftime('%a %b %d')
 
-        # Build roast HTML as chat bubbles — multiple bots firing shots
-        BOT_PERSONAS = [
-            ("\U0001f916", "linear-gradient(135deg, #0e5f3a, #19a05f)", "GreenMachine"),   # green robot
-            ("\U0001f608", "linear-gradient(135deg, #6b21a8, #a855f7)", "DiabloAI"),   # purple devil
-            ("\U0001f47e", "linear-gradient(135deg, #b91c1c, #ef4444)", "ChadGPT"),    # red alien
-            ("\U0001f9e0", "linear-gradient(135deg, #0369a1, #38bdf8)", "BrainRot"),   # blue brain
-            ("\U0001f480", "linear-gradient(135deg, #78350f, #d97706)", "DeadCat"),    # amber skull
-        ]
-        roast_items_html = ""
-        for idx, roast in enumerate(roasts):
-            roast_key = f"roast_{_roast_day_str}_{idx}"
-            roast_counts = all_reactions.get(roast_key, {})
-            btns = ""
-            for emoji in REACTION_EMOJIS:
-                count = roast_counts.get(emoji, 0)
-                count_str = f'<span class="rcount">{count}</span>' if count > 0 else ""
-                btns += (
-                    f'<span class="roast-react-btn" data-roast="{roast_key}" data-emoji="{emoji}" '
-                    f'onclick="toggleReact(this)">{emoji}{count_str}</span>'
-                )
-            bot_emoji, bot_gradient, bot_name = BOT_PERSONAS[idx % len(BOT_PERSONAS)]
-            side = "right" if idx % 2 == 1 else "left"
-            roast_items_html += (
-                f'<div class="chat-row chat-{side}">'
-                f'<div class="chat-avatar" style="background:{bot_gradient};">{bot_emoji}</div>'
-                f'<div class="chat-content">'
-                f'<div class="chat-name">{bot_name}</div>'
-                f'<div class="chat-bubble">'
-                f'<div class="chat-text">{roast}</div>'
-                f'<div class="roast-reactions">{btns}</div>'
-                f'</div>'
-                f'</div></div>'
-            )
+        # # Build roast HTML as chat bubbles — multiple bots firing shots
+        # BOT_PERSONAS = [
+        # ("\U0001f916", "linear-gradient(135deg, #0e5f3a, #19a05f)", "GreenMachine"),   # green robot
+        # ("\U0001f608", "linear-gradient(135deg, #6b21a8, #a855f7)", "DiabloAI"),   # purple devil
+        # ("\U0001f47e", "linear-gradient(135deg, #b91c1c, #ef4444)", "ChadGPT"),    # red alien
+        # ("\U0001f9e0", "linear-gradient(135deg, #0369a1, #38bdf8)", "BrainRot"),   # blue brain
+        # ("\U0001f480", "linear-gradient(135deg, #78350f, #d97706)", "DeadCat"),    # amber skull
+        # ]
+        # roast_items_html = ""
+        # for idx, roast in enumerate(roasts):
+        # roast_key = f"roast_{_roast_day_str}_{idx}"
+        # roast_counts = all_reactions.get(roast_key, {})
+        # btns = ""
+        # for emoji in REACTION_EMOJIS:
+        # count = roast_counts.get(emoji, 0)
+        # count_str = f'<span class="rcount">{count}</span>' if count > 0 else ""
+        # btns += (
+        # f'<span class="roast-react-btn" data-roast="{roast_key}" data-emoji="{emoji}" '
+        # f'onclick="toggleReact(this)">{emoji}{count_str}</span>'
+        # )
+        # bot_emoji, bot_gradient, bot_name = BOT_PERSONAS[idx % len(BOT_PERSONAS)]
+        # side = "right" if idx % 2 == 1 else "left"
+        # roast_items_html += (
+        # f'<div class="chat-row chat-{side}">'
+        # f'<div class="chat-avatar" style="background:{bot_gradient};">{bot_emoji}</div>'
+        # f'<div class="chat-content">'
+        # f'<div class="chat-name">{bot_name}</div>'
+        # f'<div class="chat-bubble">'
+        # f'<div class="chat-text">{roast}</div>'
+        # f'<div class="roast-reactions">{btns}</div>'
+        # f'</div>'
+        # f'</div></div>'
+        # )
 
-        roast_component_html = f"""
-        <html><head><style>
-        html, body {{ margin:0; padding:0; background:transparent !important; overflow:hidden; }}
-        .chat-container {{
-            display: flex; flex-direction: column; gap: 0.6rem;
-            font-family:'Space Grotesk',sans-serif;
-        }}
-        .chat-row {{
-            display: flex; align-items: flex-start; gap: 0.6rem;
-        }}
-        .chat-row.chat-right {{
-            flex-direction: row-reverse;
-        }}
-        .chat-avatar {{
-            width: 36px; height: 36px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1rem; flex-shrink: 0;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.18);
-        }}
-        .chat-name {{
-            font-size: 0.68rem; font-weight: 700; letter-spacing: 0.03em;
-            color: #5d6f65; margin-bottom: 0.15rem;
-            text-transform: uppercase;
-        }}
-        .chat-row.chat-right .chat-name {{
-            text-align: right;
-        }}
-        .chat-content {{ max-width: calc(100% - 48px); }}
-        .chat-bubble {{
-            background: rgba(251,253,250,0.96);
-            border: 1px solid rgba(18,51,36,0.12);
-            border-radius: 0 18px 18px 18px;
-            padding: 0.7rem 1rem;
-            box-shadow: 0 4px 12px rgba(16,42,32,0.06);
-        }}
-        .chat-row.chat-right .chat-bubble {{
-            border-radius: 18px 0 18px 18px;
-        }}
-        .chat-row.chat-right .roast-reactions {{
-            justify-content: flex-end;
-        }}
-        .chat-text {{
-            font-size: 0.85rem; line-height: 1.5;
-        }}
-        .roast-reactions {{
-            display: flex; gap: 0.3rem; margin-top: 0.4rem; flex-wrap: wrap;
-        }}
-        .roast-react-btn {{
-            display: inline-flex; align-items: center; gap: 0.2rem;
-            padding: 0.15rem 0.45rem; border: 1px solid rgba(18,51,36,0.12);
-            border-radius: 999px; background: white; font-size: 0.78rem;
-            cursor: pointer; transition: all 0.15s ease; user-select: none;
-            -webkit-tap-highlight-color: transparent;
-        }}
-        .roast-react-btn:hover, .roast-react-btn:active {{
-            border-color: #0e5f3a; background: rgba(14,95,58,0.06); transform: scale(1.08);
-        }}
-        .roast-react-btn.active {{
-            border-color: #0e5f3a; background: rgba(14,95,58,0.1);
-        }}
-        .roast-react-btn .rcount {{
-            font-weight: 700; color: #102018; font-size: 0.75rem;
-        }}
-        @media (max-width: 768px) {{
-            .chat-avatar {{ width: 30px; height: 30px; font-size: 0.85rem; }}
-            .chat-content {{ max-width: calc(100% - 42px); }}
-            .roast-react-btn {{ padding: 0.25rem 0.55rem; font-size: 0.85rem; }}
-        }}
-        </style></head>
-        <body>
-        <div class="chat-container">
-            {roast_items_html}
-            <div style="font-size:0.72rem;color:#5d6f65;margin-top:0.3rem;padding-left:0;text-align:left;">
-                \U0001f4a5 Roasts refresh daily \u00b7 Fresh burns incoming \u00b7 Next drop: {next_drop_str} after market close
-            </div>
-        </div>
-        <script>
-        var roastDay = '{_roast_day_str}';
-        if (localStorage.getItem('roast_day') !== roastDay) {{
-            localStorage.removeItem('roast_reacts');
-            localStorage.removeItem('roast_server_counts');
-            localStorage.setItem('roast_day', roastDay);
-        }}
-        var userReacts = JSON.parse(localStorage.getItem('roast_reacts') || '{{}}'  );
-        var serverCounts = JSON.parse(localStorage.getItem('roast_server_counts') || '{{}}');
+        # roast_component_html = f"""
+        # <html><head><style>
+        # html, body {{ margin:0; padding:0; background:transparent !important; overflow:hidden; }}
+        # .chat-container {{
+        # display: flex; flex-direction: column; gap: 0.6rem;
+        # font-family:'Space Grotesk',sans-serif;
+        # }}
+        # .chat-row {{
+        # display: flex; align-items: flex-start; gap: 0.6rem;
+        # }}
+        # .chat-row.chat-right {{
+        # flex-direction: row-reverse;
+        # }}
+        # .chat-avatar {{
+        # width: 36px; height: 36px; border-radius: 50%;
+        # display: flex; align-items: center; justify-content: center;
+        # font-size: 1rem; flex-shrink: 0;
+        # box-shadow: 0 2px 8px rgba(0,0,0,0.18);
+        # }}
+        # .chat-name {{
+        # font-size: 0.68rem; font-weight: 700; letter-spacing: 0.03em;
+        # color: #5d6f65; margin-bottom: 0.15rem;
+        # text-transform: uppercase;
+        # }}
+        # .chat-row.chat-right .chat-name {{
+        # text-align: right;
+        # }}
+        # .chat-content {{ max-width: calc(100% - 48px); }}
+        # .chat-bubble {{
+        # background: rgba(251,253,250,0.96);
+        # border: 1px solid rgba(18,51,36,0.12);
+        # border-radius: 0 18px 18px 18px;
+        # padding: 0.7rem 1rem;
+        # box-shadow: 0 4px 12px rgba(16,42,32,0.06);
+        # }}
+        # .chat-row.chat-right .chat-bubble {{
+        # border-radius: 18px 0 18px 18px;
+        # }}
+        # .chat-row.chat-right .roast-reactions {{
+        # justify-content: flex-end;
+        # }}
+        # .chat-text {{
+        # font-size: 0.85rem; line-height: 1.5;
+        # }}
+        # .roast-reactions {{
+        # display: flex; gap: 0.3rem; margin-top: 0.4rem; flex-wrap: wrap;
+        # }}
+        # .roast-react-btn {{
+        # display: inline-flex; align-items: center; gap: 0.2rem;
+        # padding: 0.15rem 0.45rem; border: 1px solid rgba(18,51,36,0.12);
+        # border-radius: 999px; background: white; font-size: 0.78rem;
+        # cursor: pointer; transition: all 0.15s ease; user-select: none;
+        # -webkit-tap-highlight-color: transparent;
+        # }}
+        # .roast-react-btn:hover, .roast-react-btn:active {{
+        # border-color: #0e5f3a; background: rgba(14,95,58,0.06); transform: scale(1.08);
+        # }}
+        # .roast-react-btn.active {{
+        # border-color: #0e5f3a; background: rgba(14,95,58,0.1);
+        # }}
+        # .roast-react-btn .rcount {{
+        # font-weight: 700; color: #102018; font-size: 0.75rem;
+        # }}
+        # @media (max-width: 768px) {{
+        # .chat-avatar {{ width: 30px; height: 30px; font-size: 0.85rem; }}
+        # .chat-content {{ max-width: calc(100% - 42px); }}
+        # .roast-react-btn {{ padding: 0.25rem 0.55rem; font-size: 0.85rem; }}
+        # }}
+        # </style></head>
+        # <body>
+        # <div class="chat-container">
+        # {roast_items_html}
+        # <div style="font-size:0.72rem;color:#5d6f65;margin-top:0.3rem;padding-left:0;text-align:left;">
+        # \U0001f4a5 Roasts refresh daily \u00b7 Fresh burns incoming \u00b7 Next drop: {next_drop_str} after market close
+        # </div>
+        # </div>
+        # <script>
+        # var roastDay = '{_roast_day_str}';
+        # if (localStorage.getItem('roast_day') !== roastDay) {{
+        # localStorage.removeItem('roast_reacts');
+        # localStorage.removeItem('roast_server_counts');
+        # localStorage.setItem('roast_day', roastDay);
+        # }}
+        # var userReacts = JSON.parse(localStorage.getItem('roast_reacts') || '{{}}'  );
+        # var serverCounts = JSON.parse(localStorage.getItem('roast_server_counts') || '{{}}');
 
-        document.querySelectorAll('.roast-react-btn').forEach(function(btn) {{
-            var key = btn.dataset.roast + '_' + btn.dataset.emoji;
-            if (userReacts[key]) {{
-                btn.classList.add('active');
-                var countEl = btn.querySelector('.rcount');
-                if (!countEl) {{
-                    btn.innerHTML = btn.dataset.emoji + '<span class="rcount">1</span>';
-                }}
-            }}
-        }});
+        # document.querySelectorAll('.roast-react-btn').forEach(function(btn) {{
+        # var key = btn.dataset.roast + '_' + btn.dataset.emoji;
+        # if (userReacts[key]) {{
+        # btn.classList.add('active');
+        # var countEl = btn.querySelector('.rcount');
+        # if (!countEl) {{
+        # btn.innerHTML = btn.dataset.emoji + '<span class="rcount">1</span>';
+        # }}
+        # }}
+        # }});
 
-        function toggleReact(btn) {{
-            var roastKey = btn.dataset.roast;
-            var emoji = btn.dataset.emoji;
-            var key = roastKey + '_' + emoji;
-            var countEl = btn.querySelector('.rcount');
-            var currentCount = countEl ? parseInt(countEl.textContent) : 0;
+        # function toggleReact(btn) {{
+        # var roastKey = btn.dataset.roast;
+        # var emoji = btn.dataset.emoji;
+        # var key = roastKey + '_' + emoji;
+        # var countEl = btn.querySelector('.rcount');
+        # var currentCount = countEl ? parseInt(countEl.textContent) : 0;
 
-            if (btn.classList.contains('active')) {{
-                btn.classList.remove('active');
-                currentCount = Math.max(0, currentCount - 1);
-                delete userReacts[key];
-            }} else {{
-                btn.classList.add('active');
-                currentCount += 1;
-                userReacts[key] = true;
-            }}
+        # if (btn.classList.contains('active')) {{
+        # btn.classList.remove('active');
+        # currentCount = Math.max(0, currentCount - 1);
+        # delete userReacts[key];
+        # }} else {{
+        # btn.classList.add('active');
+        # currentCount += 1;
+        # userReacts[key] = true;
+        # }}
 
-            localStorage.setItem('roast_reacts', JSON.stringify(userReacts));
+        # localStorage.setItem('roast_reacts', JSON.stringify(userReacts));
 
-            if (!serverCounts[roastKey]) serverCounts[roastKey] = {{}};
-            serverCounts[roastKey][emoji] = currentCount;
-            localStorage.setItem('roast_server_counts', JSON.stringify(serverCounts));
+        # if (!serverCounts[roastKey]) serverCounts[roastKey] = {{}};
+        # serverCounts[roastKey][emoji] = currentCount;
+        # localStorage.setItem('roast_server_counts', JSON.stringify(serverCounts));
 
-            if (currentCount > 0) {{
-                if (countEl) {{
-                    countEl.textContent = currentCount;
-                }} else {{
-                    btn.innerHTML = emoji + '<span class="rcount">' + currentCount + '</span>';
-                }}
-            }} else {{
-                btn.innerHTML = emoji;
-            }}
+        # if (currentCount > 0) {{
+        # if (countEl) {{
+        # countEl.textContent = currentCount;
+        # }} else {{
+        # btn.innerHTML = emoji + '<span class="rcount">' + currentCount + '</span>';
+        # }}
+        # }} else {{
+        # btn.innerHTML = emoji;
+        # }}
 
-            var sheetUrl = '{REACTIONS_SHEET_URL}';
-            var delta = btn.classList.contains('active') ? 1 : -1;
-            fetch(sheetUrl + '?roast=' + encodeURIComponent(roastKey) + '&emoji=' + encodeURIComponent(emoji) + '&delta=' + delta)
-              .catch(function() {{}});
+        # var sheetUrl = '{REACTIONS_SHEET_URL}';
+        # var delta = btn.classList.contains('active') ? 1 : -1;
+        # fetch(sheetUrl + '?roast=' + encodeURIComponent(roastKey) + '&emoji=' + encodeURIComponent(emoji) + '&delta=' + delta)
+        # .catch(function() {{}});
 
-            btn.style.transform = 'scale(1.25)';
-            setTimeout(function() {{ btn.style.transform = ''; }}, 150);
-        }}
+        # btn.style.transform = 'scale(1.25)';
+        # setTimeout(function() {{ btn.style.transform = ''; }}, 150);
+        # }}
 
-        // Resize iframe and all Streamlit parent wrappers to exact content height
-        function fitHeight() {{
-            var h = document.querySelector('.chat-container').scrollHeight;
-            var frame = window.frameElement;
-            if (frame) {{
-                frame.style.height = h + 'px';
-                // Walk up and resize all Streamlit wrapper divs up to 5 levels
-                var el = frame.parentElement;
-                for (var i = 0; i < 5 && el; i++) {{
-                    el.style.height = h + 'px';
-                    el = el.parentElement;
-                }}
-            }}
-        }}
-        fitHeight();
-        window.addEventListener('load', fitHeight);
-        setTimeout(fitHeight, 50);
-        setTimeout(fitHeight, 200);
-        setTimeout(fitHeight, 600);
-        window.addEventListener('resize', fitHeight);
+        # // Resize iframe and all Streamlit parent wrappers to exact content height
+        # function fitHeight() {{
+        # var h = document.querySelector('.chat-container').scrollHeight;
+        # var frame = window.frameElement;
+        # if (frame) {{
+        # frame.style.height = h + 'px';
+        # // Walk up and resize all Streamlit wrapper divs up to 5 levels
+        # var el = frame.parentElement;
+        # for (var i = 0; i < 5 && el; i++) {{
+        # el.style.height = h + 'px';
+        # el = el.parentElement;
+        # }}
+        # }}
+        # }}
+        # fitHeight();
+        # window.addEventListener('load', fitHeight);
+        # setTimeout(fitHeight, 50);
+        # setTimeout(fitHeight, 200);
+        # setTimeout(fitHeight, 600);
+        # window.addEventListener('resize', fitHeight);
 
-        </script>
-        </body></html>
-        """
+        # </script>
+        # </body></html>
+        # """
 
-        components.html(roast_component_html, height=len(roasts) * 100, scrolling=False)
+        # components.html(roast_component_html, height=len(roasts) * 100, scrolling=False)
 
 
         # --- ggbump-style sigmoid helper ---
