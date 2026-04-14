@@ -3912,13 +3912,6 @@ with tab_dashboard:
             total_ret_html = format_signed_percent(total_return)
             total_ret_html = total_ret_html.replace('style="color:', 'style="font-weight:700;color:')
 
-            # vs 20d SMA
-            pv_sma = sig.get("price_vs_sma")
-            if pv_sma is not None:
-                pv_sma_cell = '<span style="color:#19a05f;">Above</span>' if pv_sma else '<span style="color:#d14a34;">Below</span>'
-            else:
-                pv_sma_cell = '<span style="color:var(--muted);">\u2014</span>'
-
             rows.append({
                 "Rank": f'<span style="display:inline-flex;align-items:center;gap:4px;white-space:nowrap;">{arrow} {rank}</span>',
                 "ETF": (lambda e: f'<span style="display:inline-block;padding:0.12rem 0.45rem;border-radius:6px;font-size:0.7rem;font-weight:700;'
