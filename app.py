@@ -3862,47 +3862,6 @@ with tab_dashboard:
             else:
                 arrow = '<span style="color:#102018;font-size:12px;display:inline-block;transform:rotate(90deg);">\u25b2</span>'
 
-            # Signal columns
-            sig = stock_signals.get(ticker, {}) if stock_signals else {}
-            rsi_val = sig.get("rsi")
-            if rsi_val is not None:
-                if rsi_val < 30:
-                    rsi_color = "#19a05f"
-                elif rsi_val > 70:
-                    rsi_color = "#d14a34"
-                else:
-                    rsi_color = "#d7a83a"
-                rsi_cell = (
-                    f'<div class="rsi-bar"><div class="rsi-bar-fill" style="width:{rsi_val}%;background:{rsi_color};"></div></div>'
-                    f' <span style="font-size:0.75rem;">{rsi_val}</span>'
-                )
-            else:
-                rsi_cell = '<span style="color:var(--muted);">\u2014</span>'
-
-            sma_cross = sig.get("sma_cross")
-            if sma_cross is not None:
-                sma_cell = '<span style="color:#19a05f;">\u2713 Bullish</span>' if sma_cross else '<span style="color:#d14a34;">\u2717 Bearish</span>'
-            else:
-                sma_cell = '<span style="color:var(--muted);">\u2014</span>'
-
-            signal_val = sig.get("signal", "")
-            prev_signal = sig.get("prev_signal")
-            change_date = sig.get("change_date")
-            if signal_val:
-                sig_class = f'signal-{signal_val.lower()}'
-                if prev_signal and prev_signal != signal_val and change_date:
-                    signal_cell = (
-                        f'<span style="display:flex;flex-direction:column;align-items:center;gap:1px;line-height:1.2;">'
-                        f'<span class="signal-badge {sig_class}">{signal_val}</span>'
-                        f'<span style="font-size:0.58rem;color:#5d6f65;white-space:nowrap;">'
-                        f'{prev_signal} \u2192 {signal_val} {change_date}'
-                        f'</span></span>'
-                    )
-                else:
-                    signal_cell = f'<span class="signal-badge {sig_class}">{signal_val}</span>'
-            else:
-                signal_cell = '<span style="color:var(--muted);">\u2014</span>'
-
             earn = earnings_data.get(ticker, {})
             earn_date = earn.get("next_date", "")
             eps_est = earn.get("eps_est")
