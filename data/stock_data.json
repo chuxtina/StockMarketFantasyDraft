@@ -1,5 +1,5 @@
 {
-  "last_updated": "2026-05-07T19:27:05.023824-04:00",
+  "last_updated": "2026-05-08T00:16:17.217078-04:00",
   "prices": {
     "AAPL": {
       "2026-03-06": 257.46,
@@ -1333,7 +1333,7 @@
       "2026-05-04": 64.924,
       "2026-05-05": 65.46,
       "2026-05-06": 68.49,
-      "2026-05-07": 67.9251
+      "2026-05-07": 67.925
     },
     "IONQ": {
       "2026-03-06": 35.73,
@@ -2115,7 +2115,7 @@
       "2026-05-04": 12.16,
       "2026-05-05": 12.1,
       "2026-05-06": 12.26,
-      "2026-05-07": 11.8
+      "2026-05-07": 11.78
     },
     "NVDA": {
       "2026-03-06": 177.8104,
@@ -3370,7 +3370,7 @@
     "HNST": 3.73,
     "IBM": 231.31,
     "INTC": 109.62,
-    "ION": 67.9251,
+    "ION": 67.925,
     "IONQ": 47.68,
     "IREN": 56.85,
     "JNJ": 222.51,
@@ -3387,7 +3387,7 @@
     "MU": 646.63,
     "NFLX": 88.25,
     "NOC": 552.27,
-    "NTDOY": 11.8,
+    "NTDOY": 11.78,
     "NVDA": 211.5,
     "NVO": 45.8,
     "ORCL": 194.59,
@@ -3894,7 +3894,7 @@
       "prev_signal": "SELL"
     },
     "NTDOY": {
-      "rsi": 17.2,
+      "rsi": 17.0,
       "signal": "HOLD",
       "score": -1,
       "sma_cross": false,
@@ -4129,22 +4129,6 @@
     }
   },
   "earnings": {
-    "AB": {
-      "next_date": "Jul 23",
-      "eps_est": 0.82,
-      "eps_actual": null,
-      "last_earnings_date": "Mar 26",
-      "last_eps_reported": 0.83,
-      "last_eps_estimate": 0.83
-    },
-    "ASTS": {
-      "next_date": "May 11",
-      "eps_est": -0.19,
-      "eps_actual": null,
-      "last_earnings_date": "Dec 25",
-      "last_eps_reported": -0.26,
-      "last_eps_estimate": -0.2
-    },
     "ARM": {
       "next_date": "Jul 29",
       "eps_est": 0.38,
@@ -4152,22 +4136,6 @@
       "last_earnings_date": "Mar 26",
       "last_eps_reported": 0.6,
       "last_eps_estimate": 0.58
-    },
-    "AAPL": {
-      "next_date": "Jul 30",
-      "eps_est": 1.89,
-      "eps_actual": null,
-      "last_earnings_date": "Mar 26",
-      "last_eps_reported": 2.01,
-      "last_eps_estimate": 1.94
-    },
-    "ALK": {
-      "next_date": "Apr 20",
-      "eps_est": -0.94,
-      "eps_actual": -1.68,
-      "last_earnings_date": "Mar 26",
-      "last_eps_reported": -1.68,
-      "last_eps_estimate": -1.59
     },
     "AMD": {
       "next_date": "Aug 04",
@@ -4177,21 +4145,29 @@
       "last_eps_reported": 1.37,
       "last_eps_estimate": 1.29
     },
-    "AMZN": {
-      "next_date": "Jul 30",
-      "eps_est": 1.82,
-      "eps_actual": null,
-      "last_earnings_date": "Mar 26",
-      "last_eps_reported": 2.78,
-      "last_eps_estimate": 1.65
+    "APLD": {
+      "next_date": "Apr 08",
+      "eps_est": null,
+      "eps_actual": 0.09,
+      "last_earnings_date": "Feb 26",
+      "last_eps_reported": 0.09,
+      "last_eps_estimate": -0.21
     },
-    "ASML": {
-      "next_date": "Jul 15",
-      "eps_est": 6.85,
+    "AB": {
+      "next_date": "Jul 23",
+      "eps_est": 0.82,
       "eps_actual": null,
       "last_earnings_date": "Mar 26",
-      "last_eps_reported": 7.15,
-      "last_eps_estimate": 6.62
+      "last_eps_reported": 0.83,
+      "last_eps_estimate": 0.83
+    },
+    "ALK": {
+      "next_date": "Apr 20",
+      "eps_est": -0.94,
+      "eps_actual": -1.68,
+      "last_earnings_date": "Mar 26",
+      "last_eps_reported": -1.68,
+      "last_eps_estimate": -1.59
     },
     "ANET": {
       "next_date": "Aug 04",
@@ -4201,21 +4177,29 @@
       "last_eps_reported": 0.87,
       "last_eps_estimate": 0.81
     },
-    "BRK-B": {
-      "next_date": "Aug 01",
-      "eps_est": 5.15,
+    "AMZN": {
+      "next_date": "Jul 30",
+      "eps_est": 1.82,
       "eps_actual": null,
       "last_earnings_date": "Mar 26",
-      "last_eps_reported": 5.26,
-      "last_eps_estimate": 5.05
+      "last_eps_reported": 2.78,
+      "last_eps_estimate": 1.65
     },
-    "APLD": {
-      "next_date": "Apr 08",
+    "AAPL": {
+      "next_date": "Jul 30",
+      "eps_est": 1.89,
+      "eps_actual": null,
+      "last_earnings_date": "Mar 26",
+      "last_eps_reported": 2.01,
+      "last_eps_estimate": 1.94
+    },
+    "ASTS": {
+      "next_date": "",
       "eps_est": null,
-      "eps_actual": 0.09,
-      "last_earnings_date": "Feb 26",
-      "last_eps_reported": 0.09,
-      "last_eps_estimate": -0.21
+      "eps_actual": null,
+      "last_earnings_date": "Dec 25",
+      "last_eps_reported": -0.26,
+      "last_eps_estimate": -0.2
     },
     "AVGO": {
       "next_date": "Jun 03",
@@ -4225,13 +4209,37 @@
       "last_eps_reported": 2.05,
       "last_eps_estimate": 2.02
     },
-    "COIN": {
-      "next_date": "May 07",
-      "eps_est": 0.04,
-      "eps_actual": -2.49,
-      "last_earnings_date": "Dec 25",
-      "last_eps_reported": -2.49,
-      "last_eps_estimate": 0.94
+    "CIFR": {
+      "next_date": "Aug 06",
+      "eps_est": -0.01,
+      "eps_actual": null,
+      "last_earnings_date": "Mar 26",
+      "last_eps_reported": -0.19,
+      "last_eps_estimate": -0.04
+    },
+    "ASML": {
+      "next_date": "Jul 15",
+      "eps_est": 6.85,
+      "eps_actual": null,
+      "last_earnings_date": "Mar 26",
+      "last_eps_reported": 7.15,
+      "last_eps_estimate": 6.62
+    },
+    "BRK-B": {
+      "next_date": "Aug 01",
+      "eps_est": 5.15,
+      "eps_actual": null,
+      "last_earnings_date": "Mar 26",
+      "last_eps_reported": 5.26,
+      "last_eps_estimate": 5.05
+    },
+    "COST": {
+      "next_date": "May 28",
+      "eps_est": 4.95,
+      "eps_actual": null,
+      "last_earnings_date": "Feb 26",
+      "last_eps_reported": 4.58,
+      "last_eps_estimate": 4.54
     },
     "CRWD": {
       "next_date": "Jun 03",
@@ -4241,21 +4249,13 @@
       "last_eps_reported": 1.12,
       "last_eps_estimate": 1.1
     },
-    "CIFR": {
-      "next_date": "Aug 06",
-      "eps_est": -0.01,
-      "eps_actual": null,
+    "COIN": {
+      "next_date": "May 07",
+      "eps_est": 0.48,
+      "eps_actual": -1.49,
       "last_earnings_date": "Mar 26",
-      "last_eps_reported": -0.19,
-      "last_eps_estimate": -0.04
-    },
-    "COST": {
-      "next_date": "May 28",
-      "eps_est": 4.95,
-      "eps_actual": null,
-      "last_earnings_date": "Feb 26",
-      "last_eps_reported": 4.58,
-      "last_eps_estimate": 4.54
+      "last_eps_reported": -1.49,
+      "last_eps_estimate": 0.04
     },
     "DASH": {
       "next_date": "May 06",
@@ -4289,6 +4289,22 @@
       "last_eps_reported": 0.16,
       "last_eps_estimate": 0.11
     },
+    "HNST": {
+      "next_date": "Aug 05",
+      "eps_est": 0.01,
+      "eps_actual": null,
+      "last_earnings_date": "Mar 26",
+      "last_eps_reported": 0.01,
+      "last_eps_estimate": 0.01
+    },
+    "HD": {
+      "next_date": "May 19",
+      "eps_est": 3.41,
+      "eps_actual": null,
+      "last_earnings_date": "Jan 26",
+      "last_eps_reported": 2.72,
+      "last_eps_estimate": 2.52
+    },
     "GD": {
       "next_date": "Jul 22",
       "eps_est": 3.94,
@@ -4313,6 +4329,14 @@
       "last_eps_reported": 0.08,
       "last_eps_estimate": 0.06
     },
+    "IONQ": {
+      "next_date": "Aug 05",
+      "eps_est": -0.28,
+      "eps_actual": null,
+      "last_earnings_date": "Mar 26",
+      "last_eps_reported": 2.07,
+      "last_eps_estimate": -0.52
+    },
     "IBM": {
       "next_date": "Jul 22",
       "eps_est": 3.03,
@@ -4320,22 +4344,6 @@
       "last_earnings_date": "Mar 26",
       "last_eps_reported": 1.91,
       "last_eps_estimate": 1.81
-    },
-    "HNST": {
-      "next_date": "Aug 05",
-      "eps_est": 0.01,
-      "eps_actual": null,
-      "last_earnings_date": "Mar 26",
-      "last_eps_reported": 0.01,
-      "last_eps_estimate": 0.01
-    },
-    "HD": {
-      "next_date": "May 19",
-      "eps_est": 3.41,
-      "eps_actual": null,
-      "last_earnings_date": "Jan 26",
-      "last_eps_reported": 2.72,
-      "last_eps_estimate": 2.52
     },
     "INTC": {
       "next_date": "Jul 23",
@@ -4353,13 +4361,13 @@
       "last_eps_reported": -0.03,
       "last_eps_estimate": -0.25
     },
-    "IONQ": {
-      "next_date": "Aug 05",
-      "eps_est": -0.28,
+    "LRCX": {
+      "next_date": "Jul 29",
+      "eps_est": 1.68,
       "eps_actual": null,
       "last_earnings_date": "Mar 26",
-      "last_eps_reported": 2.07,
-      "last_eps_estimate": -0.52
+      "last_eps_reported": 1.47,
+      "last_eps_estimate": 1.36
     },
     "JNJ": {
       "next_date": "Jul 15",
@@ -4369,29 +4377,13 @@
       "last_eps_reported": 2.7,
       "last_eps_estimate": 2.68
     },
-    "GLD": {
-      "next_date": "",
-      "eps_est": null,
-      "eps_actual": null,
-      "last_earnings_date": "",
-      "last_eps_reported": null,
-      "last_eps_estimate": null
-    },
-    "LRCX": {
-      "next_date": "Jul 29",
-      "eps_est": 1.68,
+    "LLY": {
+      "next_date": "Aug 05",
+      "eps_est": 8.75,
       "eps_actual": null,
       "last_earnings_date": "Mar 26",
-      "last_eps_reported": 1.47,
-      "last_eps_estimate": 1.36
-    },
-    "MAR": {
-      "next_date": "Aug 04",
-      "eps_est": 3.05,
-      "eps_actual": null,
-      "last_earnings_date": "Mar 26",
-      "last_eps_reported": 2.72,
-      "last_eps_estimate": 2.55
+      "last_eps_reported": 8.55,
+      "last_eps_estimate": 6.79
     },
     "LMT": {
       "next_date": "Jul 21",
@@ -4409,13 +4401,29 @@
       "last_eps_reported": 2.83,
       "last_eps_estimate": 2.74
     },
-    "MRNA": {
-      "next_date": "Jul 31",
-      "eps_est": -1.95,
-      "eps_actual": null,
+    "MELI": {
+      "next_date": "May 07",
+      "eps_est": 10.93,
+      "eps_actual": 8.23,
       "last_earnings_date": "Mar 26",
-      "last_eps_reported": -3.4,
-      "last_eps_estimate": -3.88
+      "last_eps_reported": 8.23,
+      "last_eps_estimate": 8.2
+    },
+    "GLD": {
+      "next_date": "",
+      "eps_est": null,
+      "eps_actual": null,
+      "last_earnings_date": "",
+      "last_eps_reported": null,
+      "last_eps_estimate": null
+    },
+    "ION": {
+      "next_date": "",
+      "eps_est": null,
+      "eps_actual": null,
+      "last_earnings_date": "",
+      "last_eps_reported": null,
+      "last_eps_estimate": null
     },
     "META": {
       "next_date": "Jul 29",
@@ -4425,21 +4433,13 @@
       "last_eps_reported": 10.44,
       "last_eps_estimate": 6.66
     },
-    "MELI": {
-      "next_date": "May 07",
-      "eps_est": 8.47,
-      "eps_actual": 11.03,
-      "last_earnings_date": "Dec 25",
-      "last_eps_reported": 11.03,
-      "last_eps_estimate": 11.44
-    },
-    "MSFT": {
-      "next_date": "Jul 29",
-      "eps_est": 4.25,
+    "MAR": {
+      "next_date": "Aug 04",
+      "eps_est": 3.05,
       "eps_actual": null,
       "last_earnings_date": "Mar 26",
-      "last_eps_reported": 4.27,
-      "last_eps_estimate": 4.06
+      "last_eps_reported": 2.72,
+      "last_eps_estimate": 2.55
     },
     "MSTR": {
       "next_date": "Jul 30",
@@ -4449,37 +4449,13 @@
       "last_eps_reported": -38.25,
       "last_eps_estimate": -18.98
     },
-    "LLY": {
-      "next_date": "Aug 05",
-      "eps_est": 8.75,
+    "MRNA": {
+      "next_date": "Jul 31",
+      "eps_est": -1.95,
       "eps_actual": null,
       "last_earnings_date": "Mar 26",
-      "last_eps_reported": 8.55,
-      "last_eps_estimate": 6.79
-    },
-    "MU": {
-      "next_date": "Jun 24",
-      "eps_est": 18.97,
-      "eps_actual": null,
-      "last_earnings_date": "Feb 26",
-      "last_eps_reported": 12.2,
-      "last_eps_estimate": 9.16
-    },
-    "NFLX": {
-      "next_date": "Jul 16",
-      "eps_est": 0.79,
-      "eps_actual": null,
-      "last_earnings_date": "Mar 26",
-      "last_eps_reported": 1.23,
-      "last_eps_estimate": 1.25
-    },
-    "NVO": {
-      "next_date": "Aug 05",
-      "eps_est": 5.19,
-      "eps_actual": null,
-      "last_earnings_date": "Mar 26",
-      "last_eps_reported": 6.63,
-      "last_eps_estimate": 6.96
+      "last_eps_reported": -3.4,
+      "last_eps_estimate": -3.88
     },
     "NOC": {
       "next_date": "Jul 21",
@@ -4489,13 +4465,21 @@
       "last_eps_reported": 6.14,
       "last_eps_estimate": 6.06
     },
-    "NVDA": {
-      "next_date": "May 20",
-      "eps_est": 1.77,
+    "MSFT": {
+      "next_date": "Jul 29",
+      "eps_est": 4.25,
       "eps_actual": null,
-      "last_earnings_date": "Jan 26",
-      "last_eps_reported": 1.62,
-      "last_eps_estimate": 1.54
+      "last_earnings_date": "Mar 26",
+      "last_eps_reported": 4.27,
+      "last_eps_estimate": 4.06
+    },
+    "NFLX": {
+      "next_date": "Jul 16",
+      "eps_est": 0.79,
+      "eps_actual": null,
+      "last_earnings_date": "Mar 26",
+      "last_eps_reported": 1.23,
+      "last_eps_estimate": 1.25
     },
     "NTDOY": {
       "next_date": "May 08",
@@ -4505,6 +4489,14 @@
       "last_eps_reported": null,
       "last_eps_estimate": null
     },
+    "MU": {
+      "next_date": "Jun 24",
+      "eps_est": 18.97,
+      "eps_actual": null,
+      "last_earnings_date": "Feb 26",
+      "last_eps_reported": 12.2,
+      "last_eps_estimate": 9.16
+    },
     "ORCL": {
       "next_date": "Jun 10",
       "eps_est": 1.96,
@@ -4513,21 +4505,13 @@
       "last_eps_reported": 1.79,
       "last_eps_estimate": 1.69
     },
-    "PG": {
-      "next_date": "Jul 29",
-      "eps_est": 1.42,
+    "NVDA": {
+      "next_date": "May 20",
+      "eps_est": 1.77,
       "eps_actual": null,
-      "last_earnings_date": "Mar 26",
-      "last_eps_reported": 1.59,
-      "last_eps_estimate": 1.56
-    },
-    "PLTR": {
-      "next_date": "Aug 03",
-      "eps_est": 0.34,
-      "eps_actual": null,
-      "last_earnings_date": "Mar 26",
-      "last_eps_reported": 0.33,
-      "last_eps_estimate": 0.28
+      "last_earnings_date": "Jan 26",
+      "last_eps_reported": 1.62,
+      "last_eps_estimate": 1.54
     },
     "PANW": {
       "next_date": "Jun 02",
@@ -4537,13 +4521,29 @@
       "last_eps_reported": 1.03,
       "last_eps_estimate": 0.94
     },
-    "ION": {
-      "next_date": "",
-      "eps_est": null,
+    "PLTR": {
+      "next_date": "Aug 03",
+      "eps_est": 0.34,
       "eps_actual": null,
-      "last_earnings_date": "",
-      "last_eps_reported": null,
-      "last_eps_estimate": null
+      "last_earnings_date": "Mar 26",
+      "last_eps_reported": 0.33,
+      "last_eps_estimate": 0.28
+    },
+    "PG": {
+      "next_date": "Jul 29",
+      "eps_est": 1.42,
+      "eps_actual": null,
+      "last_earnings_date": "Mar 26",
+      "last_eps_reported": 1.59,
+      "last_eps_estimate": 1.56
+    },
+    "NVO": {
+      "next_date": "Aug 05",
+      "eps_est": 5.19,
+      "eps_actual": null,
+      "last_earnings_date": "Mar 26",
+      "last_eps_reported": 6.63,
+      "last_eps_estimate": 6.96
     },
     "RBLX": {
       "next_date": "Jul 30",
@@ -4577,13 +4577,13 @@
       "last_eps_reported": 1.78,
       "last_eps_estimate": 1.52
     },
-    "TGT": {
-      "next_date": "May 20",
-      "eps_est": 1.36,
+    "SVNDY": {
+      "next_date": "Jul 09",
+      "eps_est": null,
       "eps_actual": null,
-      "last_earnings_date": "Jan 26",
-      "last_eps_reported": 2.44,
-      "last_eps_estimate": 2.16
+      "last_earnings_date": "",
+      "last_eps_reported": null,
+      "last_eps_estimate": null
     },
     "STX": {
       "next_date": "Jul 28",
@@ -4593,21 +4593,13 @@
       "last_eps_reported": 4.1,
       "last_eps_estimate": 3.52
     },
-    "TER": {
-      "next_date": "Apr 28",
-      "eps_est": 2.04,
-      "eps_actual": 2.56,
-      "last_earnings_date": "Mar 26",
-      "last_eps_reported": 2.56,
-      "last_eps_estimate": 2.12
-    },
-    "SVNDY": {
-      "next_date": "Jul 09",
-      "eps_est": null,
+    "TGT": {
+      "next_date": "May 20",
+      "eps_est": 1.36,
       "eps_actual": null,
-      "last_earnings_date": "",
-      "last_eps_reported": null,
-      "last_eps_estimate": null
+      "last_earnings_date": "Jan 26",
+      "last_eps_reported": 2.44,
+      "last_eps_estimate": 2.16
     },
     "TPL": {
       "next_date": "Aug 05",
@@ -4616,6 +4608,14 @@
       "last_earnings_date": "Mar 26",
       "last_eps_reported": 2.07,
       "last_eps_estimate": 2.02
+    },
+    "TER": {
+      "next_date": "Apr 28",
+      "eps_est": 2.04,
+      "eps_actual": 2.56,
+      "last_earnings_date": "Mar 26",
+      "last_eps_reported": 2.56,
+      "last_eps_estimate": 2.12
     },
     "TSM": {
       "next_date": "Jul 16",
@@ -4641,13 +4641,13 @@
       "last_eps_reported": null,
       "last_eps_estimate": null
     },
-    "UNH": {
-      "next_date": "Jul 28",
-      "eps_est": 4.85,
+    "XOM": {
+      "next_date": "Jul 31",
+      "eps_est": 3.67,
       "eps_actual": null,
       "last_earnings_date": "Mar 26",
-      "last_eps_reported": 7.23,
-      "last_eps_estimate": 6.6
+      "last_eps_reported": 1.16,
+      "last_eps_estimate": 1.01
     },
     "PPLT": {
       "next_date": "",
@@ -4665,6 +4665,14 @@
       "last_eps_reported": 0.74,
       "last_eps_estimate": 0.73
     },
+    "WDAY": {
+      "next_date": "May 21",
+      "eps_est": 2.52,
+      "eps_actual": null,
+      "last_earnings_date": "Jan 26",
+      "last_eps_reported": 2.47,
+      "last_eps_estimate": 2.32
+    },
     "WM": {
       "next_date": "Jul 27",
       "eps_est": 1.99,
@@ -4681,85 +4689,43 @@
       "last_eps_reported": 2.72,
       "last_eps_estimate": 2.39
     },
-    "XOM": {
-      "next_date": "Jul 31",
-      "eps_est": 3.67,
+    "UNH": {
+      "next_date": "Jul 28",
+      "eps_est": 4.85,
       "eps_actual": null,
       "last_earnings_date": "Mar 26",
-      "last_eps_reported": 1.16,
-      "last_eps_estimate": 1.01
-    },
-    "WDAY": {
-      "next_date": "May 21",
-      "eps_est": 2.52,
-      "eps_actual": null,
-      "last_earnings_date": "Jan 26",
-      "last_eps_reported": 2.47,
-      "last_eps_estimate": 2.32
+      "last_eps_reported": 7.23,
+      "last_eps_estimate": 6.6
     }
   },
   "news": {
-    "ANET": [
+    "APLD": [
       {
-        "title": "How To Use IBD Sector Leaders Screen To Buy Stock Market Leaders On Pullbacks",
-        "publisher": "Investor's Business Daily",
-        "link": "https://www.investors.com/how-to-invest/investors-corner/stock-market-leaders-pullbacks-sector-leaders/?src=A00220&yptr=yahoo",
-        "providerPublishTime": "2026-05-07T19:50:58Z"
-      },
-      {
-        "title": "Ignore the Sell-Off in Arista Networks Stock. Analysts Still Think ANET Can Gain 36% from Here.",
+        "title": "CHRN Stock Just Started Trading as Applied Digital Spins Off ChronoScale. How to Play Shares Here.",
         "publisher": "Barchart",
-        "link": "https://www.barchart.com/story/news/1778978/ignore-the-sell-off-in-arista-networks-stock-analysts-still-think-anet-can-gain-36-from-here",
-        "providerPublishTime": "2026-05-07T17:00:00Z"
+        "link": "https://www.barchart.com/story/news/1786244/chrn-stock-just-started-trading-as-applied-digital-spins-off-chronoscale-how-to-play-shares-here",
+        "providerPublishTime": "2026-05-07T20:56:56Z"
       },
       {
-        "title": "The New York Times Q1 Earnings Beat on Digital Ads, Subscriber Growth",
-        "publisher": "Zacks",
-        "link": "https://finance.yahoo.com/markets/stocks/articles/york-times-q1-earnings-beat-150100437.html",
-        "providerPublishTime": "2026-05-07T15:01:00Z"
-      }
-    ],
-    "AMZN": [
-      {
-        "title": "Anthropic taps SpaceX data center for AI compute power",
-        "publisher": "Yahoo Finance Video",
-        "link": "https://finance.yahoo.com/video/anthropic-taps-spacex-data-center-for-ai-compute-power-195430868.html",
-        "providerPublishTime": "2026-05-07T19:54:30Z"
+        "title": "Applied Digital Spins Off ChronoScale Refocuses On AI Hosting And Value",
+        "publisher": "Simply Wall St.",
+        "link": "https://finance.yahoo.com/markets/stocks/articles/applied-digital-spins-off-chronoscale-044038514.html",
+        "providerPublishTime": "2026-05-06T04:40:38Z"
       },
       {
-        "title": "Apple helps 'Magnificent 7' shake off its bear market scare",
-        "publisher": "Yahoo Finance",
-        "link": "https://finance.yahoo.com/markets/article/apple-helps-magnificent-7-shake-off-its-bear-market-scare-162134523.html",
-        "providerPublishTime": "2026-05-07T16:21:34Z"
-      },
-      {
-        "title": "NVIDIA Corporation (NVDA): Should Not Be Touched?",
+        "title": "Applied Digital (APLD) Completes Cloud, Data Center Separation, Soars 12%",
         "publisher": "Insider Monkey",
-        "link": "https://finance.yahoo.com/markets/stocks/articles/nvidia-corporation-nvda-not-touched-224538160.html",
-        "providerPublishTime": "2026-05-07T22:45:38Z"
-      }
-    ],
-    "AB": [
-      {
-        "title": "Is AllianceBernstein (AB) Fairly Priced After Recent Multi\u2011Year Share Price Gains?",
-        "publisher": "Simply Wall St.",
-        "link": "https://finance.yahoo.com/markets/stocks/articles/alliancebernstein-ab-fairly-priced-recent-121204494.html",
-        "providerPublishTime": "2026-05-07T12:12:04Z"
-      },
-      {
-        "title": "New Strong Sell Stocks for May 7th",
-        "publisher": "Zacks",
-        "link": "https://finance.yahoo.com/markets/stocks/articles/strong-sell-stocks-may-7th-090200744.html",
-        "providerPublishTime": "2026-05-07T09:02:00Z"
-      },
-      {
-        "title": "What AllianceBernstein Holding (AB)'s Earnings Beat and Payout Cut Means For Shareholders",
-        "publisher": "Simply Wall St.",
-        "link": "https://finance.yahoo.com/markets/stocks/articles/alliancebernstein-holding-ab-earnings-beat-171822558.html",
-        "providerPublishTime": "2026-05-06T17:18:22Z"
+        "link": "https://finance.yahoo.com/markets/stocks/articles/applied-digital-apld-completes-cloud-012341253.html",
+        "providerPublishTime": "2026-05-06T01:23:41Z"
       }
     ],
     "ASML": [
+      {
+        "title": "ASML CEO Says Jensen Huang 'Totally Right' On Exporting Products With An Eight-Generation Gap\u2014 Denies Top Chip Access To China",
+        "publisher": "Benzinga",
+        "link": "https://finance.yahoo.com/sectors/technology/articles/asml-ceo-says-jensen-huang-223114497.html",
+        "providerPublishTime": "2026-05-07T22:31:14Z"
+      },
       {
         "title": "Exclusive-SK Hynix flooded with unprecedented offers from big tech firms to secure chip supplies",
         "publisher": "Reuters",
@@ -4771,32 +4737,6 @@
         "publisher": "Investing.com",
         "link": "https://finance.yahoo.com/markets/stocks/articles/asml-reap-benefits-demand-low-191813993.html",
         "providerPublishTime": "2026-05-07T19:18:13Z"
-      },
-      {
-        "title": "Seaport Research Initiates Coverage of Applied Materials (AMAT) with Buy",
-        "publisher": "Insider Monkey",
-        "link": "https://finance.yahoo.com/markets/stocks/articles/seaport-research-initiates-coverage-applied-131218211.html",
-        "providerPublishTime": "2026-05-07T13:12:18Z"
-      }
-    ],
-    "ARM": [
-      {
-        "title": "Earnings live updates: Airbnb raises revenue forecast, even as Iran war weighs on some markets",
-        "publisher": "Yahoo Finance",
-        "link": "https://finance.yahoo.com/markets/live/earnings-live-updates-sp-500-earnings-growth-trend-impresses-100000216.html",
-        "providerPublishTime": "2026-05-04T10:00:00Z"
-      },
-      {
-        "title": "Why Arm Holdings stock is sinking",
-        "publisher": "Yahoo Finance",
-        "link": "https://finance.yahoo.com/markets/article/why-arm-holdings-stock-is-sinking-123338028.html",
-        "providerPublishTime": "2026-05-07T12:33:38Z"
-      },
-      {
-        "title": "Wall Street ends lower as chip stocks give up gains",
-        "publisher": "Reuters Videos",
-        "link": "https://finance.yahoo.com/video/wall-street-ends-lower-chip-222649552.html",
-        "providerPublishTime": "2026-05-07T22:26:49Z"
       }
     ],
     "ALK": [
@@ -4819,24 +4759,64 @@
         "providerPublishTime": "2026-05-02T18:14:21Z"
       }
     ],
-    "AAPL": [
+    "AMD": [
       {
-        "title": "Trump meets with Brazil's Lula to talk trade, extends EU tariff deadline",
-        "publisher": "Yahoo Finance Video",
-        "link": "https://finance.yahoo.com/video/trump-meets-with-brazils-lula-to-talk-trade-extends-eu-tariff-deadline-210415936.html",
-        "providerPublishTime": "2026-05-07T21:04:15Z"
+        "title": "Earnings live updates: Airbnb raises revenue forecast, even as Iran war weighs on some markets",
+        "publisher": "Yahoo Finance",
+        "link": "https://finance.yahoo.com/markets/live/earnings-live-updates-sp-500-earnings-growth-trend-impresses-100000216.html",
+        "providerPublishTime": "2026-05-04T10:00:00Z"
       },
       {
-        "title": "Stocks take a breather after reaching record highs",
-        "publisher": "Yahoo Finance Video",
-        "link": "https://finance.yahoo.com/video/stocks-take-a-breather-after-reaching-record-highs-194454152.html",
-        "providerPublishTime": "2026-05-07T19:44:54Z"
+        "title": "Bernstein sets eye-popping AMD stock price target after earnings",
+        "publisher": "TheStreet",
+        "link": "https://www.thestreet.com/investing/stocks/bernstein-sets-eye-popping-amd-stock-price-target-after-earnings",
+        "providerPublishTime": "2026-05-08T02:33:00Z"
       },
       {
-        "title": "Apple Legal Challenges Put App Store Power And AI Claims In Focus",
+        "title": "A Look At Rackspace Technology (RXT) Valuation As AI Pivot And Q1 2026 Profit Draw Market Attention",
         "publisher": "Simply Wall St.",
-        "link": "https://finance.yahoo.com/markets/stocks/articles/apple-legal-challenges-put-app-221910581.html",
-        "providerPublishTime": "2026-05-07T22:19:10Z"
+        "link": "https://finance.yahoo.com/markets/stocks/articles/look-rackspace-technology-rxt-valuation-021058810.html",
+        "providerPublishTime": "2026-05-08T02:10:58Z"
+      }
+    ],
+    "ANET": [
+      {
+        "title": "How To Use IBD Sector Leaders Screen To Buy Stock Market Leaders On Pullbacks",
+        "publisher": "Investor's Business Daily",
+        "link": "https://www.investors.com/how-to-invest/investors-corner/stock-market-leaders-pullbacks-sector-leaders/?src=A00220&yptr=yahoo",
+        "providerPublishTime": "2026-05-07T19:50:58Z"
+      },
+      {
+        "title": "Ignore the Sell-Off in Arista Networks Stock. Analysts Still Think ANET Can Gain 36% from Here.",
+        "publisher": "Barchart",
+        "link": "https://www.barchart.com/story/news/1778978/ignore-the-sell-off-in-arista-networks-stock-analysts-still-think-anet-can-gain-36-from-here",
+        "providerPublishTime": "2026-05-07T17:00:00Z"
+      },
+      {
+        "title": "The New York Times Q1 Earnings Beat on Digital Ads, Subscriber Growth",
+        "publisher": "Zacks",
+        "link": "https://finance.yahoo.com/markets/stocks/articles/york-times-q1-earnings-beat-150100437.html",
+        "providerPublishTime": "2026-05-07T15:01:00Z"
+      }
+    ],
+    "ARM": [
+      {
+        "title": "Earnings live updates: Airbnb raises revenue forecast, even as Iran war weighs on some markets",
+        "publisher": "Yahoo Finance",
+        "link": "https://finance.yahoo.com/markets/live/earnings-live-updates-sp-500-earnings-growth-trend-impresses-100000216.html",
+        "providerPublishTime": "2026-05-04T10:00:00Z"
+      },
+      {
+        "title": "Why Arm Holdings stock is sinking",
+        "publisher": "Yahoo Finance",
+        "link": "https://finance.yahoo.com/markets/article/why-arm-holdings-stock-is-sinking-123338028.html",
+        "providerPublishTime": "2026-05-07T12:33:38Z"
+      },
+      {
+        "title": "Wall Street ends lower as chip stocks give up gains",
+        "publisher": "Reuters Videos",
+        "link": "https://finance.yahoo.com/video/wall-street-ends-lower-chip-222649552.html",
+        "providerPublishTime": "2026-05-07T22:26:49Z"
       }
     ],
     "ASTS": [
@@ -4859,24 +4839,24 @@
         "providerPublishTime": "2026-05-07T11:22:28Z"
       }
     ],
-    "AMD": [
+    "AB": [
       {
-        "title": "Earnings live updates: Airbnb raises revenue forecast, even as Iran war weighs on some markets",
-        "publisher": "Yahoo Finance",
-        "link": "https://finance.yahoo.com/markets/live/earnings-live-updates-sp-500-earnings-growth-trend-impresses-100000216.html",
-        "providerPublishTime": "2026-05-04T10:00:00Z"
+        "title": "Is AllianceBernstein (AB) Fairly Priced After Recent Multi\u2011Year Share Price Gains?",
+        "publisher": "Simply Wall St.",
+        "link": "https://finance.yahoo.com/markets/stocks/articles/alliancebernstein-ab-fairly-priced-recent-121204494.html",
+        "providerPublishTime": "2026-05-07T12:12:04Z"
       },
       {
-        "title": "Wall Street ends lower as chip stocks give up gains",
-        "publisher": "Reuters Videos",
-        "link": "https://finance.yahoo.com/video/wall-street-ends-lower-chip-222649552.html",
-        "providerPublishTime": "2026-05-07T22:26:49Z"
+        "title": "New Strong Sell Stocks for May 7th",
+        "publisher": "Zacks",
+        "link": "https://finance.yahoo.com/markets/stocks/articles/strong-sell-stocks-may-7th-090200744.html",
+        "providerPublishTime": "2026-05-07T09:02:00Z"
       },
       {
-        "title": "Tech Stocks Face a New AI Hurdle: A Widespread Components Shortage",
-        "publisher": "Barrons.com",
-        "link": "https://www.barrons.com/articles/tech-stocks-face-ai-hurdle-components-shortage-a1463aa5?siteid=yhoof2&yptr=yahoo",
-        "providerPublishTime": "2026-05-07T21:47:00Z"
+        "title": "What AllianceBernstein Holding (AB)'s Earnings Beat and Payout Cut Means For Shareholders",
+        "publisher": "Simply Wall St.",
+        "link": "https://finance.yahoo.com/markets/stocks/articles/alliancebernstein-holding-ab-earnings-beat-171822558.html",
+        "providerPublishTime": "2026-05-06T17:18:22Z"
       }
     ],
     "AVGO": [
@@ -4887,56 +4867,16 @@
         "providerPublishTime": "2026-05-04T10:00:00Z"
       },
       {
-        "title": "My Top 2 Semiconductor Stocks Benefiting From the AI Boom to Buy in May 2026",
-        "publisher": "Motley Fool",
-        "link": "https://www.fool.com/investing/2026/05/07/my-top-semiconductor-stocks-benefiting-ai-boom/",
-        "providerPublishTime": "2026-05-07T22:02:00Z"
-      },
-      {
-        "title": "These 3 Dividend Paying Tech Stocks Offer AI Exposure",
-        "publisher": "Zacks",
-        "link": "https://finance.yahoo.com/markets/stocks/articles/3-dividend-paying-tech-stocks-203800811.html",
-        "providerPublishTime": "2026-05-07T20:38:00Z"
-      }
-    ],
-    "BRK-B": [
-      {
-        "title": "Warren Buffett\u2019s 1992 \u2018Kamikaze Pricing\u2019 warning came true at 3 a.m. on May 2",
-        "publisher": "24/7 Wall St.",
-        "link": "https://247wallst.com/investing/2026/05/07/warren-buffetts-1992-kamikaze-pricing-warning-came-true-at-3-a-m-on-may-2/",
-        "providerPublishTime": "2026-05-07T20:43:18Z"
-      },
-      {
-        "title": "Berkshire Insider Buys Stock. It Wasn\u2019t New CEO Greg Abel.",
-        "publisher": "Barrons.com",
-        "link": "https://www.barrons.com/articles/berkshire-insider-buys-stock-34eb6444?siteid=yhoof2&yptr=yahoo",
-        "providerPublishTime": "2026-05-07T13:28:00Z"
-      },
-      {
-        "title": "Berkshire's 23-Year S&P 500 Drought Puts Abel's AI Test In Focus",
-        "publisher": "GuruFocus.com",
-        "link": "https://finance.yahoo.com/markets/stocks/articles/berkshires-23-p-500-drought-121255744.html",
-        "providerPublishTime": "2026-05-07T12:12:55Z"
-      }
-    ],
-    "APLD": [
-      {
-        "title": "Applied Digital Spins Off ChronoScale Refocuses On AI Hosting And Value",
+        "title": "Broadcom OpenAI Financing Snag Puts AI Growth And Valuation In Focus",
         "publisher": "Simply Wall St.",
-        "link": "https://finance.yahoo.com/markets/stocks/articles/applied-digital-spins-off-chronoscale-044038514.html",
-        "providerPublishTime": "2026-05-06T04:40:38Z"
+        "link": "https://finance.yahoo.com/markets/stocks/articles/broadcom-openai-financing-snag-puts-231703156.html",
+        "providerPublishTime": "2026-05-07T23:17:03Z"
       },
       {
-        "title": "Applied Digital (APLD) Completes Cloud, Data Center Separation, Soars 12%",
-        "publisher": "Insider Monkey",
-        "link": "https://finance.yahoo.com/markets/stocks/articles/applied-digital-apld-completes-cloud-012341253.html",
-        "providerPublishTime": "2026-05-06T01:23:41Z"
-      },
-      {
-        "title": "Applied Digital Forms New Company to Boost AI-Cloud Business",
-        "publisher": "IPO-Edge.com",
-        "link": "https://finance.yahoo.com/sectors/technology/articles/applied-digital-forms-company-boost-222051034.html",
-        "providerPublishTime": "2026-05-05T22:20:51Z"
+        "title": "Synaptics (SYNA) Beats Q3 Earnings and Revenue Estimates",
+        "publisher": "Zacks",
+        "link": "https://finance.yahoo.com/markets/stocks/articles/synaptics-syna-beats-q3-earnings-230511727.html",
+        "providerPublishTime": "2026-05-07T23:05:11Z"
       }
     ],
     "COIN": [
@@ -4953,10 +4893,10 @@
         "providerPublishTime": "2026-05-06T20:18:39Z"
       },
       {
-        "title": "Coinbase Global, Inc. (COIN) Reports Q1 Loss, Lags Revenue Estimates",
-        "publisher": "Zacks",
-        "link": "https://finance.yahoo.com/markets/stocks/articles/coinbase-global-inc-coin-reports-215504849.html",
-        "providerPublishTime": "2026-05-07T21:55:04Z"
+        "title": "Coinbase Global Q1 Earnings Call Highlights",
+        "publisher": "MarketBeat",
+        "link": "https://www.marketbeat.com/instant-alerts/coinbase-global-q1-earnings-call-highlights-2026-05-07/?utm_source=yahoofinance&utm_medium=yahoofinance",
+        "providerPublishTime": "2026-05-08T00:38:32Z"
       }
     ],
     "CRWD": [
@@ -4979,6 +4919,46 @@
         "providerPublishTime": "2026-05-07T12:34:30Z"
       }
     ],
+    "BRK-B": [
+      {
+        "title": "Warren Buffett\u2019s 1992 \u2018Kamikaze Pricing\u2019 warning came true at 3 a.m. on May 2",
+        "publisher": "24/7 Wall St.",
+        "link": "https://247wallst.com/investing/2026/05/07/warren-buffetts-1992-kamikaze-pricing-warning-came-true-at-3-a-m-on-may-2/",
+        "providerPublishTime": "2026-05-07T20:43:18Z"
+      },
+      {
+        "title": "Berkshire Insider Buys Stock. It Wasn\u2019t New CEO Greg Abel.",
+        "publisher": "Barrons.com",
+        "link": "https://www.barrons.com/articles/berkshire-insider-buys-stock-34eb6444?siteid=yhoof2&yptr=yahoo",
+        "providerPublishTime": "2026-05-07T13:28:00Z"
+      },
+      {
+        "title": "Berkshire's 23-Year S&P 500 Drought Puts Abel's AI Test In Focus",
+        "publisher": "GuruFocus.com",
+        "link": "https://finance.yahoo.com/markets/stocks/articles/berkshires-23-p-500-drought-121255744.html",
+        "providerPublishTime": "2026-05-07T12:12:55Z"
+      }
+    ],
+    "DASH": [
+      {
+        "title": "Lyft Revenue Rises as Partnerships Boost Rides Growth",
+        "publisher": "The Wall Street Journal",
+        "link": "https://www.wsj.com/business/earnings/lyft-revenue-rises-as-partnerships-boost-rides-growth-f8f9b969?siteid=yhoof2&yptr=yahoo",
+        "providerPublishTime": "2026-05-07T22:46:00Z"
+      },
+      {
+        "title": "Stocks to Watch Recap: Whirlpool, DoorDash, Arm, Airbnb",
+        "publisher": "The Wall Street Journal",
+        "link": "https://www.wsj.com/livecoverage/stock-market-today-dow-sp-500-nasdaq-05-07-2026/card/stocks-to-watch-whirlpool-snap-arm-mcdonald-s-GLooJEy1Uvr2bJDrEVh3?siteid=yhoof2&yptr=yahoo",
+        "providerPublishTime": "2026-05-07T20:22:27Z"
+      },
+      {
+        "title": "DoorDash Q1 Earnings Top Estimates, Revenues Increase Y/Y, Shares Up",
+        "publisher": "Zacks",
+        "link": "https://finance.yahoo.com/markets/stocks/articles/doordash-q1-earnings-top-estimates-180900576.html",
+        "providerPublishTime": "2026-05-07T18:09:00Z"
+      }
+    ],
     "COST": [
       {
         "title": "How AI is changing the grocery store",
@@ -4987,56 +4967,16 @@
         "providerPublishTime": "2026-05-07T10:00:00Z"
       },
       {
-        "title": "Costco April sales top expectations despite Easter shift, macroeconomic uncertainty",
-        "publisher": "Proactive",
-        "link": "https://www.proactiveinvestors.com/companies/news/1091930/costco-april-sales-top-expectations-despite-easter-shift-macroeconomic-uncertainty-1091930.html",
-        "providerPublishTime": "2026-05-07T19:55:00Z"
+        "title": "Costco vs. McDonald's: Which Dividend Stock Is a Better Buy?",
+        "publisher": "Motley Fool",
+        "link": "https://www.fool.com/investing/2026/05/07/costco-vs-mcdonalds-which-dividend-stock-is-a-bett/",
+        "providerPublishTime": "2026-05-08T02:11:00Z"
       },
       {
-        "title": "APR Targets 3,200 Walmart Stores As Medicube Retail Push Accelerates",
-        "publisher": "GuruFocus.com",
-        "link": "https://finance.yahoo.com/markets/stocks/articles/apr-targets-3-200-walmart-184934117.html",
-        "providerPublishTime": "2026-05-07T18:49:34Z"
-      }
-    ],
-    "DUOL": [
-      {
-        "title": "Did Duolingo\u2019s (DUOL) AI-Focused 2026 \u201cInvestment Year\u201d Just Reframe Its Growth Trade-Offs?",
-        "publisher": "Simply Wall St.",
-        "link": "https://finance.yahoo.com/markets/stocks/articles/did-duolingo-duol-ai-focused-221624464.html",
-        "providerPublishTime": "2026-05-06T22:16:24Z"
-      },
-      {
-        "title": "DUOL Stock: Should Investors Buy After the 79% One-Year Drop?",
-        "publisher": "Zacks",
-        "link": "https://finance.yahoo.com/markets/stocks/articles/duol-stock-investors-buy-79-174700651.html",
-        "providerPublishTime": "2026-05-06T17:47:00Z"
-      },
-      {
-        "title": "DUOL Stock: Is Duolingo Building a High-Quality Monetization Engine?",
-        "publisher": "Zacks",
-        "link": "https://finance.yahoo.com/markets/stocks/articles/duol-stock-duolingo-building-high-173800768.html",
-        "providerPublishTime": "2026-05-06T17:38:00Z"
-      }
-    ],
-    "ENLT": [
-      {
-        "title": "Sector Update: Energy Stocks Higher Late Afternoon",
-        "publisher": "MT Newswires",
-        "link": "https://finance.yahoo.com/sectors/energy/articles/sector-energy-stocks-higher-afternoon-200411184.html",
-        "providerPublishTime": "2026-05-05T20:04:11Z"
-      },
-      {
-        "title": "Sector Update: Energy Stocks Rise Tuesday Afternoon",
-        "publisher": "MT Newswires",
-        "link": "https://finance.yahoo.com/sectors/energy/articles/sector-energy-stocks-rise-tuesday-180658110.html",
-        "providerPublishTime": "2026-05-05T18:06:58Z"
-      },
-      {
-        "title": "Enlight Renewable Energy Q1 Earnings Call Highlights",
-        "publisher": "MarketBeat",
-        "link": "https://www.marketbeat.com/instant-alerts/enlight-renewable-energy-q1-earnings-call-highlights-2026-05-05/?utm_source=yahoofinance&utm_medium=yahoofinance",
-        "providerPublishTime": "2026-05-05T15:47:03Z"
+        "title": "JPMorgan Urges Caution on Prediction Markets While Allowing Employees to Trade Them",
+        "publisher": "Barrons.com",
+        "link": "https://www.barrons.com/articles/jpmorgan-prediction-markets-kalshi-polymarket-0ed2457c?siteid=yhoof2&yptr=yahoo",
+        "providerPublishTime": "2026-05-08T01:50:00Z"
       }
     ],
     "CIFR": [
@@ -5067,59 +5007,19 @@
         "providerPublishTime": "2026-05-04T10:00:00Z"
       },
       {
+        "title": "Is Disney Stock a Buy After Strong Q2 Results Under New Leadership?",
+        "publisher": "Zacks",
+        "link": "https://finance.yahoo.com/markets/stocks/articles/disney-stock-buy-strong-q2-230200235.html",
+        "providerPublishTime": "2026-05-07T23:02:00Z"
+      },
+      {
         "title": "Disney looking to make a unified \u2018super app,\u2019 report says",
         "publisher": "TechCrunch",
         "link": "https://finance.yahoo.com/sectors/technology/articles/disney-looking-unified-super-app-214010619.html",
         "providerPublishTime": "2026-05-07T21:40:10Z"
-      },
-      {
-        "title": "Bath & Body Works Taps Star Wars Tie In To Reignite Investor Interest",
-        "publisher": "Simply Wall St.",
-        "link": "https://finance.yahoo.com/markets/stocks/articles/bath-body-works-taps-star-181956093.html",
-        "providerPublishTime": "2026-05-07T18:19:56Z"
       }
     ],
-    "DASH": [
-      {
-        "title": "Stocks to Watch Recap: Whirlpool, DoorDash, Arm, Airbnb",
-        "publisher": "The Wall Street Journal",
-        "link": "https://www.wsj.com/livecoverage/stock-market-today-dow-sp-500-nasdaq-05-07-2026/card/stocks-to-watch-whirlpool-snap-arm-mcdonald-s-GLooJEy1Uvr2bJDrEVh3?siteid=yhoof2&yptr=yahoo",
-        "providerPublishTime": "2026-05-07T20:22:27Z"
-      },
-      {
-        "title": "Lyft Revenue Rises as Partnerships Boost Rides Growth",
-        "publisher": "The Wall Street Journal",
-        "link": "https://www.wsj.com/business/earnings/lyft-revenue-rises-as-partnerships-boost-rides-growth-f8f9b969?siteid=yhoof2&yptr=yahoo",
-        "providerPublishTime": "2026-05-07T20:17:00Z"
-      },
-      {
-        "title": "DoorDash Q1 Earnings Top Estimates, Revenues Increase Y/Y, Shares Up",
-        "publisher": "Zacks",
-        "link": "https://finance.yahoo.com/markets/stocks/articles/doordash-q1-earnings-top-estimates-180900576.html",
-        "providerPublishTime": "2026-05-07T18:09:00Z"
-      }
-    ],
-    "GLD": [
-      {
-        "title": "iShares Gold Trust vs SPDR Gold Trust: The 0.15% Fee Gap That Matters More Than You Think",
-        "publisher": "24/7 Wall St.",
-        "link": "https://247wallst.com/investing/2026/05/07/ishares-gold-trust-vs-spdr-gold-trust-the-0-15-fee-gap-that-matters-more-than-you-think/",
-        "providerPublishTime": "2026-05-07T21:46:58Z"
-      },
-      {
-        "title": "Gold Surges Past $4,770 as Geopolitical Optimism Cools Inflation Fears",
-        "publisher": "24/7 Wall St.",
-        "link": "https://247wallst.com/investing/2026/05/07/gold-surges-past-4750-as-geopolitical-optimism-cools-inflation-fears/",
-        "providerPublishTime": "2026-05-07T15:05:22Z"
-      },
-      {
-        "title": "Gold Rises Again on Prospects the Iran War is Nearing an End",
-        "publisher": "MT Newswires",
-        "link": "https://finance.yahoo.com/markets/commodities/articles/gold-rises-again-prospects-iran-131530069.html",
-        "providerPublishTime": "2026-05-07T13:15:30Z"
-      }
-    ],
-    "GOOG": [
+    "AMZN": [
       {
         "title": "Anthropic taps SpaceX data center for AI compute power",
         "publisher": "Yahoo Finance Video",
@@ -5127,56 +5027,36 @@
         "providerPublishTime": "2026-05-07T19:54:30Z"
       },
       {
-        "title": "Stocks take a breather after reaching record highs",
-        "publisher": "Yahoo Finance Video",
-        "link": "https://finance.yahoo.com/video/stocks-take-a-breather-after-reaching-record-highs-194454152.html",
-        "providerPublishTime": "2026-05-07T19:44:54Z"
+        "title": "Apple helps 'Magnificent 7' shake off its bear market scare",
+        "publisher": "Yahoo Finance",
+        "link": "https://finance.yahoo.com/markets/article/apple-helps-magnificent-7-shake-off-its-bear-market-scare-162134523.html",
+        "providerPublishTime": "2026-05-07T16:21:34Z"
       },
       {
-        "title": "NVIDIA Corporation (NVDA): Should Not Be Touched?",
-        "publisher": "Insider Monkey",
-        "link": "https://finance.yahoo.com/markets/stocks/articles/nvidia-corporation-nvda-not-touched-224538160.html",
-        "providerPublishTime": "2026-05-07T22:45:38Z"
-      }
-    ],
-    "HD": [
-      {
-        "title": "BofA sees more room for Home Depot shares",
-        "publisher": "TheStreet",
-        "link": "https://www.thestreet.com/investing/stocks/bofa-sees-growth-for-home-depot-shares",
-        "providerPublishTime": "2026-05-07T17:47:00Z"
-      },
-      {
-        "title": "Home Depot Stock Outlook: Is Wall Street Bullish or Bearish?",
-        "publisher": "Barchart",
-        "link": "https://www.barchart.com/story/news/1772974/home-depot-stock-outlook-is-wall-street-bullish-or-bearish",
-        "providerPublishTime": "2026-05-07T13:04:02Z"
-      },
-      {
-        "title": "Inside Home Depot\u2019s marketing playbook: weather signals, influencers, and an app to drive bigger baskets",
-        "publisher": "Fortune",
-        "link": "https://finance.yahoo.com/sectors/technology/articles/inside-home-depot-marketing-playbook-141423933.html",
-        "providerPublishTime": "2026-05-06T14:14:23Z"
-      }
-    ],
-    "GD": [
-      {
-        "title": "Top Stock Reports for Apple, AMD & Chevron",
-        "publisher": "Zacks",
-        "link": "https://finance.yahoo.com/markets/stocks/articles/top-stock-reports-apple-amd-204400633.html",
-        "providerPublishTime": "2026-05-07T20:44:00Z"
-      },
-      {
-        "title": "Why Palantir Stock Popped Today",
+        "title": "Are Amazon and Alphabet's Custom Chips a Threat to Nvidia?",
         "publisher": "Motley Fool",
-        "link": "https://www.fool.com/investing/2026/05/07/why-palantir-stock-popped-today/",
-        "providerPublishTime": "2026-05-07T16:17:02Z"
+        "link": "https://www.fool.com/investing/2026/05/07/are-amazon-and-alphabets-chips-a-threat-to-nvidia/",
+        "providerPublishTime": "2026-05-08T00:53:00Z"
+      }
+    ],
+    "DUOL": [
+      {
+        "title": "Did Duolingo\u2019s (DUOL) AI-Focused 2026 \u201cInvestment Year\u201d Just Reframe Its Growth Trade-Offs?",
+        "publisher": "Simply Wall St.",
+        "link": "https://finance.yahoo.com/markets/stocks/articles/did-duolingo-duol-ai-focused-221624464.html",
+        "providerPublishTime": "2026-05-06T22:16:24Z"
       },
       {
-        "title": "NOC Outperforms Industry in the Past Year: Should You Buy the Stock?",
+        "title": "DUOL Stock: Should Investors Buy After the 79% One-Year Drop?",
         "publisher": "Zacks",
-        "link": "https://finance.yahoo.com/markets/stocks/articles/noc-outperforms-industry-past-buy-161000528.html",
-        "providerPublishTime": "2026-05-07T16:10:00Z"
+        "link": "https://finance.yahoo.com/markets/stocks/articles/duol-stock-investors-buy-79-174700651.html",
+        "providerPublishTime": "2026-05-06T17:47:00Z"
+      },
+      {
+        "title": "DUOL Stock: Is Duolingo Building a High-Quality Monetization Engine?",
+        "publisher": "Zacks",
+        "link": "https://finance.yahoo.com/markets/stocks/articles/duol-stock-duolingo-building-high-173800768.html",
+        "providerPublishTime": "2026-05-06T17:38:00Z"
       }
     ],
     "FIG": [
@@ -5199,6 +5079,126 @@
         "providerPublishTime": "2026-05-07T06:25:42Z"
       }
     ],
+    "HD": [
+      {
+        "title": "124-year-old Home Depot rival hardware chain closes its last location",
+        "publisher": "TheStreet",
+        "link": "https://www.thestreet.com/retail/scheels-home-hardware-chain-closes-last-location",
+        "providerPublishTime": "2026-05-08T03:48:00Z"
+      },
+      {
+        "title": "BofA sees more room for Home Depot shares",
+        "publisher": "TheStreet",
+        "link": "https://www.thestreet.com/investing/stocks/bofa-sees-growth-for-home-depot-shares",
+        "providerPublishTime": "2026-05-07T17:47:00Z"
+      },
+      {
+        "title": "Home Depot Stock Outlook: Is Wall Street Bullish or Bearish?",
+        "publisher": "Barchart",
+        "link": "https://www.barchart.com/story/news/1772974/home-depot-stock-outlook-is-wall-street-bullish-or-bearish",
+        "providerPublishTime": "2026-05-07T13:04:02Z"
+      }
+    ],
+    "GLD": [
+      {
+        "title": "iShares Gold Trust vs SPDR Gold Trust: The 0.15% Fee Gap That Matters More Than You Think",
+        "publisher": "24/7 Wall St.",
+        "link": "https://247wallst.com/investing/2026/05/07/ishares-gold-trust-vs-spdr-gold-trust-the-0-15-fee-gap-that-matters-more-than-you-think/",
+        "providerPublishTime": "2026-05-07T21:46:58Z"
+      },
+      {
+        "title": "Gold Surges Past $4,770 as Geopolitical Optimism Cools Inflation Fears",
+        "publisher": "24/7 Wall St.",
+        "link": "https://247wallst.com/investing/2026/05/07/gold-surges-past-4750-as-geopolitical-optimism-cools-inflation-fears/",
+        "providerPublishTime": "2026-05-07T15:05:22Z"
+      },
+      {
+        "title": "Gold Rises Again on Prospects the Iran War is Nearing an End",
+        "publisher": "MT Newswires",
+        "link": "https://finance.yahoo.com/markets/commodities/articles/gold-rises-again-prospects-iran-131530069.html",
+        "providerPublishTime": "2026-05-07T13:15:30Z"
+      }
+    ],
+    "ENLT": [
+      {
+        "title": "Sector Update: Energy Stocks Higher Late Afternoon",
+        "publisher": "MT Newswires",
+        "link": "https://finance.yahoo.com/sectors/energy/articles/sector-energy-stocks-higher-afternoon-200411184.html",
+        "providerPublishTime": "2026-05-05T20:04:11Z"
+      },
+      {
+        "title": "Sector Update: Energy Stocks Rise Tuesday Afternoon",
+        "publisher": "MT Newswires",
+        "link": "https://finance.yahoo.com/sectors/energy/articles/sector-energy-stocks-rise-tuesday-180658110.html",
+        "providerPublishTime": "2026-05-05T18:06:58Z"
+      },
+      {
+        "title": "Enlight Renewable Energy Q1 Earnings Call Highlights",
+        "publisher": "MarketBeat",
+        "link": "https://www.marketbeat.com/instant-alerts/enlight-renewable-energy-q1-earnings-call-highlights-2026-05-05/?utm_source=yahoofinance&utm_medium=yahoofinance",
+        "providerPublishTime": "2026-05-05T15:47:03Z"
+      }
+    ],
+    "GOOG": [
+      {
+        "title": "Anthropic taps SpaceX data center for AI compute power",
+        "publisher": "Yahoo Finance Video",
+        "link": "https://finance.yahoo.com/video/anthropic-taps-spacex-data-center-for-ai-compute-power-195430868.html",
+        "providerPublishTime": "2026-05-07T19:54:30Z"
+      },
+      {
+        "title": "Stocks take a breather after reaching record highs",
+        "publisher": "Yahoo Finance Video",
+        "link": "https://finance.yahoo.com/video/stocks-take-a-breather-after-reaching-record-highs-194454152.html",
+        "providerPublishTime": "2026-05-07T19:44:54Z"
+      },
+      {
+        "title": "No AI, Poor Returns Drive Indian Investors to Foreign Markets",
+        "publisher": "Bloomberg",
+        "link": "https://finance.yahoo.com/markets/currencies/articles/no-ai-poor-returns-drive-013000744.html",
+        "providerPublishTime": "2026-05-08T01:30:00Z"
+      }
+    ],
+    "GD": [
+      {
+        "title": "Top Stock Reports for Apple, AMD & Chevron",
+        "publisher": "Zacks",
+        "link": "https://finance.yahoo.com/markets/stocks/articles/top-stock-reports-apple-amd-204400633.html",
+        "providerPublishTime": "2026-05-07T20:44:00Z"
+      },
+      {
+        "title": "Why Palantir Stock Popped Today",
+        "publisher": "Motley Fool",
+        "link": "https://www.fool.com/investing/2026/05/07/why-palantir-stock-popped-today/",
+        "providerPublishTime": "2026-05-07T16:17:02Z"
+      },
+      {
+        "title": "NOC Outperforms Industry in the Past Year: Should You Buy the Stock?",
+        "publisher": "Zacks",
+        "link": "https://finance.yahoo.com/markets/stocks/articles/noc-outperforms-industry-past-buy-161000528.html",
+        "providerPublishTime": "2026-05-07T16:10:00Z"
+      }
+    ],
+    "AAPL": [
+      {
+        "title": "Trump meets with Brazil's Lula to talk trade, extends EU tariff deadline",
+        "publisher": "Yahoo Finance Video",
+        "link": "https://finance.yahoo.com/video/trump-meets-with-brazils-lula-to-talk-trade-extends-eu-tariff-deadline-210415936.html",
+        "providerPublishTime": "2026-05-07T21:04:15Z"
+      },
+      {
+        "title": "Stocks take a breather after reaching record highs",
+        "publisher": "Yahoo Finance Video",
+        "link": "https://finance.yahoo.com/video/stocks-take-a-breather-after-reaching-record-highs-194454152.html",
+        "providerPublishTime": "2026-05-07T19:44:54Z"
+      },
+      {
+        "title": "They Asked Value Investors Which Stock They'd Put Their Entire Net Worth For 10 Years. One Company Was Mentioned Again And Again",
+        "publisher": "Benzinga",
+        "link": "https://finance.yahoo.com/markets/stocks/articles/asked-value-investors-stock-theyd-000106947.html",
+        "providerPublishTime": "2026-05-08T00:01:06Z"
+      }
+    ],
     "HNST": [
       {
         "title": "Honest (HNST) Q1 2026 Earnings Call Transcript",
@@ -5219,41 +5219,13 @@
         "providerPublishTime": "2026-05-07T02:16:45Z"
       }
     ],
-    "ION": [
-      {
-        "title": "Do the Hottest ETFs of 2025 Still Have Upside in 2026?",
-        "publisher": "MarketBeat",
-        "link": "https://www.marketbeat.com/stock-ideas/do-the-hottest-etfs-of-2025-still-have-upside-in-2026/?utm_source=yahoofinance&utm_medium=yahoofinance",
-        "providerPublishTime": "2026-01-08T19:47:00Z"
-      },
-      {
-        "title": "Bitcoin and crypto stocks rally, solar stocks hit, IonQ surges",
-        "publisher": "Yahoo Finance Video",
-        "link": "https://finance.yahoo.com/video/bitcoin-crypto-stocks-rally-solar-161156560.html",
-        "providerPublishTime": "2025-05-22T16:11:56Z"
-      }
-    ],
-    "IONQ": [
-      {
-        "title": "Horizon Quantum Deepens Infrastructure Strategy as Hardware Ecosystem Expands \u2013 Quarterly Update Report",
-        "publisher": "Exec Edge",
-        "link": "https://finance.yahoo.com/sectors/technology/articles/horizon-quantum-deepens-infrastructure-strategy-223034500.html",
-        "providerPublishTime": "2026-05-07T22:30:34Z"
-      },
-      {
-        "title": "Stock Market Today, May 7: Rally Falters as Oil Prices Rise Again",
-        "publisher": "Motley Fool",
-        "link": "https://www.fool.com/coverage/stock-market-today/2026/05/07/stock-market-today-may-7-rally-falters-as-oil-prices-rise-again/",
-        "providerPublishTime": "2026-05-07T21:47:08Z"
-      },
-      {
-        "title": "Morgan Stanley raises price targets across semiconductor sector",
-        "publisher": "TheStreet",
-        "link": "https://www.thestreet.com/investing/stocks/morgan-stanley-raises-price-targets-across-semiconductor-sector",
-        "providerPublishTime": "2026-05-07T21:47:00Z"
-      }
-    ],
     "IBM": [
+      {
+        "title": "Is It Time To Reassess Kyndryl (KD) After Its 65% Share Price Slide?",
+        "publisher": "Simply Wall St.",
+        "link": "https://finance.yahoo.com/markets/stocks/articles/time-reassess-kyndryl-kd-65-231807754.html",
+        "providerPublishTime": "2026-05-07T23:18:07Z"
+      },
       {
         "title": "IBM touts AI productivity gains and quantum milestones at Think conference",
         "publisher": "Proactive",
@@ -5265,12 +5237,6 @@
         "publisher": "Zacks",
         "link": "https://finance.yahoo.com/markets/stocks/articles/why-bet-quantum-computing-etfs-170000588.html",
         "providerPublishTime": "2026-05-07T17:00:00Z"
-      },
-      {
-        "title": "IBM Plummets 27% in 6 Months: Should You Reassess the Stock?",
-        "publisher": "Zacks",
-        "link": "https://finance.yahoo.com/markets/stocks/articles/ibm-plummets-27-6-months-155500281.html",
-        "providerPublishTime": "2026-05-07T15:55:00Z"
       }
     ],
     "INTC": [
@@ -5287,90 +5253,84 @@
         "providerPublishTime": "2026-05-07T10:00:00Z"
       },
       {
-        "title": "Nvidia vs. Palantir: The Better AI Stock to Own in 2026",
+        "title": "Better Crypto for New Investors: Bitcoin vs. XRP",
         "publisher": "Motley Fool",
-        "link": "https://www.fool.com/investing/2026/05/07/nvidia-vs-palantir-the-better-ai-stock-to-own-2026/",
-        "providerPublishTime": "2026-05-07T22:30:00Z"
+        "link": "https://www.fool.com/investing/2026/05/07/better-crypto-for-new-investors-bitcoin-vs-xrp/",
+        "providerPublishTime": "2026-05-08T01:33:00Z"
       }
     ],
-    "JNJ": [
+    "ION": [
       {
-        "title": "DARZALEX royalties drive Genmab\u2019s Q1 revenue higher amid expansion push",
-        "publisher": "Investing.com",
-        "link": "https://finance.yahoo.com/sectors/healthcare/articles/darzalex-royalties-drive-genmab-q1-184635378.html",
-        "providerPublishTime": "2026-05-07T18:46:35Z"
+        "title": "Do the Hottest ETFs of 2025 Still Have Upside in 2026?",
+        "publisher": "MarketBeat",
+        "link": "https://www.marketbeat.com/stock-ideas/do-the-hottest-etfs-of-2025-still-have-upside-in-2026/?utm_source=yahoofinance&utm_medium=yahoofinance",
+        "providerPublishTime": "2026-01-08T19:47:00Z"
       },
       {
-        "title": "Johnson And Johnson Balances Mental Health Push With Mixed Pipeline Outlook",
+        "title": "Bitcoin and crypto stocks rally, solar stocks hit, IonQ surges",
+        "publisher": "Yahoo Finance Video",
+        "link": "https://finance.yahoo.com/video/bitcoin-crypto-stocks-rally-solar-161156560.html",
+        "providerPublishTime": "2025-05-22T16:11:56Z"
+      }
+    ],
+    "LLY": [
+      {
+        "title": "Why AbCellera Biologics (ABCL) Is Up 16.1% After ABCL635 Trial Momentum Builds Ahead Of Data",
         "publisher": "Simply Wall St.",
-        "link": "https://finance.yahoo.com/sectors/healthcare/articles/johnson-johnson-balances-mental-health-171301552.html",
-        "providerPublishTime": "2026-05-07T17:13:01Z"
+        "link": "https://finance.yahoo.com/sectors/healthcare/articles/why-abcellera-biologics-abcl-16-231659182.html",
+        "providerPublishTime": "2026-05-07T23:16:59Z"
       },
       {
-        "title": "Darzalex, Erleada & New Drugs Keep J&J's Oncology Engine Charged in Q1",
-        "publisher": "Zacks",
-        "link": "https://finance.yahoo.com/sectors/healthcare/articles/darzalex-erleada-drugs-keep-j-154200922.html",
-        "providerPublishTime": "2026-05-07T15:42:00Z"
+        "title": "How This Eli Lilly-Tied IPO Stock Fared In Its First Quarter",
+        "publisher": "Investor's Business Daily",
+        "link": "https://www.investors.com/news/technology/ipo-stock-omada-health-glp-1-deal-eli-lilly/?src=A00220&yptr=yahoo",
+        "providerPublishTime": "2026-05-07T20:20:46Z"
+      },
+      {
+        "title": "Glucotrack Submits Blood Glucose Monitoring Technology to FDA",
+        "publisher": "Exec Edge",
+        "link": "https://finance.yahoo.com/sectors/healthcare/articles/glucotrack-submits-blood-glucose-monitoring-195042987.html",
+        "providerPublishTime": "2026-05-07T19:50:42Z"
       }
     ],
     "IREN": [
       {
-        "title": "Dow Jones Futures Fall, Oil Prices Rise As U.S., Iran Clash; Rocket Lab, Cloudflare, IREN Are Big Earnings Movers Late",
+        "title": "Dow Jones Futures: Oil Prices Rise As U.S., Iran Clash; Rocket Lab, Cloudflare, IREN Are Big Earnings Movers Late",
         "publisher": "Investor's Business Daily",
         "link": "https://www.investors.com/market-trend/stock-market-today/dow-jones-futures-iran-deal-nvidia-tesla-coreweave-rocket-lab-cloudflare-earnings-jobs-report/?src=A00220&yptr=yahoo",
-        "providerPublishTime": "2026-05-07T23:14:47Z"
+        "providerPublishTime": "2026-05-08T03:03:02Z"
       },
       {
-        "title": "Nvidia to invest up to $2.1 billion in IREN as part of AI data center deal",
-        "publisher": "Reuters",
-        "link": "https://finance.yahoo.com/sectors/technology/articles/nvidia-invest-2-1-billion-220154406.html",
-        "providerPublishTime": "2026-05-07T22:01:54Z"
+        "title": "IREN Shares Jump as Nvidia Deal Sharpens Bitcoin Miner\u2019s AI Pivot",
+        "publisher": "CryptoProwl",
+        "link": "https://www.cryptoprowl.com/releases/iren-shares-jump-as-nvidia-deal-sharpens-bitcoin-miners-ai-pivot-4421",
+        "providerPublishTime": "2026-05-08T02:20:00Z"
       },
       {
-        "title": "IREN Stock Rallies On Nvidia Partnership For AI Deployments",
-        "publisher": "Investor's Business Daily",
-        "link": "https://www.investors.com/news/iren-stock-nvidia-strategic-partnership-ai-infrastructure-earnings/?src=A00220&yptr=yahoo",
-        "providerPublishTime": "2026-05-07T21:30:07Z"
-      }
-    ],
-    "LRCX": [
-      {
-        "title": "EWT, EWY, and SOXX: The Only 3 ETFs You Need for Semiconductor Dominance",
-        "publisher": "24/7 Wall St.",
-        "link": "https://247wallst.com/investing/2026/05/07/ewt-ewy-and-soxx-the-only-3-etfs-you-need-for-semiconductor-dominance/",
-        "providerPublishTime": "2026-05-07T18:57:03Z"
-      },
-      {
-        "title": "Lam Research (LRCX) Is Up 19.5% After AI-Fab Orders Beat Expectations Has The Bull Case Changed?",
+        "title": "NVIDIA Expands AI Infrastructure From Utility Scale Builds To Homes",
         "publisher": "Simply Wall St.",
-        "link": "https://finance.yahoo.com/markets/stocks/articles/lam-research-lrcx-19-5-182050880.html",
-        "providerPublishTime": "2026-05-07T18:20:50Z"
-      },
-      {
-        "title": "BofA Remains Bullish on Applied Materials (AMAT)",
-        "publisher": "Insider Monkey",
-        "link": "https://finance.yahoo.com/markets/stocks/articles/bofa-remains-bullish-applied-materials-172621481.html",
-        "providerPublishTime": "2026-05-07T17:26:21Z"
+        "link": "https://finance.yahoo.com/markets/stocks/articles/nvidia-expands-ai-infrastructure-utility-020944678.html",
+        "providerPublishTime": "2026-05-08T02:09:44Z"
       }
     ],
-    "LMT": [
+    "IONQ": [
       {
-        "title": "Stock Market Today, May 7: Nokia Drops by 6% as Momentum Stalls",
-        "publisher": "Motley Fool",
-        "link": "https://www.fool.com/coverage/stock-market-today/2026/05/07/stock-market-today-may-7-nokia-drops-by-6-as-momentum-stalls/",
-        "providerPublishTime": "2026-05-07T22:55:54Z"
+        "title": "Is It Too Late To Consider IonQ (IONQ) After Its Recent Share Price Surge?",
+        "publisher": "Simply Wall St.",
+        "link": "https://finance.yahoo.com/markets/stocks/articles/too-consider-ionq-ionq-recent-002814804.html",
+        "providerPublishTime": "2026-05-08T00:28:14Z"
       },
       {
-        "title": "Rubio Approves $25.8 Billion in Weapons Push for Mideast Nations",
-        "publisher": "Bloomberg",
-        "link": "https://finance.yahoo.com/economy/policy/articles/rubio-approves-25-8-billion-185024491.html",
-        "providerPublishTime": "2026-05-07T18:50:24Z"
+        "title": "Horizon Quantum Deepens Infrastructure Strategy as Hardware Ecosystem Expands \u2013 Quarterly Update Report",
+        "publisher": "Exec Edge",
+        "link": "https://finance.yahoo.com/sectors/technology/articles/horizon-quantum-deepens-infrastructure-strategy-223034500.html",
+        "providerPublishTime": "2026-05-07T22:30:34Z"
       },
       {
-        "title": "Why Palantir Stock Popped Today",
+        "title": "Stock Market Today, May 7: Rally Falters as Oil Prices Rise Again",
         "publisher": "Motley Fool",
-        "link": "https://www.fool.com/investing/2026/05/07/why-palantir-stock-popped-today/",
-        "providerPublishTime": "2026-05-07T16:17:02Z"
+        "link": "https://www.fool.com/coverage/stock-market-today/2026/05/07/stock-market-today-may-7-rally-falters-as-oil-prices-rise-again/",
+        "providerPublishTime": "2026-05-07T21:47:08Z"
       }
     ],
     "MAR": [
@@ -5393,44 +5353,24 @@
         "providerPublishTime": "2026-05-06T19:44:56Z"
       }
     ],
-    "LLY": [
+    "LMT": [
       {
-        "title": "How This Eli Lilly-Tied IPO Stock Fared In Its First Quarter",
-        "publisher": "Investor's Business Daily",
-        "link": "https://www.investors.com/news/technology/ipo-stock-omada-health-glp-1-deal-eli-lilly/?src=A00220&yptr=yahoo",
-        "providerPublishTime": "2026-05-07T20:20:46Z"
+        "title": "Stock Market Today, May 7: Nokia Drops by 6% as Momentum Stalls",
+        "publisher": "Motley Fool",
+        "link": "https://www.fool.com/coverage/stock-market-today/2026/05/07/stock-market-today-may-7-nokia-drops-by-6-as-momentum-stalls/",
+        "providerPublishTime": "2026-05-07T22:55:54Z"
       },
       {
-        "title": "Glucotrack Submits Blood Glucose Monitoring Technology to FDA",
-        "publisher": "Exec Edge",
-        "link": "https://finance.yahoo.com/sectors/healthcare/articles/glucotrack-submits-blood-glucose-monitoring-195042987.html",
-        "providerPublishTime": "2026-05-07T19:50:42Z"
+        "title": "Rubio Approves $25.8 Billion in Weapons Push for Mideast Nations",
+        "publisher": "Bloomberg",
+        "link": "https://finance.yahoo.com/economy/policy/articles/rubio-approves-25-8-billion-185024491.html",
+        "providerPublishTime": "2026-05-07T18:50:24Z"
       },
       {
-        "title": "Novo Nordisk Surges 9.2% As Wegovy Pill Fuels Momentum",
-        "publisher": "GuruFocus.com",
-        "link": "https://finance.yahoo.com/sectors/healthcare/articles/novo-nordisk-surges-9-2-183956669.html",
-        "providerPublishTime": "2026-05-07T18:39:56Z"
-      }
-    ],
-    "MELI": [
-      {
-        "title": "MercadoLibre falls 7% as earnings miss overshadows revenue beat",
-        "publisher": "Investing.com",
-        "link": "https://finance.yahoo.com/markets/stocks/articles/mercadolibre-falls-7-earnings-miss-223338890.html",
-        "providerPublishTime": "2026-05-07T22:33:38Z"
-      },
-      {
-        "title": "MercadoLibre (MELI) Lags Q1 Earnings Estimates",
-        "publisher": "Zacks",
-        "link": "https://finance.yahoo.com/markets/stocks/articles/mercadolibre-meli-lags-q1-earnings-215506607.html",
-        "providerPublishTime": "2026-05-07T21:55:06Z"
-      },
-      {
-        "title": "MercadoLibre (NASDAQ:MELI) Exceeds Q1 CY2026 Expectations But Stock Drops",
-        "publisher": "StockStory",
-        "link": "https://finance.yahoo.com/markets/stocks/articles/mercadolibre-nasdaq-meli-exceeds-q1-214603294.html",
-        "providerPublishTime": "2026-05-07T21:46:03Z"
+        "title": "Why Palantir Stock Popped Today",
+        "publisher": "Motley Fool",
+        "link": "https://www.fool.com/investing/2026/05/07/why-palantir-stock-popped-today/",
+        "providerPublishTime": "2026-05-07T16:17:02Z"
       }
     ],
     "MCD": [
@@ -5453,24 +5393,84 @@
         "providerPublishTime": "2026-05-07T14:12:39Z"
       }
     ],
+    "MELI": [
+      {
+        "title": "MercadoLibre MELI Q1 2026 Earnings Transcript",
+        "publisher": "Motley Fool",
+        "link": "https://www.fool.com/earnings/call-transcripts/2026/05/07/mercadolibre-meli-q1-2026-earnings-transcript/",
+        "providerPublishTime": "2026-05-08T00:00:45Z"
+      },
+      {
+        "title": "MercadoLibre falls 7% as earnings miss overshadows revenue beat",
+        "publisher": "Investing.com",
+        "link": "https://finance.yahoo.com/markets/stocks/articles/mercadolibre-falls-7-earnings-miss-223338890.html",
+        "providerPublishTime": "2026-05-07T22:33:38Z"
+      },
+      {
+        "title": "MercadoLibre (MELI) Q1 Earnings: Taking a Look at Key Metrics Versus Estimates",
+        "publisher": "Zacks",
+        "link": "https://finance.yahoo.com/markets/stocks/articles/mercadolibre-meli-q1-earnings-taking-223004400.html",
+        "providerPublishTime": "2026-05-07T22:30:04Z"
+      }
+    ],
+    "JNJ": [
+      {
+        "title": "DARZALEX royalties drive Genmab\u2019s Q1 revenue higher amid expansion push",
+        "publisher": "Investing.com",
+        "link": "https://finance.yahoo.com/sectors/healthcare/articles/darzalex-royalties-drive-genmab-q1-184635378.html",
+        "providerPublishTime": "2026-05-07T18:46:35Z"
+      },
+      {
+        "title": "Johnson And Johnson Balances Mental Health Push With Mixed Pipeline Outlook",
+        "publisher": "Simply Wall St.",
+        "link": "https://finance.yahoo.com/sectors/healthcare/articles/johnson-johnson-balances-mental-health-171301552.html",
+        "providerPublishTime": "2026-05-07T17:13:01Z"
+      },
+      {
+        "title": "Darzalex, Erleada & New Drugs Keep J&J's Oncology Engine Charged in Q1",
+        "publisher": "Zacks",
+        "link": "https://finance.yahoo.com/sectors/healthcare/articles/darzalex-erleada-drugs-keep-j-154200922.html",
+        "providerPublishTime": "2026-05-07T15:42:00Z"
+      }
+    ],
     "META": [
       {
-        "title": "Jobs data live updates: Cloudflare, Upwork add to mounting tech layoffs as April jobs report looms",
-        "publisher": "Yahoo Finance",
-        "link": "https://finance.yahoo.com/economy/live/bls-jobs-report-friday-may-8-jolts-142101464.html",
-        "providerPublishTime": "2026-05-05T14:21:01Z"
+        "title": "California tech company Cloudflare to lay off more than 1,000 workers, cites AI",
+        "publisher": "LA Times",
+        "link": "https://finance.yahoo.com/sectors/technology/articles/california-tech-company-cloudflare-lay-013404900.html",
+        "providerPublishTime": "2026-05-08T01:34:04Z"
+      },
+      {
+        "title": "The 2026 Chip War Is Already Over and Apple Dominated",
+        "publisher": "24/7 Wall St.",
+        "link": "https://247wallst.com/investing/2026/05/07/the-2026-chip-war-is-already-over-and-apple-dominated/",
+        "providerPublishTime": "2026-05-07T23:44:10Z"
       },
       {
         "title": "NVIDIA Corporation (NVDA): Should Not Be Touched?",
         "publisher": "Insider Monkey",
         "link": "https://finance.yahoo.com/markets/stocks/articles/nvidia-corporation-nvda-not-touched-224538160.html",
         "providerPublishTime": "2026-05-07T22:45:38Z"
+      }
+    ],
+    "LRCX": [
+      {
+        "title": "EWT, EWY, and SOXX: The Only 3 ETFs You Need for Semiconductor Dominance",
+        "publisher": "24/7 Wall St.",
+        "link": "https://247wallst.com/investing/2026/05/07/ewt-ewy-and-soxx-the-only-3-etfs-you-need-for-semiconductor-dominance/",
+        "providerPublishTime": "2026-05-07T18:57:03Z"
       },
       {
-        "title": "Will Sui Succeed Where Libra Failed? Mysten Labs Co-Founder Details Zero-Fee Stablecoins and Gaming Push",
-        "publisher": "CCN",
-        "link": "https://www.ccn.com/news/crypto/failed-libra-sui-mysten-labs-details-zero-fee-stablecoins-gaming/",
-        "providerPublishTime": "2026-05-07T21:55:15Z"
+        "title": "Lam Research (LRCX) Is Up 19.5% After AI-Fab Orders Beat Expectations Has The Bull Case Changed?",
+        "publisher": "Simply Wall St.",
+        "link": "https://finance.yahoo.com/markets/stocks/articles/lam-research-lrcx-19-5-182050880.html",
+        "providerPublishTime": "2026-05-07T18:20:50Z"
+      },
+      {
+        "title": "BofA Remains Bullish on Applied Materials (AMAT)",
+        "publisher": "Insider Monkey",
+        "link": "https://finance.yahoo.com/markets/stocks/articles/bofa-remains-bullish-applied-materials-172621481.html",
+        "providerPublishTime": "2026-05-07T17:26:21Z"
       }
     ],
     "MRNA": [
@@ -5495,6 +5495,12 @@
     ],
     "MSTR": [
       {
+        "title": "Mysterious traders are betting on Hantavirus pandemic",
+        "publisher": "TheStreet",
+        "link": "https://www.thestreet.com/crypto/markets/mysterious-traders-are-betting-on-hantavirus-pandemic",
+        "providerPublishTime": "2026-05-08T00:54:00Z"
+      },
+      {
         "title": "Coinbase Q1 2026 Revenue Falls 31% to $1.41 Billion in Major Wall Street Miss",
         "publisher": "BeInCrypto",
         "link": "https://beincrypto.com/coinbase-q1-2026-revenue-miss/",
@@ -5505,12 +5511,6 @@
         "publisher": "TheStreet",
         "link": "https://www.thestreet.com/crypto/markets/analysts-see-111-upside-for-microstrategy-despite-q1-loss",
         "providerPublishTime": "2026-05-07T17:29:58Z"
-      },
-      {
-        "title": "Billionaire Michael Saylor said he would never sell bitcoin. After 3 straight quarterly losses, he's changing his mind",
-        "publisher": "Moneywise",
-        "link": "https://finance.yahoo.com/markets/crypto/articles/billionaire-michael-saylor-said-never-170500436.html",
-        "providerPublishTime": "2026-05-07T17:05:00Z"
       }
     ],
     "MSFT": [
@@ -5527,10 +5527,30 @@
         "providerPublishTime": "2026-05-07T19:44:54Z"
       },
       {
-        "title": "NVIDIA Corporation (NVDA): Should Not Be Touched?",
-        "publisher": "Insider Monkey",
-        "link": "https://finance.yahoo.com/markets/stocks/articles/nvidia-corporation-nvda-not-touched-224538160.html",
-        "providerPublishTime": "2026-05-07T22:45:38Z"
+        "title": "JPMorgan Urges Caution on Prediction Markets While Allowing Employees to Trade Them",
+        "publisher": "Barrons.com",
+        "link": "https://www.barrons.com/articles/jpmorgan-prediction-markets-kalshi-polymarket-0ed2457c?siteid=yhoof2&yptr=yahoo",
+        "providerPublishTime": "2026-05-08T01:50:00Z"
+      }
+    ],
+    "MU": [
+      {
+        "title": "Tech-led stealth rally pushes markets to record highs",
+        "publisher": "Yahoo Finance Video",
+        "link": "https://finance.yahoo.com/video/tech-led-stealth-rally-pushes-markets-to-record-highs-143101320.html",
+        "providerPublishTime": "2026-05-07T14:31:01Z"
+      },
+      {
+        "title": "The stock market's semi-charmed life: Morning Brief",
+        "publisher": "Yahoo Finance",
+        "link": "https://finance.yahoo.com/markets/article/the-stock-markets-semi-charmed-life-morning-brief-100000617.html",
+        "providerPublishTime": "2026-05-07T10:00:00Z"
+      },
+      {
+        "title": "The 2026 Chip War Is Already Over and Apple Dominated",
+        "publisher": "24/7 Wall St.",
+        "link": "https://247wallst.com/investing/2026/05/07/the-2026-chip-war-is-already-over-and-apple-dominated/",
+        "providerPublishTime": "2026-05-07T23:44:10Z"
       }
     ],
     "NFLX": [
@@ -5553,27 +5573,13 @@
         "providerPublishTime": "2026-05-07T13:22:27Z"
       }
     ],
-    "MU": [
-      {
-        "title": "Tech-led stealth rally pushes markets to record highs",
-        "publisher": "Yahoo Finance Video",
-        "link": "https://finance.yahoo.com/video/tech-led-stealth-rally-pushes-markets-to-record-highs-143101320.html",
-        "providerPublishTime": "2026-05-07T14:31:01Z"
-      },
-      {
-        "title": "The stock market's semi-charmed life: Morning Brief",
-        "publisher": "Yahoo Finance",
-        "link": "https://finance.yahoo.com/markets/article/the-stock-markets-semi-charmed-life-morning-brief-100000617.html",
-        "providerPublishTime": "2026-05-07T10:00:00Z"
-      },
-      {
-        "title": "My Top 2 Semiconductor Stocks Benefiting From the AI Boom to Buy in May 2026",
-        "publisher": "Motley Fool",
-        "link": "https://www.fool.com/investing/2026/05/07/my-top-semiconductor-stocks-benefiting-ai-boom/",
-        "providerPublishTime": "2026-05-07T22:02:00Z"
-      }
-    ],
     "NTDOY": [
+      {
+        "title": "Sony forecasts higher games profit but lower sales amid memory price surge",
+        "publisher": "Reuters",
+        "link": "https://finance.yahoo.com/markets/stocks/articles/sony-forecasts-11-rise-annual-030623995.html",
+        "providerPublishTime": "2026-05-08T03:06:23Z"
+      },
       {
         "title": "Is Nintendo (TSE:7974) Offering Value After A 37.5% One Year Share Price Decline?",
         "publisher": "Simply Wall St.",
@@ -5585,32 +5591,26 @@
         "publisher": "Zacks",
         "link": "https://finance.yahoo.com/markets/stocks/articles/doubledown-interactive-ddi-stock-jumps-141700179.html",
         "providerPublishTime": "2026-04-29T14:17:00Z"
-      },
-      {
-        "title": "Lionsgate\u2019s \u2018Michael\u2019 Wins Weekend Box Office in Fresh Record for Biopics",
-        "publisher": "Barrons.com",
-        "link": "https://www.barrons.com/articles/lionsgates-michael-weekend-box-office-record-cbdaf415?siteid=yhoof2&yptr=yahoo",
-        "providerPublishTime": "2026-04-26T21:13:00Z"
       }
     ],
-    "ORCL": [
+    "NOC": [
       {
-        "title": "Stocks take a breather after reaching record highs",
-        "publisher": "Yahoo Finance Video",
-        "link": "https://finance.yahoo.com/video/stocks-take-a-breather-after-reaching-record-highs-194454152.html",
-        "providerPublishTime": "2026-05-07T19:44:54Z"
+        "title": "Why Palantir Stock Popped Today",
+        "publisher": "Motley Fool",
+        "link": "https://www.fool.com/investing/2026/05/07/why-palantir-stock-popped-today/",
+        "providerPublishTime": "2026-05-07T16:17:02Z"
       },
       {
-        "title": "Microsoft And Amazon Aren't Cheap: Analyst Says Earnings 'Mirage' Driven By OpenAI, Anthropic Dominating 50% Of Cloud Backlog",
-        "publisher": "Benzinga",
-        "link": "https://finance.yahoo.com/markets/stocks/articles/microsoft-amazon-arent-cheap-analyst-213000943.html",
-        "providerPublishTime": "2026-05-07T21:30:00Z"
+        "title": "NOC Outperforms Industry in the Past Year: Should You Buy the Stock?",
+        "publisher": "Zacks",
+        "link": "https://finance.yahoo.com/markets/stocks/articles/noc-outperforms-industry-past-buy-161000528.html",
+        "providerPublishTime": "2026-05-07T16:10:00Z"
       },
       {
-        "title": "Elon Musk \u2019Dissolved\u2019 xAI. What It Means for the SpaceX IPO.",
-        "publisher": "Barrons.com",
-        "link": "https://www.barrons.com/articles/xai-dissolved-musk-spacex-ipo-1d035d36?siteid=yhoof2&yptr=yahoo",
-        "providerPublishTime": "2026-05-07T19:59:00Z"
+        "title": "Howmet's Q1 Earnings Beat Estimates on Commercial Aerospace Growth",
+        "publisher": "Zacks",
+        "link": "https://finance.yahoo.com/markets/stocks/articles/howmets-q1-earnings-beat-estimates-151000314.html",
+        "providerPublishTime": "2026-05-07T15:10:00Z"
       }
     ],
     "NVDA": [
@@ -5621,36 +5621,36 @@
         "providerPublishTime": "2026-05-07T21:04:15Z"
       },
       {
-        "title": "Dow Jones Futures Fall, Oil Prices Rise As U.S., Iran Clash; Rocket Lab, Cloudflare, IREN Are Big Earnings Movers Late",
+        "title": "Nvidia Stock Has Huge Momentum. Time to Buy?",
+        "publisher": "Motley Fool",
+        "link": "https://www.fool.com/investing/2026/05/07/nvidia-stock-has-huge-momentum-time-to-buy/",
+        "providerPublishTime": "2026-05-08T03:51:00Z"
+      },
+      {
+        "title": "Dow Jones Futures: Oil Prices Rise As U.S., Iran Clash; Rocket Lab, Cloudflare, IREN Are Big Earnings Movers Late",
         "publisher": "Investor's Business Daily",
         "link": "https://www.investors.com/market-trend/stock-market-today/dow-jones-futures-iran-deal-nvidia-tesla-coreweave-rocket-lab-cloudflare-earnings-jobs-report/?src=A00220&yptr=yahoo",
-        "providerPublishTime": "2026-05-07T23:14:47Z"
-      },
-      {
-        "title": "NVIDIA Corporation (NVDA): Should Not Be Touched?",
-        "publisher": "Insider Monkey",
-        "link": "https://finance.yahoo.com/markets/stocks/articles/nvidia-corporation-nvda-not-touched-224538160.html",
-        "providerPublishTime": "2026-05-07T22:45:38Z"
+        "providerPublishTime": "2026-05-08T03:03:02Z"
       }
     ],
-    "NVO": [
+    "ORCL": [
       {
-        "title": "Earnings live updates: Airbnb raises revenue forecast, even as Iran war weighs on some markets",
-        "publisher": "Yahoo Finance",
-        "link": "https://finance.yahoo.com/markets/live/earnings-live-updates-sp-500-earnings-growth-trend-impresses-100000216.html",
-        "providerPublishTime": "2026-05-04T10:00:00Z"
+        "title": "Stocks take a breather after reaching record highs",
+        "publisher": "Yahoo Finance Video",
+        "link": "https://finance.yahoo.com/video/stocks-take-a-breather-after-reaching-record-highs-194454152.html",
+        "providerPublishTime": "2026-05-07T19:44:54Z"
       },
       {
-        "title": "A Look At Novo Nordisk (CPSE:NOVO B) Valuation After Oral Wegovy Success Lifts 2026 Outlook",
-        "publisher": "Simply Wall St.",
-        "link": "https://finance.yahoo.com/markets/stocks/articles/look-novo-nordisk-cpse-novo-222011165.html",
-        "providerPublishTime": "2026-05-07T22:20:11Z"
+        "title": "California tech company Cloudflare to lay off more than 1,000 workers, cites AI",
+        "publisher": "LA Times",
+        "link": "https://finance.yahoo.com/sectors/technology/articles/california-tech-company-cloudflare-lay-013404900.html",
+        "providerPublishTime": "2026-05-08T01:34:04Z"
       },
       {
-        "title": "Novo Nordisk Surges 9.2% As Wegovy Pill Fuels Momentum",
-        "publisher": "GuruFocus.com",
-        "link": "https://finance.yahoo.com/sectors/healthcare/articles/novo-nordisk-surges-9-2-183956669.html",
-        "providerPublishTime": "2026-05-07T18:39:56Z"
+        "title": "Microsoft And Amazon Aren't Cheap: Analyst Says Earnings 'Mirage' Driven By OpenAI, Anthropic Dominating 50% Of Cloud Backlog",
+        "publisher": "Benzinga",
+        "link": "https://finance.yahoo.com/markets/stocks/articles/microsoft-amazon-arent-cheap-analyst-213000943.html",
+        "providerPublishTime": "2026-05-07T21:30:00Z"
       }
     ],
     "PANW": [
@@ -5693,24 +5693,24 @@
         "providerPublishTime": "2026-05-07T03:50:00Z"
       }
     ],
-    "PPLT": [
+    "NVO": [
       {
-        "title": "Top 10 Precious Metals ETFs: Silver and Platinum Shine",
-        "publisher": "etf.com",
-        "link": "http://www.etf.com/sections/etf-education-series/top-10-precious-metals-etfs-silver-and-platinum-shine?utm_source=yahoo-finance&utm_medium=rss&utm_campaign=yahoo-finance-rss",
-        "providerPublishTime": "2026-03-13T10:57:20Z"
+        "title": "Earnings live updates: Airbnb raises revenue forecast, even as Iran war weighs on some markets",
+        "publisher": "Yahoo Finance",
+        "link": "https://finance.yahoo.com/markets/live/earnings-live-updates-sp-500-earnings-growth-trend-impresses-100000216.html",
+        "providerPublishTime": "2026-05-04T10:00:00Z"
       },
       {
-        "title": "Platinum Rally Faces Critical Test After Mining Giant Posts $3.6 Billion Loss",
-        "publisher": "24/7 Wall St.",
-        "link": "https://247wallst.com/investing/2026/01/25/platinum-rally-faces-critical-test-after-mining-giant-posts-3-6-billion-loss/",
-        "providerPublishTime": "2026-01-25T12:37:57Z"
+        "title": "Is Novo Nordisk (NYSE:NVO) Pricing Look Interesting After Recent Share Price Rebound?",
+        "publisher": "Simply Wall St.",
+        "link": "https://finance.yahoo.com/markets/stocks/articles/novo-nordisk-nyse-nvo-pricing-012111330.html",
+        "providerPublishTime": "2026-05-08T01:21:11Z"
       },
       {
-        "title": "Market Minute 1-6-26- Metals Mania Spreads as Markets Tighten",
-        "publisher": "MoneyShow",
-        "link": "https://finance.yahoo.com/news/market-minute-1-6-26-142000985.html",
-        "providerPublishTime": "2026-01-06T14:20:00Z"
+        "title": "A Look At Novo Nordisk (CPSE:NOVO B) Valuation After Oral Wegovy Success Lifts 2026 Outlook",
+        "publisher": "Simply Wall St.",
+        "link": "https://finance.yahoo.com/markets/stocks/articles/look-novo-nordisk-cpse-novo-222011165.html",
+        "providerPublishTime": "2026-05-07T22:20:11Z"
       }
     ],
     "PLTR": [
@@ -5721,36 +5721,16 @@
         "providerPublishTime": "2026-05-04T10:00:00Z"
       },
       {
+        "title": "Why These 5 Drone Stocks Could Outperform This Summer",
+        "publisher": "Oilprice.com",
+        "link": "https://finance.yahoo.com/markets/stocks/articles/why-5-drone-stocks-could-000000658.html",
+        "providerPublishTime": "2026-05-08T00:00:00Z"
+      },
+      {
         "title": "Nvidia vs. Palantir: The Better AI Stock to Own in 2026",
         "publisher": "Motley Fool",
         "link": "https://www.fool.com/investing/2026/05/07/nvidia-vs-palantir-the-better-ai-stock-to-own-2026/",
         "providerPublishTime": "2026-05-07T22:30:00Z"
-      },
-      {
-        "title": "Stock Market Today, May 7: Rally Falters as Oil Prices Rise Again",
-        "publisher": "Motley Fool",
-        "link": "https://www.fool.com/coverage/stock-market-today/2026/05/07/stock-market-today-may-7-rally-falters-as-oil-prices-rise-again/",
-        "providerPublishTime": "2026-05-07T21:47:08Z"
-      }
-    ],
-    "NOC": [
-      {
-        "title": "Why Palantir Stock Popped Today",
-        "publisher": "Motley Fool",
-        "link": "https://www.fool.com/investing/2026/05/07/why-palantir-stock-popped-today/",
-        "providerPublishTime": "2026-05-07T16:17:02Z"
-      },
-      {
-        "title": "NOC Outperforms Industry in the Past Year: Should You Buy the Stock?",
-        "publisher": "Zacks",
-        "link": "https://finance.yahoo.com/markets/stocks/articles/noc-outperforms-industry-past-buy-161000528.html",
-        "providerPublishTime": "2026-05-07T16:10:00Z"
-      },
-      {
-        "title": "Howmet's Q1 Earnings Beat Estimates on Commercial Aerospace Growth",
-        "publisher": "Zacks",
-        "link": "https://finance.yahoo.com/markets/stocks/articles/howmets-q1-earnings-beat-estimates-151000314.html",
-        "providerPublishTime": "2026-05-07T15:10:00Z"
       }
     ],
     "RBLX": [
@@ -5775,6 +5755,12 @@
     ],
     "RIVN": [
       {
+        "title": "1 Surprising Reason Rivian Stock Is a Buy Before the SpaceX IPO",
+        "publisher": "Motley Fool",
+        "link": "https://www.fool.com/investing/2026/05/07/1-surprising-reason-rivian-stock-is-a-buy-before-t/",
+        "providerPublishTime": "2026-05-07T23:25:00Z"
+      },
+      {
         "title": "Tesla Rival Lucid Eyes 2027 Affordable EV Ramp Against Model Y, Rivian R2",
         "publisher": "Benzinga",
         "link": "https://finance.yahoo.com/markets/stocks/articles/tesla-rival-lucid-eyes-2027-203235617.html",
@@ -5785,12 +5771,26 @@
         "publisher": "TheStreet",
         "link": "https://www.thestreet.com/automotive/rivian-turns-china-other-automakers-improve-autonomous-driving",
         "providerPublishTime": "2026-05-07T15:33:00Z"
+      }
+    ],
+    "RTX": [
+      {
+        "title": "Airbus Lands $19 Bil Order; Boeing Wins Air Force One Contract",
+        "publisher": "Investor's Business Daily",
+        "link": "https://www.investors.com/news/airbus-lands-19-bil-order-from-airasia-for-150-planes-boeing-air-force-one-ba-stock/?src=A00220&yptr=yahoo",
+        "providerPublishTime": "2026-05-07T20:51:19Z"
       },
       {
-        "title": "Uber\u2019s Robotaxi And Parking Bets Recast Growth And Risk For Investors",
-        "publisher": "Simply Wall St.",
-        "link": "https://finance.yahoo.com/markets/stocks/articles/uber-robotaxi-parking-bets-recast-142107323.html",
-        "providerPublishTime": "2026-05-07T14:21:07Z"
+        "title": "Rubio Approves $25.8 Billion in Weapons Push for Mideast Nations",
+        "publisher": "Bloomberg",
+        "link": "https://finance.yahoo.com/economy/policy/articles/rubio-approves-25-8-billion-185024491.html",
+        "providerPublishTime": "2026-05-07T18:50:24Z"
+      },
+      {
+        "title": "Why Palantir Stock Popped Today",
+        "publisher": "Motley Fool",
+        "link": "https://www.fool.com/investing/2026/05/07/why-palantir-stock-popped-today/",
+        "providerPublishTime": "2026-05-07T16:17:02Z"
       }
     ],
     "SLV": [
@@ -5813,44 +5813,24 @@
         "providerPublishTime": "2026-05-06T18:26:02Z"
       }
     ],
-    "SNDK": [
+    "PPLT": [
       {
-        "title": "Tech-led stealth rally pushes markets to record highs",
-        "publisher": "Yahoo Finance Video",
-        "link": "https://finance.yahoo.com/video/tech-led-stealth-rally-pushes-markets-to-record-highs-143101320.html",
-        "providerPublishTime": "2026-05-07T14:31:01Z"
+        "title": "Top 10 Precious Metals ETFs: Silver and Platinum Shine",
+        "publisher": "etf.com",
+        "link": "http://www.etf.com/sections/etf-education-series/top-10-precious-metals-etfs-silver-and-platinum-shine?utm_source=yahoo-finance&utm_medium=rss&utm_campaign=yahoo-finance-rss",
+        "providerPublishTime": "2026-03-13T10:57:20Z"
       },
       {
-        "title": "Western Digital Share Swap Highlights Separation Progress And Valuation Gap",
-        "publisher": "Simply Wall St.",
-        "link": "https://finance.yahoo.com/markets/stocks/articles/western-digital-share-swap-highlights-182227941.html",
-        "providerPublishTime": "2026-05-07T18:22:27Z"
+        "title": "Platinum Rally Faces Critical Test After Mining Giant Posts $3.6 Billion Loss",
+        "publisher": "24/7 Wall St.",
+        "link": "https://247wallst.com/investing/2026/01/25/platinum-rally-faces-critical-test-after-mining-giant-posts-3-6-billion-loss/",
+        "providerPublishTime": "2026-01-25T12:37:57Z"
       },
       {
-        "title": "Analysts reset Sandisk stock forecast after massive rally",
-        "publisher": "TheStreet",
-        "link": "https://www.thestreet.com/investing/stocks/analysts-raise-sandisk-stock-forecast-after-massive-rally-sndk",
-        "providerPublishTime": "2026-05-07T17:33:00Z"
-      }
-    ],
-    "RTX": [
-      {
-        "title": "Airbus Lands $19 Bil Order; Boeing Wins Air Force One Contract",
-        "publisher": "Investor's Business Daily",
-        "link": "https://www.investors.com/news/airbus-lands-19-bil-order-from-airasia-for-150-planes-boeing-air-force-one-ba-stock/?src=A00220&yptr=yahoo",
-        "providerPublishTime": "2026-05-07T20:51:19Z"
-      },
-      {
-        "title": "Rubio Approves $25.8 Billion in Weapons Push for Mideast Nations",
-        "publisher": "Bloomberg",
-        "link": "https://finance.yahoo.com/economy/policy/articles/rubio-approves-25-8-billion-185024491.html",
-        "providerPublishTime": "2026-05-07T18:50:24Z"
-      },
-      {
-        "title": "Why Palantir Stock Popped Today",
-        "publisher": "Motley Fool",
-        "link": "https://www.fool.com/investing/2026/05/07/why-palantir-stock-popped-today/",
-        "providerPublishTime": "2026-05-07T16:17:02Z"
+        "title": "Market Minute 1-6-26- Metals Mania Spreads as Markets Tighten",
+        "publisher": "MoneyShow",
+        "link": "https://finance.yahoo.com/news/market-minute-1-6-26-142000985.html",
+        "providerPublishTime": "2026-01-06T14:20:00Z"
       }
     ],
     "STX": [
@@ -5893,152 +5873,12 @@
         "providerPublishTime": "2026-05-06T17:27:00Z"
       }
     ],
-    "TSM": [
-      {
-        "title": "My Top 2 Semiconductor Stocks Benefiting From the AI Boom to Buy in May 2026",
-        "publisher": "Motley Fool",
-        "link": "https://www.fool.com/investing/2026/05/07/my-top-semiconductor-stocks-benefiting-ai-boom/",
-        "providerPublishTime": "2026-05-07T22:02:00Z"
-      },
-      {
-        "title": "These 3 Dividend Paying Tech Stocks Offer AI Exposure",
-        "publisher": "Zacks",
-        "link": "https://finance.yahoo.com/markets/stocks/articles/3-dividend-paying-tech-stocks-203800811.html",
-        "providerPublishTime": "2026-05-07T20:38:00Z"
-      },
-      {
-        "title": "ASML to reap benefits from demand from Low-NA EUV adoption",
-        "publisher": "Investing.com",
-        "link": "https://finance.yahoo.com/markets/stocks/articles/asml-reap-benefits-demand-low-191813993.html",
-        "providerPublishTime": "2026-05-07T19:18:13Z"
-      }
-    ],
     "TGT": [
       {
         "title": "Target executive unveils bold new plan to win back customers",
         "publisher": "TheStreet",
         "link": "https://www.thestreet.com/retail/target-executive-unveils-plan-to-turn-shoppers-into-creators-social-commerce",
         "providerPublishTime": "2026-05-07T23:17:00Z"
-      },
-      {
-        "title": "Retail Earnings Will Show How Much Pressure Consumers Are Under",
-        "publisher": "Barrons.com",
-        "link": "https://www.barrons.com/articles/walmart-target-retail-earnings-consumer-spending-fbd5af49?siteid=yhoof2&yptr=yahoo",
-        "providerPublishTime": "2026-05-07T19:26:00Z"
-      },
-      {
-        "title": "APR Targets 3,200 Walmart Stores As Medicube Retail Push Accelerates",
-        "publisher": "GuruFocus.com",
-        "link": "https://finance.yahoo.com/markets/stocks/articles/apr-targets-3-200-walmart-184934117.html",
-        "providerPublishTime": "2026-05-07T18:49:34Z"
-      }
-    ],
-    "TPL": [
-      {
-        "title": "TPL Q1 2026 Earnings Transcript",
-        "publisher": "Motley Fool",
-        "link": "https://www.fool.com/earnings/call-transcripts/2026/05/07/tpl-q1-2026-earnings-transcript/",
-        "providerPublishTime": "2026-05-07T16:06:14Z"
-      },
-      {
-        "title": "Texas Pacific Land Corporation Q1 2026 Earnings Call Summary",
-        "publisher": "Moby",
-        "link": "https://app.moby.co/home/research/tools/earningsCalendar/earnings-texas-pacific-land-corporation-q1-2026-earnings-call-summary?utm_source=yahoo_finance&utm_medium=rss",
-        "providerPublishTime": "2026-05-07T12:30:00Z"
-      },
-      {
-        "title": "Texas Pacific Land (NYSE:TPL) Reports Sales Below Analyst Estimates In Q1 CY2026 Earnings",
-        "publisher": "StockStory",
-        "link": "https://finance.yahoo.com/markets/stocks/articles/texas-pacific-land-nyse-tpl-220212646.html",
-        "providerPublishTime": "2026-05-06T22:02:12Z"
-      }
-    ],
-    "UNH": [
-      {
-        "title": "How CVS Health's Transformation Is Facing A Hard Valuation Floor",
-        "publisher": "Trefis",
-        "link": "https://www.trefis.com/articles/598630/how-cvs-healths-transformation-is-facing-a-hard-valuation-floor/2026-05-07",
-        "providerPublishTime": "2026-05-07T14:19:05Z"
-      },
-      {
-        "title": "THC Beats Q1 Earnings Estimates on Strong Ambulatory Growth, Ups '26 EPS View",
-        "publisher": "Zacks",
-        "link": "https://finance.yahoo.com/sectors/healthcare/articles/thc-beats-q1-earnings-estimates-154600836.html",
-        "providerPublishTime": "2026-05-06T15:46:00Z"
-      },
-      {
-        "title": "CVS Stock Breaks Out On Earnings Due To ACA Exit, Premium Hikes",
-        "publisher": "Investor's Business Daily",
-        "link": "https://www.investors.com/news/cvs-stock-breaks-out-aca-exit-premium-hikes/?src=A00220&yptr=yahoo",
-        "providerPublishTime": "2026-05-06T14:09:00Z"
-      }
-    ],
-    "WDC": [
-      {
-        "title": "Tech-led stealth rally pushes markets to record highs",
-        "publisher": "Yahoo Finance Video",
-        "link": "https://finance.yahoo.com/video/tech-led-stealth-rally-pushes-markets-to-record-highs-143101320.html",
-        "providerPublishTime": "2026-05-07T14:31:01Z"
-      },
-      {
-        "title": "Western Digital Draws Higher Targets On AI Demand",
-        "publisher": "GuruFocus.com",
-        "link": "https://finance.yahoo.com/markets/stocks/articles/western-digital-draws-higher-targets-190311451.html",
-        "providerPublishTime": "2026-05-07T19:03:11Z"
-      },
-      {
-        "title": "Western Digital Share Swap Highlights Separation Progress And Valuation Gap",
-        "publisher": "Simply Wall St.",
-        "link": "https://finance.yahoo.com/markets/stocks/articles/western-digital-share-swap-highlights-182227941.html",
-        "providerPublishTime": "2026-05-07T18:22:27Z"
-      }
-    ],
-    "TYGO": [
-      {
-        "title": "Tigo Energy, Inc. (TYGO) Upgraded to Buy: Here's What You Should Know",
-        "publisher": "Zacks",
-        "link": "https://finance.yahoo.com/markets/stocks/articles/tigo-energy-inc-tygo-upgraded-160005507.html",
-        "providerPublishTime": "2026-05-07T16:00:05Z"
-      },
-      {
-        "title": "Tigo Energy Q1 Earnings Call Highlights",
-        "publisher": "MarketBeat",
-        "link": "https://www.marketbeat.com/instant-alerts/tigo-energy-q1-earnings-call-highlights-2026-05-05/?utm_source=yahoofinance&utm_medium=yahoofinance",
-        "providerPublishTime": "2026-05-06T04:08:23Z"
-      },
-      {
-        "title": "Tigo Energy, Inc. Q1 2026 Earnings Call Summary",
-        "publisher": "Moby",
-        "link": "https://app.moby.co/home/research/tools/earningsCalendar/earnings-tigo-energy-inc-q1-2026-earnings-call-summary?utm_source=yahoo_finance&utm_medium=rss",
-        "providerPublishTime": "2026-05-06T00:17:16Z"
-      }
-    ],
-    "WDAY": [
-      {
-        "title": "Software Shines With Booming Earnings Season Thundering Along",
-        "publisher": "The Wall Street Journal",
-        "link": "https://www.wsj.com/finance/stocks/software-shines-with-booming-earnings-season-thundering-along-d0c68b93?siteid=yhoof2&yptr=yahoo",
-        "providerPublishTime": "2026-05-07T20:56:00Z"
-      },
-      {
-        "title": "Why Workday (WDAY) Outpaced the Stock Market Today",
-        "publisher": "Zacks",
-        "link": "https://finance.yahoo.com/markets/stocks/articles/why-workday-wday-outpaced-stock-214503807.html",
-        "providerPublishTime": "2026-05-05T21:45:03Z"
-      },
-      {
-        "title": "Workday (WDAY) Launches AI-Powered Personnel Action Request Agent to Modernize Federal HR Operations",
-        "publisher": "Insider Monkey",
-        "link": "https://finance.yahoo.com/sectors/technology/articles/workday-wday-launches-ai-powered-141836316.html",
-        "providerPublishTime": "2026-05-05T14:18:36Z"
-      }
-    ],
-    "WMT": [
-      {
-        "title": "Lifetime Brands, Inc. Q1 2026 Earnings Call Summary",
-        "publisher": "Moby",
-        "link": "https://app.moby.co/home/research/tools/earningsCalendar/earnings-lifetime-brands-inc-q1-2026-earnings-call-summary?utm_source=yahoo_finance&utm_medium=rss",
-        "providerPublishTime": "2026-05-07T21:00:35Z"
       },
       {
         "title": "Retail Earnings Will Show How Much Pressure Consumers Are Under",
@@ -6073,24 +5913,124 @@
         "providerPublishTime": "2026-04-23T10:49:39Z"
       }
     ],
-    "XOM": [
+    "SNDK": [
       {
-        "title": "Trump meets with Brazil's Lula to talk trade, extends EU tariff deadline",
+        "title": "Tech-led stealth rally pushes markets to record highs",
         "publisher": "Yahoo Finance Video",
-        "link": "https://finance.yahoo.com/video/trump-meets-with-brazils-lula-to-talk-trade-extends-eu-tariff-deadline-210415936.html",
-        "providerPublishTime": "2026-05-07T21:04:15Z"
+        "link": "https://finance.yahoo.com/video/tech-led-stealth-rally-pushes-markets-to-record-highs-143101320.html",
+        "providerPublishTime": "2026-05-07T14:31:01Z"
       },
       {
-        "title": "Trump Admits \u201cI Expected Oil to Hit $200\u201d Over Iran\u2014 Here\u2019s How Close Investors Came to Disaster",
+        "title": "Top AI Memory Stocks for 2026",
+        "publisher": "FX Empire",
+        "link": "https://finance.yahoo.com/markets/stocks/articles/top-ai-memory-stocks-2026-213243802.html",
+        "providerPublishTime": "2026-05-07T21:32:43Z"
+      },
+      {
+        "title": "Western Digital Share Swap Highlights Separation Progress And Valuation Gap",
+        "publisher": "Simply Wall St.",
+        "link": "https://finance.yahoo.com/markets/stocks/articles/western-digital-share-swap-highlights-182227941.html",
+        "providerPublishTime": "2026-05-07T18:22:27Z"
+      }
+    ],
+    "TSM": [
+      {
+        "title": "The 2026 Chip War Is Already Over and Apple Dominated",
         "publisher": "24/7 Wall St.",
-        "link": "https://247wallst.com/investing/2026/05/07/trump-admits-i-expected-oil-to-hit-200-over-iran-heres-how-close-investors-came-to-disaster/",
-        "providerPublishTime": "2026-05-07T16:16:09Z"
+        "link": "https://247wallst.com/investing/2026/05/07/the-2026-chip-war-is-already-over-and-apple-dominated/",
+        "providerPublishTime": "2026-05-07T23:44:10Z"
       },
       {
-        "title": "Oil Supply Shock Worsens amid Plunging Petroleum Inventories",
-        "publisher": "Oilprice.com",
-        "link": "https://finance.yahoo.com/sectors/energy/articles/oil-supply-shock-worsens-amid-160000087.html",
-        "providerPublishTime": "2026-05-07T16:00:00Z"
+        "title": "My Top 2 Semiconductor Stocks Benefiting From the AI Boom to Buy in May 2026",
+        "publisher": "Motley Fool",
+        "link": "https://www.fool.com/investing/2026/05/07/my-top-semiconductor-stocks-benefiting-ai-boom/",
+        "providerPublishTime": "2026-05-07T22:02:00Z"
+      },
+      {
+        "title": "These 3 Dividend Paying Tech Stocks Offer AI Exposure",
+        "publisher": "Zacks",
+        "link": "https://finance.yahoo.com/markets/stocks/articles/3-dividend-paying-tech-stocks-203800811.html",
+        "providerPublishTime": "2026-05-07T20:38:00Z"
+      }
+    ],
+    "TYGO": [
+      {
+        "title": "Tigo Energy, Inc. (TYGO) Upgraded to Buy: Here's What You Should Know",
+        "publisher": "Zacks",
+        "link": "https://finance.yahoo.com/markets/stocks/articles/tigo-energy-inc-tygo-upgraded-160005507.html",
+        "providerPublishTime": "2026-05-07T16:00:05Z"
+      },
+      {
+        "title": "Tigo Energy Q1 Earnings Call Highlights",
+        "publisher": "MarketBeat",
+        "link": "https://www.marketbeat.com/instant-alerts/tigo-energy-q1-earnings-call-highlights-2026-05-05/?utm_source=yahoofinance&utm_medium=yahoofinance",
+        "providerPublishTime": "2026-05-06T04:08:23Z"
+      },
+      {
+        "title": "Tigo Energy, Inc. Q1 2026 Earnings Call Summary",
+        "publisher": "Moby",
+        "link": "https://app.moby.co/home/research/tools/earningsCalendar/earnings-tigo-energy-inc-q1-2026-earnings-call-summary?utm_source=yahoo_finance&utm_medium=rss",
+        "providerPublishTime": "2026-05-06T00:17:16Z"
+      }
+    ],
+    "WDAY": [
+      {
+        "title": "Power Integrations (POWI) Q1 Earnings and Revenues Top Estimates",
+        "publisher": "Zacks",
+        "link": "https://finance.yahoo.com/markets/stocks/articles/power-integrations-powi-q1-earnings-230506253.html",
+        "providerPublishTime": "2026-05-07T23:05:06Z"
+      },
+      {
+        "title": "Software Shines With Booming Earnings Season Thundering Along",
+        "publisher": "The Wall Street Journal",
+        "link": "https://www.wsj.com/finance/stocks/software-shines-with-booming-earnings-season-thundering-along-d0c68b93?siteid=yhoof2&yptr=yahoo",
+        "providerPublishTime": "2026-05-07T20:56:00Z"
+      },
+      {
+        "title": "Why Workday (WDAY) Outpaced the Stock Market Today",
+        "publisher": "Zacks",
+        "link": "https://finance.yahoo.com/markets/stocks/articles/why-workday-wday-outpaced-stock-214503807.html",
+        "providerPublishTime": "2026-05-05T21:45:03Z"
+      }
+    ],
+    "TPL": [
+      {
+        "title": "TPL Q1 2026 Earnings Transcript",
+        "publisher": "Motley Fool",
+        "link": "https://www.fool.com/earnings/call-transcripts/2026/05/07/tpl-q1-2026-earnings-transcript/",
+        "providerPublishTime": "2026-05-07T16:06:14Z"
+      },
+      {
+        "title": "Texas Pacific Land Corporation Q1 2026 Earnings Call Summary",
+        "publisher": "Moby",
+        "link": "https://app.moby.co/home/research/tools/earningsCalendar/earnings-texas-pacific-land-corporation-q1-2026-earnings-call-summary?utm_source=yahoo_finance&utm_medium=rss",
+        "providerPublishTime": "2026-05-07T12:30:00Z"
+      },
+      {
+        "title": "Texas Pacific Land (NYSE:TPL) Reports Sales Below Analyst Estimates In Q1 CY2026 Earnings",
+        "publisher": "StockStory",
+        "link": "https://finance.yahoo.com/markets/stocks/articles/texas-pacific-land-nyse-tpl-220212646.html",
+        "providerPublishTime": "2026-05-06T22:02:12Z"
+      }
+    ],
+    "WDC": [
+      {
+        "title": "Tech-led stealth rally pushes markets to record highs",
+        "publisher": "Yahoo Finance Video",
+        "link": "https://finance.yahoo.com/video/tech-led-stealth-rally-pushes-markets-to-record-highs-143101320.html",
+        "providerPublishTime": "2026-05-07T14:31:01Z"
+      },
+      {
+        "title": "If You Are Bullish on Agentic AI, Western Digital Is a Top Stock to Buy",
+        "publisher": "Barchart",
+        "link": "https://www.barchart.com/story/news/1783452/if-you-are-bullish-on-agentic-ai-western-digital-is-a-top-stock-to-buy",
+        "providerPublishTime": "2026-05-07T20:05:55Z"
+      },
+      {
+        "title": "Western Digital Draws Higher Targets On AI Demand",
+        "publisher": "GuruFocus.com",
+        "link": "https://finance.yahoo.com/markets/stocks/articles/western-digital-draws-higher-targets-190311451.html",
+        "providerPublishTime": "2026-05-07T19:03:11Z"
       }
     ],
     "WM": [
@@ -6111,6 +6051,66 @@
         "publisher": "Zacks",
         "link": "https://finance.yahoo.com/markets/stocks/articles/q1-earnings-beat-contract-value-165800663.html",
         "providerPublishTime": "2026-05-05T16:58:00Z"
+      }
+    ],
+    "WMT": [
+      {
+        "title": "Funko Q1 Earnings Call Highlights",
+        "publisher": "MarketBeat",
+        "link": "https://www.marketbeat.com/instant-alerts/funko-q1-earnings-call-highlights-2026-05-07/?utm_source=yahoofinance&utm_medium=yahoofinance",
+        "providerPublishTime": "2026-05-08T01:35:42Z"
+      },
+      {
+        "title": "Walmart Expands Wellness Aisles With Exclusive Grooming And Women\u2019s Health Lines",
+        "publisher": "Simply Wall St.",
+        "link": "https://finance.yahoo.com/sectors/healthcare/articles/walmart-expands-wellness-aisles-exclusive-012315915.html",
+        "providerPublishTime": "2026-05-08T01:23:15Z"
+      },
+      {
+        "title": "Lifetime Brands, Inc. Q1 2026 Earnings Call Summary",
+        "publisher": "Moby",
+        "link": "https://app.moby.co/home/research/tools/earningsCalendar/earnings-lifetime-brands-inc-q1-2026-earnings-call-summary?utm_source=yahoo_finance&utm_medium=rss",
+        "providerPublishTime": "2026-05-07T21:00:35Z"
+      }
+    ],
+    "UNH": [
+      {
+        "title": "UnitedHealth to Eliminate Prior Authorization for 30% of Healthcare Services",
+        "publisher": "Insider Monkey",
+        "link": "https://finance.yahoo.com/sectors/healthcare/articles/unitedhealth-eliminate-prior-authorization-30-234156634.html",
+        "providerPublishTime": "2026-05-07T23:41:56Z"
+      },
+      {
+        "title": "Bullish Quarterly Results: 3 Companies Raising Guidance",
+        "publisher": "Zacks",
+        "link": "https://finance.yahoo.com/markets/stocks/articles/bullish-quarterly-results-3-companies-224100713.html",
+        "providerPublishTime": "2026-05-07T22:41:00Z"
+      },
+      {
+        "title": "How CVS Health's Transformation Is Facing A Hard Valuation Floor",
+        "publisher": "Trefis",
+        "link": "https://www.trefis.com/articles/598630/how-cvs-healths-transformation-is-facing-a-hard-valuation-floor/2026-05-07",
+        "providerPublishTime": "2026-05-07T14:19:05Z"
+      }
+    ],
+    "XOM": [
+      {
+        "title": "Trump meets with Brazil's Lula to talk trade, extends EU tariff deadline",
+        "publisher": "Yahoo Finance Video",
+        "link": "https://finance.yahoo.com/video/trump-meets-with-brazils-lula-to-talk-trade-extends-eu-tariff-deadline-210415936.html",
+        "providerPublishTime": "2026-05-07T21:04:15Z"
+      },
+      {
+        "title": "Trump Admits \u201cI Expected Oil to Hit $200\u201d Over Iran\u2014 Here\u2019s How Close Investors Came to Disaster",
+        "publisher": "24/7 Wall St.",
+        "link": "https://247wallst.com/investing/2026/05/07/trump-admits-i-expected-oil-to-hit-200-over-iran-heres-how-close-investors-came-to-disaster/",
+        "providerPublishTime": "2026-05-07T16:16:09Z"
+      },
+      {
+        "title": "Oil Supply Shock Worsens amid Plunging Petroleum Inventories",
+        "publisher": "Oilprice.com",
+        "link": "https://finance.yahoo.com/sectors/energy/articles/oil-supply-shock-worsens-amid-160000087.html",
+        "providerPublishTime": "2026-05-07T16:00:00Z"
       }
     ]
   }
