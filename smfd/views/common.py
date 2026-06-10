@@ -21,8 +21,13 @@ FONT_LINKS = (
 
 
 def inject_style():
+    # Two separate markdown calls, and <style> must start its own string:
+    # CommonMark only treats <style> as a blank-line-tolerant HTML block when
+    # it begins the block. Combined with the <link> tags, parsing stopped at
+    # the first blank line in the CSS and the rest rendered as visible text.
     css = _STYLE_PATH.read_text()
-    st.markdown(f"{FONT_LINKS}<style>{css}</style>", unsafe_allow_html=True)
+    st.markdown(FONT_LINKS, unsafe_allow_html=True)
+    st.markdown(f"<style>{css}</style>", unsafe_allow_html=True)
 
 
 def esc(text) -> str:
@@ -73,18 +78,16 @@ def hero(data: GameData, days_left: int):
         window = (f"{data.prices.index[0].strftime('%b %d, %Y')} – "
                   f"{data.prices.index[-1].strftime('%b %d, %Y')}")
     as_of = data.as_of.strftime("%b %d, %I:%M %p ET") if data.as_of else "unknown"
+    # Single-line HTML: indented multiline strings read as markdown code blocks.
     st.markdown(
-        f"""
-        <section class="hero-card">
-          <h1 class="hero-title">🧷 No Diaper Change Standings</h1>
-          <div class="hero-meta">
-            <span class="hero-pill">Window: {window}</span>
-            <span class="hero-pill">Stake: ${data.stake:.0f} per pick · {len(data.valid_tickers)} picks</span>
-            <span class="hero-pill">🍼 {days_left} days to the finish (Apr 15, 2027)</span>
-            <span class="hero-pill">Data as of {as_of}</span>
-          </div>
-        </section>
-        """,
+        '<section class="hero-card">'
+        '<h1 class="hero-title">🧷 No Diaper Change Standings</h1>'
+        '<div class="hero-meta">'
+        f'<span class="hero-pill">Window: {window}</span>'
+        f'<span class="hero-pill">Stake: ${data.stake:.0f} per pick · {len(data.valid_tickers)} picks</span>'
+        f'<span class="hero-pill">🍼 {days_left} days to the finish (Apr 15, 2027)</span>'
+        f'<span class="hero-pill">Data as of {as_of}</span>'
+        '</div></section>',
         unsafe_allow_html=True,
     )
 
