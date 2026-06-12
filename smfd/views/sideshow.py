@@ -4,6 +4,7 @@ trivia, and the sector scoreboard."""
 from __future__ import annotations
 
 import json
+import random
 from collections import defaultdict
 
 import streamlit as st
@@ -433,8 +434,14 @@ def render(data: GameData, computed: dict, sheets_url: str = ""):
     else:
         st.info("Predictions unlock once the game has at least 6 trading days of history.")
 
-    section("\U0001f9e0", "Daily Trivia")
-    mvp_trivia = trivia.get_daily_trivia(best)
+    section("\U0001f9e0", "Trivia Corner", "fresh facts every visit")
+    # One seed per browser session: facts hold still while the visitor clicks
+    # around, then reshuffle on their next visit.
+    if "trivia_seed" not in st.session_state:
+        st.session_state["trivia_seed"] = random.randrange(2**32)
+    rng = random.Random(st.session_state["trivia_seed"])
+    mvp_trivia = trivia.ticker_trivia(best, rng)
+    fact1, fact2 = trivia.generic_trivia(rng, count=2)
     cols = st.columns(2)
     with cols[0]:
         if mvp_trivia:
@@ -445,12 +452,12 @@ def render(data: GameData, computed: dict, sheets_url: str = ""):
         else:
             st.markdown(
                 f'<div class="trivia-card"><div class="trivia-label">Market trivia</div>'
-                f'<div class="trivia-text">{esc(trivia.get_generic_trivia())}</div></div>',
+                f'<div class="trivia-text">{esc(fact1)}</div></div>',
                 unsafe_allow_html=True)
     with cols[1]:
         st.markdown(
             f'<div class="trivia-card"><div class="trivia-label">Did you know?</div>'
-            f'<div class="trivia-text">{esc(trivia.get_generic_trivia(offset=1))}</div></div>',
+            f'<div class="trivia-text">{esc(fact2)}</div></div>',
             unsafe_allow_html=True)
 
     section("\U0001f5fa", "Sector Scoreboard")
