@@ -61,6 +61,28 @@ def weekly_rank_history(total_returns: pd.DataFrame) -> tuple[pd.DataFrame, pd.D
     return sampled, ranks
 
 
+GROWTH_CHART_HEIGHT = 420
+GROWTH_LABEL_PX = 17  # approx pixel height of one end-of-line label
+
+
+def _dodge_labels(targets: list, lo: float, hi: float, min_sep: float) -> list:
+    """Spread 1-D label positions so neighbors sit >= min_sep apart in [lo, hi].
+
+    *targets* must be sorted ascending; order is preserved.
+    """
+    out = []
+    for y in targets:  # push later labels down
+        if out and y < out[-1] + min_sep:
+            y = out[-1] + min_sep
+        out.append(y)
+    if out and out[-1] > hi:  # ran past the bottom: pull the stack back up
+        out[-1] = hi
+        for i in range(len(out) - 2, -1, -1):
+            out[i] = min(out[i], out[i + 1] - min_sep)
+        out[0] = max(out[0], lo)
+    return out
+
+
 def growth_chart(total_returns: pd.DataFrame, tickers: list, name_map: dict,
                  group_map: dict, title: str) -> go.Figure:
     """Weekly full-field rank trajectories for the given tickers."""
@@ -70,17 +92,13 @@ def growth_chart(total_returns: pd.DataFrame, tickers: list, name_map: dict,
     traces = []
     dates = sampled.index
     dates_num = np.arange(len(sampled))
-    tick_labels = {}
 
-    for i, ticker in enumerate(tickers):
-        rank_vals = ranks_all[ticker].values
-        color = CHART_COLORS[i % len(CHART_COLORS)]
-        final_rank = int(rank_vals[-1])
-        emoji = GROUP_EMOJI.get(group_map.get(ticker, ""), "")
-        tick_labels[final_rank] = (
-            f"<span style='color:{color}'><b>#{final_rank}</b> {emoji} "
-            f"{ticker} {float(final[ticker]):+.2f}%</span>"
-        )
+    rank_vals_by_ticker = {t: ranks_all[t].values for t in tickers}
+    colors = {t: CHART_COLORS[i % len(CHART_COLORS)] for i, t in enumerate(tickers)}
+
+    for ticker in tickers:
+        rank_vals = rank_vals_by_ticker[ticker]
+        color = colors[ticker]
 
         all_x, all_y = [], []
         for j in range(len(rank_vals) - 1):
@@ -106,15 +124,39 @@ def growth_chart(total_returns: pd.DataFrame, tickers: list, name_map: dict,
         ))
 
     fig = go.Figure(data=traces)
+
+    # End-of-line labels, collision-dodged. The journeys can span the whole
+    # field (#65 -> #12) while the endpoints cluster (#1..#10), so labels
+    # anchored to the axis would overlap — spread them out and tether each to
+    # its line end with a faint connector.
+    y_lo = 0.5
+    y_hi = max(v.max() for v in rank_vals_by_ticker.values()) + 0.5
+    px_per_unit = (GROWTH_CHART_HEIGHT - 90) / (y_hi - y_lo)  # minus t/b margins
+    min_sep = GROWTH_LABEL_PX / px_per_unit
+    order = sorted(tickers, key=lambda t: rank_vals_by_ticker[t][-1])
+    label_ys = _dodge_labels([float(rank_vals_by_ticker[t][-1]) for t in order],
+                             y_lo + 0.2, y_hi - 0.2, min_sep)
+    for ticker, label_y in zip(order, label_ys):
+        end_rank = float(rank_vals_by_ticker[ticker][-1])
+        emoji = GROUP_EMOJI.get(group_map.get(ticker, ""), "")
+        fig.add_annotation(
+            x=dates[-1].isoformat(), y=end_rank,
+            text=f"<b>#{int(end_rank)}</b> {emoji} {ticker} {float(final[ticker]):+.2f}%",
+            font=dict(size=11, color=colors[ticker]),
+            xanchor="left", align="left",
+            ax=16, ay=(label_y - end_rank) * px_per_unit,
+            showarrow=True, arrowhead=0, arrowwidth=1,
+            arrowcolor="rgba(18,51,36,0.3)",
+        )
+
+    layout = {**BASE_LAYOUT, "margin": dict(t=50, r=150, b=40, l=14)}
     fig.update_layout(
-        title=title, height=420, showlegend=False, hovermode="x",
+        title=title, height=GROWTH_CHART_HEIGHT, showlegend=False, hovermode="x",
         title_font=dict(size=18, color=TEXT),
-        yaxis=dict(autorange="reversed", gridcolor=GRID, side="right",
+        yaxis=dict(range=[y_hi, y_lo], gridcolor=GRID, side="left",
                    tickfont=dict(size=11), zeroline=False, fixedrange=True,
-                   automargin=True, tickmode="array",
-                   tickvals=sorted(tick_labels),
-                   ticktext=[tick_labels[v] for v in sorted(tick_labels)]),
-        **BASE_LAYOUT,
+                   tickformat="d"),
+        **layout,
     )
     fig.update_xaxes(showgrid=False, fixedrange=True, tickfont=dict(color=TEXT))
     return fig
