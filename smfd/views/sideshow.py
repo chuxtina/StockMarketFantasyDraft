@@ -390,9 +390,11 @@ def render(data: GameData, computed: dict, sheets_url: str = ""):
     section("\U0001f4a5", "Shots Fired", "fresh burns daily — react if it landed")
     _render_roasts(data, computed, sheets_url)
 
-    section("\U0001f52e", "This Week's Predictions", "momentum-based fun, not financial advice")
+    section("\U0001f52e", "This Week's Predictions",
+            "Monte Carlo sims on real price history + technicals — still not financial advice")
     preds = preds_mod.generate_predictions(
-        computed["total_returns"], scores, data.name_map, data.group_map)
+        computed["total_returns"], scores, data.name_map, data.group_map,
+        signals=data.signals, earnings=data.earnings)
     if preds:
         history = preds_mod.load_history()
         preds_mod.record_predictions(preds, history)
