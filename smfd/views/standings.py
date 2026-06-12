@@ -325,19 +325,20 @@ def render(data: GameData, computed: dict, start_date: datetime.date, end_date: 
     section("\U0001f3c6", "Leaderboard")
     _leaderboard_iframe(data, scores, rank_deltas, start_date, end_date)
 
-    section("\U0001f687", "Stock Subway", "rank journeys, top + bottom 10")
+    section("\U0001f476\U0001f3fb", "Growth Chart",
+            f"weekly rank check-ups in the full field of {len(scores)} — "
+            "who's hitting their percentiles and who's falling off the curve")
     top10 = list(scores.head(10).index)
     bottom10 = list(scores.tail(10).index)
     total = len(scores)
     with st.container(key="bump-charts-desktop"):
         st.plotly_chart(
-            charts.bump_chart(total_returns, top10, data.name_map, data.group_map,
-                              "Top 10 — In the Money"),
+            charts.growth_chart(total_returns, top10, data.name_map, data.group_map,
+                                "Top 10 — In the Money"),
             use_container_width=True, config=charts.CHART_CONFIG)
         st.plotly_chart(
-            charts.bump_chart(total_returns, bottom10, data.name_map, data.group_map,
-                              "Bottom 10 — Out of the Money",
-                              label_rank_fn=lambda r: total - 10 + r),
+            charts.growth_chart(total_returns, bottom10, data.name_map, data.group_map,
+                                "Bottom 10 — Out of the Money"),
             use_container_width=True, config=charts.CHART_CONFIG)
 
     def _mobile_row(ticker, rank):
