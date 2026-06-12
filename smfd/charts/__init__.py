@@ -30,7 +30,7 @@ CHART_COLORS = [
 ]
 
 
-# --- Bump charts (the "Stock Subway") ---
+# --- Growth Chart (weekly rank check-ups, like a pediatrician's chart) ---
 
 def _sigmoid_between(x_from, x_to, y_from, y_to, n=100, smooth=8):
     t = np.linspace(-smooth, smooth, n)
@@ -40,27 +40,45 @@ def _sigmoid_between(x_from, x_to, y_from, y_to, n=100, smooth=8):
     return x_out, y_out
 
 
-def bump_chart(total_returns: pd.DataFrame, tickers: list, name_map: dict,
-               group_map: dict, title: str, label_rank_fn=None) -> go.Figure:
-    """ggbump-style rank chart for the given tickers over time."""
-    sub = total_returns[tickers]
-    ranks = sub.rank(axis=1, ascending=False)
-    ranks.iloc[0] = range(1, len(tickers) + 1)  # day 0 all-zero tie: seed final order
-    final = sub.iloc[-1]
+def weekly_rank_history(total_returns: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
+    """One 'check-up' per trading week: (sampled returns, full-field ranks).
+
+    Rows are the last trading day of each week (so the latest day is always
+    included) plus the very first day. Ranks run across ALL picks — #12 means
+    12th in the whole game, not 12th among whichever ten get drawn.
+    """
+    by_week = pd.Series(total_returns.index, index=total_returns.index).groupby(
+        total_returns.index.to_period("W")).last()
+    dates = pd.DatetimeIndex(by_week.values)
+    if len(total_returns) and total_returns.index[0] not in dates:
+        dates = dates.insert(0, total_returns.index[0])
+    sampled = total_returns.loc[dates]
+    ranks = sampled.rank(axis=1, ascending=False, method="min")
+    # Day 0 is an all-zero tie; start each line where week 1 ended instead of
+    # stacking the whole field at #1.
+    if len(ranks) > 1 and sampled.iloc[0].nunique() == 1:
+        ranks.iloc[0] = ranks.iloc[1]
+    return sampled, ranks
+
+
+def growth_chart(total_returns: pd.DataFrame, tickers: list, name_map: dict,
+                 group_map: dict, title: str) -> go.Figure:
+    """Weekly full-field rank trajectories for the given tickers."""
+    sampled, ranks_all = weekly_rank_history(total_returns)
+    final = sampled.iloc[-1]
 
     traces = []
-    dates = ranks.index
-    dates_num = np.arange(len(ranks))
+    dates = sampled.index
+    dates_num = np.arange(len(sampled))
     tick_labels = {}
 
     for i, ticker in enumerate(tickers):
-        rank_vals = ranks[ticker].values
+        rank_vals = ranks_all[ticker].values
         color = CHART_COLORS[i % len(CHART_COLORS)]
         final_rank = int(rank_vals[-1])
-        shown_rank = label_rank_fn(final_rank) if label_rank_fn else final_rank
         emoji = GROUP_EMOJI.get(group_map.get(ticker, ""), "")
         tick_labels[final_rank] = (
-            f"<span style='color:{color}'><b>#{shown_rank}</b> {emoji} "
+            f"<span style='color:{color}'><b>#{final_rank}</b> {emoji} "
             f"{ticker} {float(final[ticker]):+.2f}%</span>"
         )
 
@@ -82,7 +100,7 @@ def bump_chart(total_returns: pd.DataFrame, tickers: list, name_map: dict,
             x=list(dates), y=list(rank_vals), mode="markers",
             name=name_map.get(ticker, ticker),
             marker=dict(size=8, color=color, line=dict(width=1.5, color="white")),
-            customdata=[round(float(v), 2) for v in sub[ticker].values],
+            customdata=[round(float(v), 2) for v in sampled[ticker].values],
             hovertemplate="#%{y:.0f} %{fullData.name} %{customdata:.2f}%<extra></extra>",
             showlegend=False,
         ))
