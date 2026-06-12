@@ -95,7 +95,8 @@ def render(data: GameData, computed: dict):
         if st.button("\U0001f4ec Mark as sent", width="stretch",
                      help="Logs today as a newsletter date so the next "
                           "'since last newsletter' starts here"):
-            build.record_newsletter(snapshot["period_label"])
+            build.record_newsletter(snapshot["period_label"],
+                                    snapshot.get("roast_key", ""))
             st.toast(f"Logged — next 'since last newsletter' starts "
                      f"{datetime.date.today().strftime('%b %d')}.", icon="✅")
             st.rerun()

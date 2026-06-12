@@ -108,12 +108,12 @@ def render_html(snapshot: dict) -> str:
   <tr><td style="background:linear-gradient(135deg,#0d2f20,#13492f);background-color:#0d2f20;
                  border-radius:16px;padding:22px 24px;color:#f4f0e3;">
     <div style="font-size:11px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:#d7a83a;">
-      \U0001f9f7 Stock Market Fantasy Draft</div>
+      \U0001f380 Stock Market Fantasy Draft</div>
     <div style="font-size:24px;font-weight:800;margin:6px 0 4px;">Alessi's Stock Draft</div>
     <div style="font-size:13px;opacity:0.85;">{_esc(s["period_label"])}</div>
     <div style="font-size:13px;margin-top:10px;background:rgba(255,255,255,0.1);display:inline-block;
                 padding:5px 12px;border-radius:999px;">
-      \U0001f37c <b>{s["days_remaining"]} days</b> until Alessi decides it all</div>
+      \U0001f37c <b>{s["days_remaining"]} days</b> until Alessi turns one and the market calls it</div>
   </td></tr>
 
   {_section("The Headline", f'<div style="font-size:16px;line-height:1.45;font-weight:600;">{_esc(s["headline_stat"])}</div>')}
@@ -159,7 +159,7 @@ def render_plain_text(snapshot: dict) -> str:
     lines = [
         "STOCK MARKET FANTASY DRAFT — Alessi's Stock Draft",
         s["period_label"],
-        f"{s['days_remaining']} days until Alessi decides it all",
+        f"{s['days_remaining']} days until Alessi turns one and the market calls it",
         "",
         f"THE HEADLINE: {s['headline_stat']}",
         "",
