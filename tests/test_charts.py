@@ -47,3 +47,22 @@ class TestWeeklyRankHistory:
         assert len(fig.data) == 4  # one line + one marker trace per ticker
         marker_trace = fig.data[1]
         assert len(marker_trace.x) == 4  # one point per check-up, not per day
+        assert len(fig.layout.annotations) == 2  # one end-of-line label each
+
+
+class TestLabelDodge:
+    def test_no_overlap_when_targets_cluster(self):
+        # Ten labels all wanting ranks 1..10 on an axis stretched to 65.
+        ys = charts._dodge_labels([float(r) for r in range(1, 11)], 0.5, 65.0, 3.0)
+        assert all(b - a >= 3.0 - 1e-9 for a, b in zip(ys, ys[1:]))
+        assert ys[0] >= 0.5 and ys[-1] <= 65.0
+
+    def test_untouched_when_already_spread(self):
+        ys = charts._dodge_labels([1.0, 10.0, 20.0], 0.5, 30.0, 3.0)
+        assert ys == [1.0, 10.0, 20.0]
+
+    def test_cluster_at_bottom_pulls_back_up(self):
+        # Bottom-10 case: endpoints jammed against the lower bound.
+        ys = charts._dodge_labels([26.0, 27.0, 28.0, 29.0, 30.0], 0.5, 30.0, 3.0)
+        assert ys[-1] <= 30.0
+        assert all(b - a >= 3.0 - 1e-9 for a, b in zip(ys, ys[1:]))
