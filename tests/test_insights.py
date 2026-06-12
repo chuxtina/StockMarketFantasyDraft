@@ -61,14 +61,24 @@ class TestRace:
         assert table.loc["DOWN", "gap_to_safety"] == pytest.approx(0.0)
         assert table.loc["DIVY", "gap_to_safety"] == pytest.approx(32.5)
 
-    def test_projection_is_linear_extrapolation(self, computed):
+    def test_title_and_last_odds_are_probabilities(self, computed):
         game, total, scores = computed
-        today = datetime.date(2026, 6, 9)
-        table = race.race_table(total, scores, today=today)
-        remaining = race.trading_days_remaining(today)
+        table = race.race_table(total, scores, today=datetime.date(2026, 6, 9))
+        # Exactly one winner and one loser per simulated season.
+        assert table["title_odds"].sum() == pytest.approx(1.0)
+        assert table["last_odds"].sum() == pytest.approx(1.0)
+        assert ((table["title_odds"] >= 0) & (table["title_odds"] <= 1)).all()
+        # The current leader is the title favorite; the cellar pick is the
+        # last-place favorite.
+        assert table["title_odds"].idxmax() == table.index[0]
+        assert table["last_odds"].idxmax() == table.index[-1]
+
+    def test_trend_is_linear_slope(self, computed):
+        game, total, scores = computed
+        table = race.race_table(total, scores, today=datetime.date(2026, 6, 9))
         # UP gains exactly 10% over 4 steps -> slope 2.5%/day on a perfect line
         slope = np.polyfit(np.arange(5), total["UP"].values, 1)[0]
-        assert table.loc["UP", "projected_final_pct"] == pytest.approx(10.0 + slope * remaining)
+        assert table.loc["UP", "trend_per_day"] == pytest.approx(slope)
 
     def test_leader_can_always_catch_leader(self, computed):
         game, total, scores = computed
