@@ -231,7 +231,8 @@ def _render_roasts(data: GameData, computed: dict, sheets_url: str):
     throne = computed["throne"]
     ticker_html = {t: group_colored(t, data.group_map) for t in scores.index}
     roast_day, roasts = roasts_mod.daily_roasts(
-        scores["total_return_pct"], computed["total_returns"], throne, ticker_html)
+        scores["total_return_pct"], computed["total_returns"], throne, ticker_html,
+        news=data.news)
 
     personas = [
         ("\U0001f916", "linear-gradient(135deg, #0e5f3a, #19a05f)", "GreenMachine"),

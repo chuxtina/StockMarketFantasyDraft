@@ -12,6 +12,7 @@ import json
 import random
 
 from smfd.compute import groups, race
+from smfd.compute import roasts as roasts_mod
 from smfd.config import GAME_START, GROUP_NAMES, NEWSLETTER_LOG_PATH
 from smfd.data import GameData
 
@@ -42,9 +43,12 @@ def last_newsletter_date() -> datetime.date | None:
         return None
 
 
-def record_newsletter(period_label: str) -> None:
+def record_newsletter(period_label: str, roast_key: str = "") -> None:
     log = load_log()
-    log.append({"date": datetime.date.today().isoformat(), "period_label": period_label})
+    entry = {"date": datetime.date.today().isoformat(), "period_label": period_label}
+    if roast_key:
+        entry["roast_key"] = roast_key  # so future newsletters never repeat the joke
+    log.append(entry)
     try:
         NEWSLETTER_LOG_PATH.parent.mkdir(parents=True, exist_ok=True)
         with open(NEWSLETTER_LOG_PATH, "w") as f:
@@ -91,16 +95,27 @@ def _pick_row(scores, ticker: str) -> dict:
     }
 
 
-def _roast_line(laggard: dict, rng: random.Random) -> str:
-    t = laggard["ticker"]
-    pct = laggard["total_return_pct"]
-    lines = [
-        f"{t} holders, {pct:+.1f}% isn't a return, it's a cry for help. \U0001f480",
-        f"Moment of silence for {t} at {pct:+.1f}%. The diaper bag is holding up better. \U0001f480",
-        f"{t} at {pct:+.1f}%. Somewhere a piggy bank is outperforming you. \U0001f437",
-        f"{t}: {pct:+.1f}%. Alessi has a better savings rate, and she has no income. \U0001f476",
-    ]
-    return rng.choice(lines)
+def _roast_line(data: GameData, computed: dict, laggard: dict,
+                rng: random.Random) -> tuple[str, str]:
+    """One roast from the shared Shots Fired engine, plain-text for email.
+
+    Prefers a joke about the laggard, dedups against roasts sent in past
+    newsletters (via roast_key entries in the newsletter log). Returns
+    (text, dedup_key); the key is logged when the newsletter is marked sent.
+    """
+    scores = computed["scores"]
+    used = {str(i): [e["roast_key"]]
+            for i, e in enumerate(load_log()) if e.get("roast_key")}
+    pairs = roasts_mod.generate_roasts(
+        scores["total_return_pct"], computed["total_returns"], computed.get("throne"),
+        {t: t for t in scores.index}, used_history=used, rng=rng, news=data.news)
+    if not pairs:  # engine never comes back empty in practice, but stay safe
+        t, pct = laggard["ticker"], laggard["total_return_pct"]
+        return (f"{t} at {pct:+.1f}%. Somewhere a piggy bank is outperforming "
+                f"you. \U0001f437", "")
+    text, key = next((p for p in pairs
+                      if p[1].split("|", 1)[0] == laggard["ticker"]), pairs[0])
+    return roasts_mod.plain_text(text), key
 
 
 def _headline(leader: dict, group_standings: list, movers: list) -> str:
@@ -200,6 +215,6 @@ def build_snapshot(data: GameData, computed: dict, period: str = "month") -> dic
         "n_picks": len(scores),
     }
     snapshot["headline_stat"] = _headline(leader, group_rows, top_movers)
-    snapshot["roast"] = _roast_line(laggard, rng)
+    snapshot["roast"], snapshot["roast_key"] = _roast_line(data, computed, laggard, rng)
     snapshot["narrative"] = _narrative(snapshot, len(scores), rng)
     return snapshot
