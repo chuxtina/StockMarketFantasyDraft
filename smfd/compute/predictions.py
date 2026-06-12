@@ -25,11 +25,14 @@ HORIZON = 5  # trading days ≈ one week
 
 # Momentum is weakly persistent at best — historical drift is shrunk hard
 # toward zero rather than extrapolated, and the technical-signal tilt is
-# deliberately small (score is -3..+3, so at most ±0.15%/day).
+# deliberately small (score is -3..+3, so at most ±0.15%/day). Beyond about
+# a trading month even that shrunk drift stops compounding (long-horizon
+# sims like the title race would otherwise extrapolate momentum for a year).
 DRIFT_FULL_WEIGHT = 0.30
 DRIFT_RECENT_WEIGHT = 0.20
 SIGNAL_TILT = 0.0005
 EARNINGS_VOL_MULT = 1.3
+DRIFT_PERSIST_DAYS = 21
 
 
 def _days_to_earnings(earnings: dict, ticker: str, today: datetime.date):
@@ -81,7 +84,8 @@ def simulate_next_week(daily: pd.DataFrame, signals: dict | None = None,
         shocks = rng.choice(lr - mean_all, size=(n_sims, horizon), replace=True)
         if (earnings_soon or {}).get(t):
             shocks = shocks * EARNINGS_VOL_MULT
-        finals[:, j] = (np.exp(cur + shocks.sum(axis=1) + drift * horizon) - 1) * 100
+        drift_days = min(horizon, DRIFT_PERSIST_DAYS)
+        finals[:, j] = (np.exp(cur + shocks.sum(axis=1) + drift * drift_days) - 1) * 100
     return tickers, finals
 
 

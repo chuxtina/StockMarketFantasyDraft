@@ -151,31 +151,38 @@ def gap_to_leader_chart(race: pd.DataFrame, group_map: dict, top_n: int = 15) ->
     return fig
 
 
-def projection_chart(race: pd.DataFrame, group_map: dict, top_n: int = 10) -> go.Figure:
-    """Current vs projected finish for the top picks. Clearly a toy."""
-    sub = race.head(top_n)
-    fig = go.Figure()
-    for t in sub.index:
-        color = GROUP_COLORS.get(group_map.get(t, ""), "#5d6f65")
-        cur, proj = sub.loc[t, "total_return_pct"], sub.loc[t, "projected_final_pct"]
-        fig.add_trace(go.Scatter(
-            x=[cur, proj], y=[t, t], mode="lines",
-            line=dict(color="rgba(18,51,36,0.2)", width=2, dash="dot"),
-            hoverinfo="skip", showlegend=False))
-        fig.add_trace(go.Scatter(
-            x=[cur], y=[t], mode="markers", marker=dict(size=10, color=color),
-            hovertemplate=f"{t} today: %{{x:.2f}}%<extra></extra>", showlegend=False))
-        fig.add_trace(go.Scatter(
-            x=[proj], y=[t], mode="markers",
-            marker=dict(size=10, color=color, symbol="diamond-open",
-                        line=dict(width=2, color=color)),
-            hovertemplate=f"{t} projected: %{{x:.2f}}%<extra></extra>", showlegend=False))
+def fmt_odds(p: float) -> str:
+    """Probability -> friendly label: 0% / <1% / 42% / >99%."""
+    if p <= 0:
+        return "0%"
+    if p < 0.01:
+        return "<1%"
+    if p > 0.99:
+        return ">99%"
+    return f"{p * 100:.0f}%"
+
+
+def title_odds_chart(race: pd.DataFrame, group_map: dict, top_n: int = 10) -> go.Figure:
+    """Horizontal bars: each contender's simulated chance of winning it all."""
+    contenders = race[race["title_odds"] > 0].sort_values("title_odds").tail(top_n)
+    colors = [GROUP_COLORS.get(group_map.get(t, ""), "#5d6f65") for t in contenders.index]
+    fig = go.Figure(go.Bar(
+        x=contenders["title_odds"] * 100, y=list(contenders.index), orientation="h",
+        marker_color=colors,
+        customdata=np.stack([contenders["total_return_pct"]], axis=-1),
+        hovertemplate="%{y}: %{x:.1f}% chance to finish #1 "
+                      "(at %{customdata[0]:.2f}% today)<extra></extra>",
+        text=[fmt_odds(p) for p in contenders["title_odds"]],
+        textposition="outside", textfont=dict(size=12),
+        cliponaxis=False,  # outside labels must not clip at the plot edge
+    ))
+    layout = {**BASE_LAYOUT, "margin": dict(t=50, r=58, b=40, l=14)}
     fig.update_layout(
-        height=max(330, 32 * len(sub) + 90),
-        xaxis=dict(title="Total return (%) — ● today  ◇ projected at finish",
+        height=max(330, 32 * len(contenders) + 90),
+        xaxis=dict(title="Chance of being #1 on the final day (%)",
                    gridcolor=GRID, fixedrange=True),
-        yaxis=dict(autorange="reversed", fixedrange=True),
-        **BASE_LAYOUT,
+        yaxis=dict(fixedrange=True, tickfont=dict(size=12)),
+        **layout,
     )
     return fig
 

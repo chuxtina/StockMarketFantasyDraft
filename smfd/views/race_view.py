@@ -10,13 +10,19 @@ from smfd.data import GameData
 from smfd.views.common import esc, group_colored, group_emoji, ret_color, section
 
 
+@st.cache_data(ttl=900, show_spinner=False)
+def _race_table(total_returns, scores, today):
+    """The race table runs a 2,000-season Monte Carlo — cache it per data drop."""
+    return race.race_table(total_returns, scores, today=today)
+
+
 def render(data: GameData, computed: dict):
     scores = computed["scores"]
     total_returns = computed["total_returns"]
 
     today = data.prices.index[-1].date() if len(data.prices) else None
     ms = race.milestones(today)
-    table = race.race_table(total_returns, scores, today=today)
+    table = _race_table(total_returns, scores, today)
     if table.empty:
         st.info("No race data yet.")
         return
@@ -51,8 +57,8 @@ def render(data: GameData, computed: dict):
             f'{table.loc[leader, "total_return_pct"]:+.2f}%</b>, with '
             f'{group_emoji(runner_up, data.group_map)} {group_colored(runner_up, data.group_map)} '
             f'{table.loc[runner_up, "gap_to_leader"]:.2f} pp behind. '
-            f'By our generous math, <b>{max(catchers, 0)}</b> of {len(table) - 1} chasers '
-            f'could still catch the leader.</div>',
+            f'The simulations give <b>{max(catchers, 0)}</b> of {len(table) - 1} chasers '
+            f'at least a 1-in-200 shot at the title.</div>',
             unsafe_allow_html=True,
         )
 
@@ -60,10 +66,32 @@ def render(data: GameData, computed: dict):
     st.plotly_chart(charts.gap_to_leader_chart(table, data.group_map),
                     use_container_width=True, config=charts.CHART_CONFIG)
 
-    section("\U0001f52e", "Projected Finish",
-            "just-for-fun straight-line of the last 30 trading days — not a prediction")
-    st.plotly_chart(charts.projection_chart(table, data.group_map),
+    remaining = ms["trading_days_remaining"]
+    section("\U0001f3c6", "Title Odds",
+            f"chance of being #1 on Alessi's birthday — {race.RACE_SIMS:,} simulated "
+            f"runs of the remaining {remaining} trading days, using each pick's real "
+            f"day-to-day swings")
+    st.plotly_chart(charts.title_odds_chart(table, data.group_map),
                     use_container_width=True, config=charts.CHART_CONFIG)
+
+    # The other end of the stakes: who's most likely to finish dead last.
+    spoon = table[table["last_odds"] >= 0.01].sort_values("last_odds", ascending=False).head(5)
+    if len(spoon):
+        chips = "".join(
+            f'<span style="display:inline-flex;align-items:center;gap:0.3rem;'
+            f'background:rgba(255,255,255,0.6);border-radius:999px;padding:0.2rem 0.6rem;">'
+            f'{group_emoji(t, data.group_map)} {group_colored(t, data.group_map)} '
+            f'<b>{charts.fmt_odds(row["last_odds"])}</b></span>'
+            for t, row in spoon.iterrows())
+        st.markdown(
+            f'<div style="display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;'
+            f'padding:0.5rem 0.8rem;background:rgba(209,74,52,0.06);'
+            f'border:1px solid rgba(209,74,52,0.18);border-radius:12px;'
+            f'font-size:0.78rem;margin-top:0.4rem;">'
+            f'<span style="font-weight:700;color:#b91c1c;">\U0001f4a9 Diaper Duty Watch '
+            f'— odds of finishing last:</span>{chips}</div>',
+            unsafe_allow_html=True,
+        )
 
     section("\U0001f3c3", "The Full Field")
     rows = []
@@ -75,6 +103,8 @@ def render(data: GameData, computed: dict):
         trend_html = (f'<span style="color:{ret_color(trend)};">'
                       f'{"↗" if trend >= 0 else "↘"} {trend:+.3f}%/day</span>')
         gap_str = "—" if rank == 1 else f'{row["gap_to_leader"]:.2f} pp'
+        odds_color = "#19a05f" if row["title_odds"] >= 0.10 else (
+            "#102018" if row["title_odds"] >= 0.01 else "#5d6f65")
         rows.append(
             f'<tr><td style="font-weight:700;color:var(--accent);">{rank}</td>'
             f'<td>{group_emoji(t, data.group_map)} {group_colored(t, data.group_map)}'
@@ -83,8 +113,8 @@ def render(data: GameData, computed: dict):
             f'{row["total_return_pct"]:+.2f}%</td>'
             f'<td>{gap_str}</td>'
             f'<td>{trend_html}</td>'
-            f'<td style="color:{ret_color(row["projected_final_pct"])};">'
-            f'{row["projected_final_pct"]:+.1f}%</td>'
+            f'<td style="font-weight:700;color:{odds_color};">'
+            f'{charts.fmt_odds(row["title_odds"])}</td>'
             f'<td style="text-align:center;">{alive}</td></tr>'
         )
     st.markdown(
@@ -96,14 +126,14 @@ def render(data: GameData, computed: dict):
             f'<th style="text-align:left;padding:9px 8px;background:linear-gradient(90deg,#0d2f20,#13492f);'
             f'color:#f4f0e3;font-size:0.68rem;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;">{h}</th>'
             for h in ["#", "Pick", "Total Return", "Gap to #1", "30-day Trend",
-                      "Projected Finish", "Still Alive?"])
+                      "Title Odds", "Still Alive?"])
         + '</tr>'
         + "".join(rows)
         + '</table></div>'
         '<div style="font-size:0.68rem;color:var(--muted);margin-top:0.3rem;">'
-        '✅ = could still catch the leader if its typical daily wobble breaks its way every day '
-        '(a deliberately generous bar) · \U0001f480 = would need a miracle · '
-        'Projection is a straight line through the last 30 trading days. It is a toy. '
-        'Do not invest real money on it.</div>',
+        f'Title odds = share of {race.RACE_SIMS:,} simulated finishes (each pick replaying '
+        'its own real daily swings to the final day) where the pick ends up #1 · '
+        '✅ = at least a 1-in-200 simulated shot at the title · \U0001f480 = it happened in '
+        'basically none of the simulations · Still a game, not financial advice.</div>',
         unsafe_allow_html=True,
     )
