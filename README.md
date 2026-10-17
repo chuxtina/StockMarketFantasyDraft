@@ -39,9 +39,13 @@ dividend-adjusted price series. See `tests/test_returns.py` for the contract.
 | 🎪 **Sideshow** | Bragging rights, throne room, daily roasts, predictions, trivia, sectors |
 | 🔒 **Admin** | Password-gated: owners leaderboard (PII), newsletter generator, roster fixes |
 
-The newsletter generator (self-contained HTML snapshot — copy into Gmail or
-download, send yourself) lives **inside the Admin tab**; the email it produces
-is group-safe and never contains owner names. Who-picked-what is visible only
+The newsletter generator lives **inside the Admin tab**. It produces an
+inline-CSS HTML email (copy into Gmail or download, send yourself), a plain-text
+twin, and a two-page **PDF print edition**, with an optional edition name
+("Half-Birthday Edition"). Charts in the email are drawn with table cells,
+except the group race, a PNG the nightly job renders to
+`data/newsletter/group_race.png` and the email links from this public repo.
+Every edition is group-safe and never contains owner names. Who-picked-what is visible only
 on the admin-side Owners Leaderboard — the public site shows tickers only.
 
 ## Architecture
@@ -65,10 +69,12 @@ smfd/
 │   └── roasts.py         # daily roast generation + cache
 ├── charts/               # Plotly builders (data in, figure out)
 ├── views/                # one module per tab + shared style.css
-└── newsletter/           # build.py (snapshot) + template.py (inline-CSS HTML)
+└── newsletter/           # build.py (snapshot), template.py (email), pdf.py (print
+                          # edition), charts.py (matplotlib), fonts/ (OFL)
 fetch_data.py             # nightly pipeline (GitHub Action)
 data/stock_data.json      # machine-refreshed nightly — never hand-edit
 players.json              # human-maintained roster — never auto-overwritten
+packages.txt              # apt packages for Streamlit Cloud (Pango, for the PDF)
 inputs/owners.json        # PII cache — gitignored, never committed
 tests/                    # scoring contract, parity, staleness, insights
 ```

@@ -23,6 +23,11 @@ PLAYERS_PATH = ROOT / "players.json"                 # human-maintained INPUT â€
 STOCK_DATA_PATH = ROOT / "data" / "stock_data.json"  # machine-refreshed nightly
 OWNERS_PATH = ROOT / "inputs" / "owners.json"        # PII â€” gitignored, admin-only
 NEWSLETTER_LOG_PATH = ROOT / "data" / "newsletter_log.json"
+# Group-race chart for the email: rendered nightly, linked from the public repo
+# (email clients drop pasted data: images, so it has to be a hosted URL)
+GROUP_RACE_PNG_PATH = ROOT / "data" / "newsletter" / "group_race.png"
+GROUP_RACE_PNG_URL = ("https://raw.githubusercontent.com/chuxtina/StockMarketFantasyDraft/"
+                      "main/data/newsletter/group_race.png")
 PREDICTION_HISTORY_PATH = ROOT / "prediction_history.json"
 ROASTS_CACHE_PATH = ROOT / "roasts_cache.json"
 

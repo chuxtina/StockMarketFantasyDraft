@@ -2,7 +2,8 @@
 
 The snapshot reads the SAME computed numbers as the dashboard, so the email can
 never contradict the site. Standings are always all-time (that's the game);
-movers and the narrative cover the selected period.
+movers cover the selected period. One snapshot feeds every edition: the
+Gmail-safe HTML email, the plain-text twin, and the PDF print edition.
 """
 
 from __future__ import annotations
@@ -11,10 +12,13 @@ import datetime
 import json
 import random
 
-from smfd.compute import groups, race
+from smfd import trivia
+from smfd.compute import groups, race, rankings, superlatives
 from smfd.compute import roasts as roasts_mod
-from smfd.config import GAME_START, GROUP_NAMES, NEWSLETTER_LOG_PATH
+from smfd.config import GAME_END, GAME_START, GROUP_NAMES, GROUPS, NEWSLETTER_LOG_PATH
 from smfd.data import GameData
+
+AWARD_COUNT = 6  # trophy-shelf badges shown (2x3 grid)
 
 PERIODS = {
     "month": "Last month",
@@ -127,7 +131,7 @@ def _headline(leader: dict, group_standings: list, movers: list) -> str:
     if (movers and movers[0]["period_change_pct"] > 5
             and movers[0]["ticker"] != leader["ticker"]):
         return (f"\U0001f680 {movers[0]['ticker']} went on a "
-                f"{movers[0]['period_change_pct']:+.1f} pp tear, while \U0001f451 "
+                f"{movers[0]['period_change_pct']:+.1f}-point tear, while \U0001f451 "
                 f"{leader['ticker']} still rules the leaderboard at "
                 f"{leader['total_return_pct']:+.1f}%. \U0001f525")
     if top_group:
@@ -137,37 +141,55 @@ def _headline(leader: dict, group_standings: list, movers: list) -> str:
     return f"\U0001f451 {leader['ticker']} leads at {leader['total_return_pct']:+.1f}%. \U0001f525"
 
 
-def _narrative(snapshot: dict, n_picks: int, rng: random.Random) -> str:
-    """One line per beat, '\n'-separated — the template renders each as its
-    own paragraph so the email doesn't read as one squished block."""
-    leader = snapshot["leader"]
-    laggard = snapshot["laggard"]
-    days = snapshot["days_remaining"]
-    movers = snapshot["top_movers"]
-    lines = [
-        f"\U0001f451 {leader['name']} ({leader['ticker']}) is sitting on the throne at "
-        f"{leader['total_return_pct']:+.1f}%.",
-        f"\U0001f4a9 {laggard['name']} ({laggard['ticker']}) is redecorating the basement at "
-        f"{laggard['total_return_pct']:+.1f}%.",
-    ]
-    if movers:
-        m = movers[0]
-        lines.append(f"\U0001f680 Biggest mover this period: {m['ticker']} at "
-                     f"{m['period_change_pct']:+.1f} pp — somebody's been eating "
-                     f"their vegetables. \U0001f966")
-    closers = [
-        f"with {days} days left, there's plenty of runway for chaos. "
-        f"Keep those picks warm! \U0001f525",
-        f"{days} days to the finish line — anything can happen, and in this draft "
-        f"it usually does! \U0001f3a2",
-        f"just {days} days until Alessi renders final judgment. "
-        f"No pressure, {laggard['ticker']}. \U0001f605",
-    ]
-    lines.append(f"\U0001f4aa All {n_picks} picks are still in it — {rng.choice(closers)}")
-    return "\n".join(lines)
+def _age_months(as_of: datetime.date) -> int:
+    """Alessi's age in whole months (born a year before GAME_END)."""
+    born = GAME_END.replace(year=GAME_END.year - 1)
+    return ((as_of.year - born.year) * 12 + as_of.month - born.month
+            - (as_of.day < born.day))
 
 
-def build_snapshot(data: GameData, computed: dict, period: str = "month") -> dict:
+def weekly_group_series(total_returns, group_map) -> list:
+    """Group average total return, one point per week (Fridays) plus the latest
+    close — smooth enough to read as a chart, small enough to keep in a dict."""
+    series = groups.group_return_series(total_returns, group_map)
+    if series.empty:
+        return []
+    last = series.iloc[-1]
+    weekly = series.resample("W-FRI").last().dropna(how="all")
+    weekly = weekly[weekly.index < series.index[-1]]
+    rows = [{"date": d.date().isoformat(), **{g: float(r[g]) for g in series.columns}}
+            for d, r in weekly.iterrows()]
+    rows.append({"date": series.index[-1].date().isoformat(),
+                 **{g: float(last[g]) for g in series.columns}})
+    return rows
+
+
+def _throne_watch(throne: dict, sup: dict, leader: dict) -> dict:
+    mvp_longest = throne.get("mvp_longest") or {}
+    bench_longest = throne.get("bench_longest") or {}
+    rivalry = sup.get("rivalry") or {}
+
+    def _d(v):
+        return v.date().isoformat() if hasattr(v, "date") else str(v)
+
+    return {
+        "king": leader["ticker"],
+        "king_name": leader["name"],
+        "king_days": int(throne.get("mvp_streak") or 0),
+        "crown_changes": max(len(throne.get("mvp_history") or []) - 1, 0),
+        "longest_reign": ({"ticker": mvp_longest["ticker"], "days": int(mvp_longest["streak"]),
+                           "start": _d(mvp_longest["start"]), "end": _d(mvp_longest["end"])}
+                          if mvp_longest.get("ticker") else None),
+        "longest_timeout": ({"ticker": bench_longest["ticker"],
+                             "days": int(bench_longest["streak"])}
+                            if bench_longest.get("ticker") else None),
+        "rivalry": ({"a": rivalry["ticker1"], "b": rivalry["ticker2"],
+                     "swaps": int(rivalry["swaps"])} if rivalry.get("swaps") else None),
+    }
+
+
+def build_snapshot(data: GameData, computed: dict, period: str = "month",
+                   edition: str = "") -> dict:
     scores = computed["scores"]
     total_returns = computed["total_returns"]
     as_of = total_returns.index[-1].date()
@@ -196,16 +218,37 @@ def build_snapshot(data: GameData, computed: dict, period: str = "month") -> dic
     leader = _pick_row(scores, scores.index[0])
     laggard = _pick_row(scores, scores.index[-1])
 
+    # Fun extras — reuse the dashboard's numbers when the app already has them
+    throne = computed.get("throne") or rankings.compute_throne_history(
+        total_returns, data.name_map)
+    sup = computed.get("superlatives") or superlatives.compute_superlatives(
+        total_returns, throne, data.name_map, data.group_map)
+    achievements = computed.get("achievements") or superlatives.compute_achievements(
+        total_returns, throne, scores)
+    awards = [{"icon": a["icon"], "name": a["name"], "desc": a["desc"],
+               "holder": a["holder"]}
+              for a in achievements if a.get("unlocked") not in (False, "False")][:AWARD_COUNT]
+    etf_war = sup.get("etf_war") or {}
+
     rng = random.Random(as_of.isoformat())  # deterministic per day: preview == download
+    total_days = max((GAME_END - GAME_START).days, 1)
     snapshot = {
+        "edition": edition.strip(),
         "period_label": period_label,
         "period": period,
         "as_of": as_of.isoformat(),
         "days_remaining": race.days_remaining(as_of),
+        "progress_pct": min(max((as_of - GAME_START).days / total_days * 100, 0), 100),
+        "age_months": _age_months(as_of),
         "leader": leader,
         "laggard": laggard,
         "group_standings": group_rows,
-        "standings_top": [_pick_row(scores, t) for t in scores.head(5).index],
+        "group_series": weekly_group_series(total_returns, data.group_map),
+        "group_lead_changes": len(groups.lead_changes(total_returns, data.group_map)),
+        "group_longest_lead": ({"etf": etf_war["etf"], "days": int(etf_war["streak"])}
+                               if etf_war.get("etf") in GROUPS else None),
+        "all_picks": [_pick_row(scores, t) for t in scores.index],
+        "standings_top": [_pick_row(scores, t) for t in scores.head(10).index],
         "standings_bottom": [_pick_row(scores, t) for t in scores.tail(5).index],
         "top_movers": top_movers,
         "bottom_movers": bottom_movers,
@@ -213,8 +256,12 @@ def build_snapshot(data: GameData, computed: dict, period: str = "month") -> dic
         "total_invested": float(data.stake * len(scores)),
         "total_dividends": float(scores["dividend_income"].sum()),
         "n_picks": len(scores),
+        "n_up": int((scores["total_return_pct"] > 0).sum()),
+        "throne": _throne_watch(throne, sup, leader),
+        "awards": awards,
+        "trivia": (trivia.ticker_trivia(leader["ticker"], rng)
+                   or trivia.generic_trivia(rng)[0]),
     }
     snapshot["headline_stat"] = _headline(leader, group_rows, top_movers)
     snapshot["roast"], snapshot["roast_key"] = _roast_line(data, computed, laggard, rng)
-    snapshot["narrative"] = _narrative(snapshot, len(scores), rng)
     return snapshot
